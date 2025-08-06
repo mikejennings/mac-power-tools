@@ -246,6 +246,11 @@ If you encounter any issues or have suggestions:
 
 ## Changelog
 
+### v1.2.2 (2025-08-06)
+- Fixed output formatting issues in various scripts
+- Improved display of command outputs
+- Better handling of newlines in print statements
+
 ### v1.2.1 (2025-08-06)
 - Added keep awake feature (`mac awake`)
 - Support for keeping Mac awake with screensaver

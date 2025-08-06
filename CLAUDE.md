@@ -86,7 +86,7 @@ mac-power-tools/
 - Validate user input to prevent injection attacks
 
 ### Version Management
-- Current version: 1.2.1
+- Current version: 1.2.2
 - Version defined in main `mac` script
 - Update version when making significant changes
 - Releases automatically update Homebrew formula via GitHub Actions
@@ -123,6 +123,11 @@ mac-power-tools/
 - Keep commits focused on single features/fixes
 
 ## Release History
+
+### v1.2.2 (2025-08-06)
+- Fixed output formatting issues
+- Improved newline handling in scripts
+- Cleaner command output display
 
 ### v1.2.1 (2025-08-06)
 - Added keep awake feature (`mac awake`)
