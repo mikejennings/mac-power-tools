@@ -1,0 +1,131 @@
+name: Release
+
+on:
+  push:
+    tags:
+      - 'v*'
+  workflow_dispatch:
+    inputs:
+      version:
+        description: 'Version to release (e.g., 1.0.1)'
+        required: true
+        type: string
+
+jobs:
+  release:
+    runs-on: macos-latest
+    
+    permissions:
+      contents: write
+      
+    steps:
+    - uses: actions/checkout@v4
+    
+    - name: Set version
+      id: version
+      run: |
+        if [ "${{ github.event_name }}" = "workflow_dispatch" ]; then
+          VERSION="v${{ github.event.inputs.version }}"
+        else
+          VERSION="${{ github.ref_name }}"
+        fi
+        echo "version=$VERSION" >> $GITHUB_OUTPUT
+        echo "version_number=${VERSION#v}" >> $GITHUB_OUTPUT
+    
+    - name: Update version in scripts
+      run: |
+        VERSION="${{ steps.version.outputs.version_number }}"
+        sed -i.bak "s/^VERSION=.*/VERSION=\"$VERSION\"/" mac
+        rm mac.bak
+        echo "Updated version to $VERSION"
+    
+    - name: Create release archive
+      run: |
+        VERSION="${{ steps.version.outputs.version }}"
+        mkdir -p dist
+        tar -czf "dist/mac-power-tools-${VERSION}.tar.gz" \
+          --exclude='.git*' \
+          --exclude='dist' \
+          --exclude='.github' \
+          mac scripts README.md LICENSE
+        
+        # Calculate SHA256
+        cd dist
+        shasum -a 256 "mac-power-tools-${VERSION}.tar.gz" > "mac-power-tools-${VERSION}.sha256"
+        cd ..
+    
+    - name: Create Release
+      uses: softprops/action-gh-release@v1
+      with:
+        name: Mac Power Tools ${{ steps.version.outputs.version }}
+        tag_name: ${{ steps.version.outputs.version }}
+        draft: false
+        prerelease: false
+        generate_release_notes: true
+        files: |
+          dist/mac-power-tools-*.tar.gz
+          dist/mac-power-tools-*.sha256
+        body: |
+          ## Mac Power Tools ${{ steps.version.outputs.version }}
+          
+          ### Installation
+          
+          #### Via Homebrew (Recommended)
+          ```bash
+          brew tap mikejennings/mac-power-tools
+          brew install mac-power-tools
+          ```
+          
+          #### Manual Installation
+          ```bash
+          curl -LO https://github.com/mikejennings/mac-power-tools/releases/download/${{ steps.version.outputs.version }}/mac-power-tools-${{ steps.version.outputs.version }}.tar.gz
+          tar -xzf mac-power-tools-${{ steps.version.outputs.version }}.tar.gz
+          ./install.sh
+          ```
+          
+          ### What's Changed
+          See the auto-generated release notes below for details.
+          
+          ### Verification
+          SHA256 checksum is available in the release assets.
+    
+    - name: Update Homebrew Formula
+      run: |
+        VERSION="${{ steps.version.outputs.version }}"
+        SHA256=$(cat dist/mac-power-tools-${VERSION}.sha256 | awk '{print $1}')
+        
+        # Create update script
+        cat > update_formula.sh << 'EOF'
+        #!/bin/bash
+        VERSION=$1
+        SHA256=$2
+        
+        # Clone homebrew tap
+        git clone https://github.com/mikejennings/homebrew-mac-power-tools.git homebrew-update
+        cd homebrew-update
+        
+        # Update formula
+        sed -i.bak "s|url \".*\"|url \"https://github.com/mikejennings/mac-power-tools/archive/refs/tags/${VERSION}.tar.gz\"|" Formula/mac-power-tools.rb
+        sed -i.bak "s|sha256 \".*\"|sha256 \"${SHA256}\"|" Formula/mac-power-tools.rb
+        sed -i.bak "s|version \".*\"|version \"${VERSION#v}\"|" Formula/mac-power-tools.rb
+        rm Formula/*.bak
+        
+        # Commit and push
+        git config user.name "GitHub Actions"
+        git config user.email "actions@github.com"
+        git add Formula/mac-power-tools.rb
+        git commit -m "Update Mac Power Tools to ${VERSION}"
+        git push
+        
+        cd ..
+        rm -rf homebrew-update
+        EOF
+        
+        chmod +x update_formula.sh
+        echo "Formula update script created (manual run required)"
+    
+    - name: Upload formula update script
+      uses: actions/upload-artifact@v3
+      with:
+        name: formula-update-script
+        path: update_formula.sh
