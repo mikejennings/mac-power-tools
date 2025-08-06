@@ -141,14 +141,12 @@ keep_awake() {
         # -d prevents display sleep but allows screensaver
         # -i prevents system idle sleep
         # -s keeps Mac awake while connected to AC power
-        caffeinate_args="-dis"
-        print_color "$BLUE" "Keeping Mac awake with screensaver allowed"
+        caffeinate_args="dis"
     else
         if [[ "$PREVENT_DISPLAY_SLEEP" == true ]]; then
             caffeinate_args="${caffeinate_args}d"
         fi
         caffeinate_args="${caffeinate_args}i"
-        print_color "$BLUE" "Keeping Mac awake (display sleep prevented)"
     fi
     
     # Add disk sleep prevention if requested
@@ -176,9 +174,18 @@ keep_awake() {
         caffeinate_args="${caffeinate_args} -t $DURATION"
         local hours=$((DURATION / 3600))
         local minutes=$(((DURATION % 3600) / 60))
-        duration_msg=" for ${hours}h ${minutes}m"
+        local seconds=$((DURATION % 60))
+        
+        # Format duration message
+        if [[ $hours -gt 0 ]]; then
+            duration_msg="${hours}h ${minutes}m"
+        elif [[ $minutes -gt 0 ]]; then
+            duration_msg="${minutes}m"
+        else
+            duration_msg="${seconds}s"
+        fi
     else
-        duration_msg=" (indefinitely)"
+        duration_msg="indefinitely"
     fi
     
     # Start caffeinate in background with nohup
@@ -199,7 +206,18 @@ keep_awake() {
         echo "AWAKE_PROCESS=\"$WAIT_FOR_PROCESS\""
     } > "$INFO_FILE"
     
-    print_color "$GREEN" "✓ Mac will stay awake${duration_msg}"
+    # Display status message
+    if [[ "$USE_SCREENSAVER" == true ]]; then
+        print_color "$GREEN" "✓ Mac will stay awake for $duration_msg"
+        print_color "$CYAN" "Mode: Screensaver allowed"
+    else
+        print_color "$GREEN" "✓ Mac will stay awake for $duration_msg"
+        if [[ "$PREVENT_DISPLAY_SLEEP" == true ]]; then
+            print_color "$CYAN" "Mode: Display sleep prevented"
+        else
+            print_color "$CYAN" "Mode: Display sleep allowed"
+        fi
+    fi
     print_color "$CYAN" "PID: $pid"
     
     # Start screensaver if requested
