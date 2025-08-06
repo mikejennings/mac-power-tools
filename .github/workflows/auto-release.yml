@@ -45,6 +45,7 @@ jobs:
     
     permissions:
       contents: write
+      issues: write
       
     steps:
     - uses: actions/checkout@v4
@@ -61,77 +62,88 @@ jobs:
       run: |
         # Try to extract recent changes from README.md
         VERSION="${{ steps.version.outputs.version }}"
+        VERSION_NUM="${{ steps.version.outputs.version_number }}"
         
-        # Default changelog  
-        cat > release_notes.md << EOF
-        ## Mac Power Tools ${VERSION}
-        
-        ### What's Changed
-        - Various improvements and bug fixes
-        
-        ### Installation
-        
-        #### Via Homebrew (Recommended)
-        \`\`\`bash
-        brew tap mikejennings/mac-power-tools
-        brew install mac-power-tools
-        \`\`\`
-        
-        #### Manual Installation
-        \`\`\`bash
-        curl -LO https://github.com/mikejennings/mac-power-tools/releases/download/${VERSION}/mac-power-tools-${VERSION}.tar.gz
-        tar -xzf mac-power-tools-${VERSION}.tar.gz
-        ./install.sh
-        \`\`\`
-        EOF
-        
-        # Try to extract from README changelog section
-        if grep -q "### ${VERSION}" README.md; then
-          EXTRACTED=$(sed -n "/### ${VERSION}/,/### v[0-9]/p" README.md | sed '$ d')
-          if [ -n "$EXTRACTED" ]; then
-            cat > release_notes.md << EOF
-        ## Mac Power Tools ${VERSION}
-        
-        ${EXTRACTED}
-        
-        ### Installation
-        
-        #### Via Homebrew (Recommended)
-        \`\`\`bash
-        brew update
-        brew upgrade mac-power-tools
-        \`\`\`
-        
-        #### Manual Installation
-        \`\`\`bash
-        curl -LO https://github.com/mikejennings/mac-power-tools/releases/download/${VERSION}/mac-power-tools-${VERSION}.tar.gz
-        tar -xzf mac-power-tools-${VERSION}.tar.gz
-        ./install.sh
-        \`\`\`
-        EOF
-          fi
+        # Check if version exists in README
+        if grep -q "### v${VERSION_NUM}" README.md; then
+          echo "Found changelog for v${VERSION_NUM}"
+          # Extract the changelog section
+          sed -n "/### v${VERSION_NUM}/,/### v[0-9]/p" README.md | sed '$ d' > changelog_content.md
+          
+          # Create full release notes
+          {
+            echo "## Mac Power Tools ${VERSION}"
+            echo ""
+            cat changelog_content.md
+            echo ""
+            echo "### Installation"
+            echo ""
+            echo "#### Via Homebrew (Recommended)"
+            echo '```bash'
+            echo "brew update"
+            echo "brew upgrade mac-power-tools"
+            echo '```'
+            echo ""
+            echo "#### Manual Installation"
+            echo '```bash'
+            echo "curl -LO https://github.com/mikejennings/mac-power-tools/releases/download/${VERSION}/mac-power-tools-${VERSION}.tar.gz"
+            echo "tar -xzf mac-power-tools-${VERSION}.tar.gz"
+            echo "./install.sh"
+            echo '```'
+          } > release_notes.md
+        else
+          echo "No changelog found for v${VERSION_NUM}, using default"
+          # Create default release notes
+          {
+            echo "## Mac Power Tools ${VERSION}"
+            echo ""
+            echo "### What's Changed"
+            echo "- Various improvements and bug fixes"
+            echo ""
+            echo "### Installation"
+            echo ""
+            echo "#### Via Homebrew (Recommended)"
+            echo '```bash'
+            echo "brew tap mikejennings/mac-power-tools"
+            echo "brew install mac-power-tools"
+            echo '```'
+            echo ""
+            echo "#### Manual Installation"
+            echo '```bash'
+            echo "curl -LO https://github.com/mikejennings/mac-power-tools/releases/download/${VERSION}/mac-power-tools-${VERSION}.tar.gz"
+            echo "tar -xzf mac-power-tools-${VERSION}.tar.gz"
+            echo "./install.sh"
+            echo '```'
+          } > release_notes.md
         fi
     
     - name: Create release archive
       run: |
         VERSION="${{ steps.version.outputs.version }}"
         mkdir -p dist
+        
+        # Create tarball
         tar -czf "dist/mac-power-tools-${VERSION}.tar.gz" \
           --exclude='.git*' \
           --exclude='dist' \
           --exclude='.github' \
+          --exclude='*.swp' \
+          --exclude='.DS_Store' \
           mac scripts README.md LICENSE install.sh CLAUDE.md
         
         # Calculate SHA256
         cd dist
         shasum -a 256 "mac-power-tools-${VERSION}.tar.gz" > "mac-power-tools-${VERSION}.sha256"
         cd ..
+        
+        echo "Archive created: dist/mac-power-tools-${VERSION}.tar.gz"
+        echo "SHA256: $(cat dist/mac-power-tools-${VERSION}.sha256)"
     
     - name: Create Git Tag
       run: |
         VERSION="${{ steps.version.outputs.version }}"
-        git config user.name "GitHub Actions"
-        git config user.email "actions@github.com"
+        git config user.name "github-actions[bot]"
+        git config user.email "github-actions[bot]@users.noreply.github.com"
         git tag -a "$VERSION" -m "Auto-release $VERSION"
         git push origin "$VERSION"
     
@@ -148,28 +160,30 @@ jobs:
           dist/mac-power-tools-*.sha256
         body_path: release_notes.md
     
-    - name: Trigger Homebrew Update
+    - name: Create Homebrew Update Issue
       env:
         GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
       run: |
         VERSION="${{ steps.version.outputs.version }}"
         SHA256=$(cat dist/mac-power-tools-${VERSION}.sha256 | awk '{print $1}')
         
-        # Trigger homebrew formula update workflow if it exists
-        # This assumes you have a workflow in the homebrew tap repo
-        echo "Release created: $VERSION"
-        echo "SHA256: $SHA256"
-        echo "Homebrew tap should be updated manually or via separate workflow"
+        # Create issue body
+        {
+          echo "New release available: ${VERSION}"
+          echo ""
+          echo "Download URL: https://github.com/mikejennings/mac-power-tools/archive/refs/tags/${VERSION}.tar.gz"
+          echo "SHA256: ${SHA256}"
+          echo ""
+          echo "Please update the formula with:"
+          echo '```ruby'
+          echo "version \"${VERSION#v}\""
+          echo "url \"https://github.com/mikejennings/mac-power-tools/archive/refs/tags/${VERSION}.tar.gz\""
+          echo "sha256 \"${SHA256}\""
+          echo '```'
+        } > issue_body.md
         
-        # Create issue as reminder if needed
-        ISSUE_BODY="New release available: ${VERSION}
-        
-        Download URL: https://github.com/mikejennings/mac-power-tools/archive/refs/tags/${VERSION}.tar.gz
-        SHA256: ${SHA256}
-        
-        Please update the formula."
-        
+        # Create issue
         gh issue create \
           --repo mikejennings/homebrew-mac-power-tools \
           --title "Update formula for Mac Power Tools ${VERSION}" \
-          --body "$ISSUE_BODY" || true
+          --body-file issue_body.md || echo "Could not create issue"

@@ -17,6 +17,7 @@ jobs:
     
     permissions:
       contents: write
+      issues: write
       
     steps:
     - uses: actions/checkout@v4
@@ -96,21 +97,26 @@ jobs:
         VERSION="${{ steps.version.outputs.version }}"
         SHA256=$(cat dist/mac-power-tools-${VERSION}.sha256 | awk '{print $1}')
         
+        # Create issue body
+        {
+          echo "New release available: ${VERSION}"
+          echo ""
+          echo "Download URL: https://github.com/mikejennings/mac-power-tools/archive/refs/tags/${VERSION}.tar.gz"
+          echo "SHA256: ${SHA256}"
+          echo ""
+          echo "Please update the formula with:"
+          echo '```ruby'
+          echo "version \"${VERSION#v}\""
+          echo "url \"https://github.com/mikejennings/mac-power-tools/archive/refs/tags/${VERSION}.tar.gz\""
+          echo "sha256 \"${SHA256}\""
+          echo '```'
+        } > issue_body.md
+        
         # Create issue for Homebrew update
         gh issue create \
           --repo mikejennings/homebrew-mac-power-tools \
           --title "Update formula for Mac Power Tools ${VERSION}" \
-          --body "New release available: ${VERSION}
-          
-Download URL: https://github.com/mikejennings/mac-power-tools/archive/refs/tags/${VERSION}.tar.gz
-SHA256: ${SHA256}
-
-Please update the formula with:
-\`\`\`ruby
-version \"${VERSION#v}\"
-url \"https://github.com/mikejennings/mac-power-tools/archive/refs/tags/${VERSION}.tar.gz\"
-sha256 \"${SHA256}\"
-\`\`\`" || echo "Could not create issue for Homebrew update"
+          --body-file issue_body.md || echo "Could not create issue for Homebrew update"
     
     - name: Upload formula update script
       uses: actions/upload-artifact@v4
