@@ -39,6 +39,7 @@ show_help() {
     
     printf "    ${CYAN}Maintenance:${NC}\n"
     printf "        maintenance        Interactive maintenance menu\n"
+    printf "        clean [options]   Deep clean system junk\n"
     printf "        trash             Empty trash\n"
     printf "        cache             Clear caches\n"
     printf "        downloads         Clean/organize downloads folder\n"
@@ -126,6 +127,10 @@ main() {
         # Maintenance commands
         maintenance)
             "$SCRIPT_DIR/scripts/mac-maintenance.sh"
+            ;;
+        clean)
+            shift
+            "$SCRIPT_DIR/scripts/mac-clean.sh" "$@"
             ;;
         trash)
             "$SCRIPT_DIR/scripts/mac-maintenance.sh" trash
