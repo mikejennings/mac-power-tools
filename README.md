@@ -259,6 +259,12 @@ If you encounter any issues or have suggestions:
 
 ## Changelog
 
+### v1.2.4 (2025-08-06)
+- Added Mac App Store to Homebrew migration tool (`mac migrate-mas`)
+- Maps 50+ popular apps for easy migration
+- Interactive and automated migration modes
+- Improved release automation workflows
+
 ### v1.2.3 (2025-08-06)
 - Enhanced awake status with time remaining display
 - Added progress bar for timed awake sessions

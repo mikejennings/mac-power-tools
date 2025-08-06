@@ -16,7 +16,7 @@ MAGENTA='\033[0;35m'
 NC='\033[0m' # No Color
 
 # Version
-VERSION="1.2.3"
+VERSION="1.2.4"
 
 # Function to show help
 show_help() {
