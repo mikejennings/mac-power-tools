@@ -159,7 +159,52 @@ The auto-release workflow monitors the `mac` script, `scripts/` directory, and `
 - Run manual tests before committing
 - Keep commits focused on single features/fixes
 
+## GitHub Actions Workflows
+
+### Available Workflows
+
+1. **auto-release.yml** - Automatic release on version change
+   - Triggers on push to master when VERSION changes
+   - Creates git tag, GitHub release, and Homebrew update issue
+   - Extracts changelog from README.md automatically
+
+2. **release.yml** - Manual release on tag push
+   - Triggers when pushing tags like `v1.2.3`
+   - Creates release assets (.tar.gz and SHA256)
+   - Opens issue in Homebrew tap for formula update
+
+3. **test.yml** - Runs tests on every push
+   - Validates bash scripts
+   - Runs shellcheck linting
+   - Executes test suite
+
+4. **version-bump.yml** - Interactive version bumping
+   - Manual workflow dispatch from GitHub Actions UI
+   - Creates PR with version changes
+   - Options for patch/minor/major bumps
+
+### Workflow Troubleshooting
+
+If workflows fail with YAML syntax errors:
+- Avoid multi-line strings with quotes in YAML
+- Use echo commands or heredocs in bash scripts
+- Use file-based approach for complex strings (--body-file)
+- Validate with: `ruby -e "require 'yaml'; YAML.load_file('.github/workflows/file.yml')"`
+
+### Common Workflow Issues and Fixes
+
+1. **Multi-line strings in YAML**: Use `|` or `>` for literal/folded strings, or move to bash script
+2. **Heredocs in YAML**: Better to use echo commands line by line
+3. **GitHub CLI in workflows**: Always use `--body-file` instead of inline `--body` for complex content
+4. **Permissions**: Add `issues: write` permission for creating issues
+
 ## Release History
+
+### v1.2.4 (2025-08-06)
+- Added Mac App Store to Homebrew migration tool (`mac migrate-mas`)
+- Maps 50+ popular apps for easy migration
+- Fixed GitHub Actions workflow YAML syntax issues
+- Improved release automation
 
 ### v1.2.3 (2025-08-06)
 - Enhanced awake status with time remaining display

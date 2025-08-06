@@ -188,7 +188,8 @@ mac-power-tools/
 │   ├── mac-duplicates.sh  # Duplicate finder (NEW)
 │   ├── mac-clean.sh       # System junk cleaner (NEW)
 │   ├── mac-memory.sh      # Memory optimizer (NEW)
-│   └── mac-awake.sh       # Keep awake/caffeinate (NEW)
+│   ├── mac-awake.sh       # Keep awake/caffeinate (NEW)
+│   └── mac-migrate-mas.sh # MAS to Homebrew migration (NEW)
 ├── test/                   # Test suite (NEW)
 │   ├── test_helper.sh     # Testing framework
 │   └── *.test.sh          # Test files for each feature
@@ -230,15 +231,35 @@ Complete replacement for paid CleanMyMac features:
 - **System Junk Cleaner**: Clean Xcode derived data, iOS backups, package manager caches
 - **Memory Optimizer**: Real-time memory monitoring, purge inactive RAM, kill memory hogs
 
+## Release Process
+
+### Automatic Releases
+Mac Power Tools uses GitHub Actions for automated releases:
+
+1. **Bump version locally**: Run `./bump-version.sh` for interactive version bumping
+2. **Push to master**: The auto-release workflow will automatically:
+   - Create a git tag
+   - Generate a GitHub release with changelog
+   - Create release assets (.tar.gz and SHA256)
+   - Open an issue in the Homebrew tap for formula updates
+
+### Manual Release
+Alternatively, create a tag manually:
+```bash
+git tag v1.2.5
+git push origin v1.2.5
+```
+
 ## Contributing
 
 Contributions are welcome! Please feel free to submit a Pull Request.
 
 1. Fork the repository
 2. Create your feature branch (`git checkout -b feature/AmazingFeature`)
-3. Commit your changes (`git commit -m 'Add some AmazingFeature'`)
-4. Push to the branch (`git push origin feature/AmazingFeature`)
-5. Open a Pull Request
+3. Run tests: `./test/run_tests.sh`
+4. Commit your changes (`git commit -m 'Add some AmazingFeature'`)
+5. Push to the branch (`git push origin feature/AmazingFeature`)
+6. Open a Pull Request
 
 ## License
 
