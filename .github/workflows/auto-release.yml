@@ -62,54 +62,55 @@ jobs:
         # Try to extract recent changes from README.md
         VERSION="${{ steps.version.outputs.version }}"
         
-        # Default changelog
-        CHANGELOG="## Mac Power Tools ${VERSION}
-
-### What's Changed
-- Various improvements and bug fixes
-
-### Installation
-
-#### Via Homebrew (Recommended)
-\`\`\`bash
-brew tap mikejennings/mac-power-tools
-brew install mac-power-tools
-\`\`\`
-
-#### Manual Installation
-\`\`\`bash
-curl -LO https://github.com/mikejennings/mac-power-tools/releases/download/${VERSION}/mac-power-tools-${VERSION}.tar.gz
-tar -xzf mac-power-tools-${VERSION}.tar.gz
-./install.sh
-\`\`\`"
+        # Default changelog  
+        cat > release_notes.md << EOF
+        ## Mac Power Tools ${VERSION}
+        
+        ### What's Changed
+        - Various improvements and bug fixes
+        
+        ### Installation
+        
+        #### Via Homebrew (Recommended)
+        \`\`\`bash
+        brew tap mikejennings/mac-power-tools
+        brew install mac-power-tools
+        \`\`\`
+        
+        #### Manual Installation
+        \`\`\`bash
+        curl -LO https://github.com/mikejennings/mac-power-tools/releases/download/${VERSION}/mac-power-tools-${VERSION}.tar.gz
+        tar -xzf mac-power-tools-${VERSION}.tar.gz
+        ./install.sh
+        \`\`\`
+        EOF
         
         # Try to extract from README changelog section
         if grep -q "### ${VERSION}" README.md; then
           EXTRACTED=$(sed -n "/### ${VERSION}/,/### v[0-9]/p" README.md | sed '$ d')
           if [ -n "$EXTRACTED" ]; then
-            CHANGELOG="## Mac Power Tools ${VERSION}
-
-${EXTRACTED}
-
-### Installation
-
-#### Via Homebrew (Recommended)
-\`\`\`bash
-brew update
-brew upgrade mac-power-tools
-\`\`\`
-
-#### Manual Installation
-\`\`\`bash
-curl -LO https://github.com/mikejennings/mac-power-tools/releases/download/${VERSION}/mac-power-tools-${VERSION}.tar.gz
-tar -xzf mac-power-tools-${VERSION}.tar.gz
-./install.sh
-\`\`\`"
+            cat > release_notes.md << EOF
+        ## Mac Power Tools ${VERSION}
+        
+        ${EXTRACTED}
+        
+        ### Installation
+        
+        #### Via Homebrew (Recommended)
+        \`\`\`bash
+        brew update
+        brew upgrade mac-power-tools
+        \`\`\`
+        
+        #### Manual Installation
+        \`\`\`bash
+        curl -LO https://github.com/mikejennings/mac-power-tools/releases/download/${VERSION}/mac-power-tools-${VERSION}.tar.gz
+        tar -xzf mac-power-tools-${VERSION}.tar.gz
+        ./install.sh
+        \`\`\`
+        EOF
           fi
         fi
-        
-        # Save to file for later use
-        echo "$CHANGELOG" > release_notes.md
     
     - name: Create release archive
       run: |
