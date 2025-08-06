@@ -1,0 +1,183 @@
+#!/bin/bash
+
+# Mac Power Tools - Main wrapper script
+# Modern replacement for mac-cli with enhanced functionality
+
+# Get the directory where this script is located
+SCRIPT_DIR="$( cd "$( dirname "${BASH_SOURCE[0]}" )" && pwd )"
+
+# Colors for output
+RED='\033[0;31m'
+GREEN='\033[0;32m'
+YELLOW='\033[1;33m'
+BLUE='\033[0;34m'
+CYAN='\033[0;36m'
+MAGENTA='\033[0;35m'
+NC='\033[0m' # No Color
+
+# Version
+VERSION="1.0.0"
+
+# Function to show help
+show_help() {
+    cat << EOF
+${BLUE}Mac Power Tools v${VERSION}${NC}
+A comprehensive macOS management tool
+
+${YELLOW}USAGE:${NC}
+    mac <command> [options]
+
+${YELLOW}COMMANDS:${NC}
+    ${CYAN}System Updates:${NC}
+        update [target]     Update system, packages, and apps
+                           Targets: macos, brew, mas, npm, ruby, pip
+                           No target updates everything
+        
+    ${CYAN}System Information:${NC}
+        info [type]        Show system information
+                          Types: system, memory, disk, network, battery, temp, cpu
+                          No type shows all information
+        
+    ${CYAN}Maintenance:${NC}
+        maintenance        Interactive maintenance menu
+        trash             Empty trash
+        cache             Clear caches
+        downloads         Clean/organize downloads folder
+        large-files       Find large files (>100MB)
+        large-dirs        Find large directories
+        logs              Clean old log files
+        dns               Flush DNS cache
+        spotlight         Rebuild Spotlight index
+        hidden            Toggle hidden files visibility
+        permissions       Repair disk permissions
+        
+    ${CYAN}Power Management:${NC}
+        sleep             Put Mac to sleep
+        restart           Restart Mac
+        shutdown          Shutdown Mac
+        kill-apps         Close all applications
+        
+    
+    ${CYAN}Other:${NC}
+        help              Show this help message
+        version           Show version information
+
+${YELLOW}EXAMPLES:${NC}
+    mac update                # Update everything
+    mac update brew           # Update only Homebrew
+    mac info                  # Show all system information
+    mac info memory           # Show only memory information
+    mac maintenance           # Open maintenance menu
+    mac trash                 # Empty trash
+
+${YELLOW}PROJECT:${NC}
+    Location: $SCRIPT_DIR
+    GitHub: https://github.com/mikejennings/mac-power-tools
+    Logs: ~/Library/Logs/
+
+EOF
+}
+
+# Function to show version
+show_version() {
+    echo "Mac Power Tools v${VERSION}"
+    echo "Location: $SCRIPT_DIR"
+    echo "macOS: $(sw_vers -productVersion)"
+}
+
+# Main command router
+main() {
+    if [ $# -eq 0 ]; then
+        show_help
+        exit 0
+    fi
+    
+    case $1 in
+        # Help and version
+        help|-h|--help)
+            show_help
+            ;;
+        version|-v|--version)
+            show_version
+            ;;
+            
+        # System updates
+        update)
+            shift
+            "$SCRIPT_DIR/scripts/mac-update.sh" "$@"
+            ;;
+            
+        # System information
+        info|system)
+            shift
+            "$SCRIPT_DIR/scripts/mac-info.sh" "$@"
+            ;;
+            
+        # Maintenance commands
+        maintenance)
+            "$SCRIPT_DIR/scripts/mac-maintenance.sh"
+            ;;
+        trash)
+            "$SCRIPT_DIR/scripts/mac-maintenance.sh" trash
+            ;;
+        cache|caches)
+            "$SCRIPT_DIR/scripts/mac-maintenance.sh" cache
+            ;;
+        downloads)
+            "$SCRIPT_DIR/scripts/mac-maintenance.sh" downloads
+            ;;
+        large-files)
+            "$SCRIPT_DIR/scripts/mac-maintenance.sh" large-files
+            ;;
+        large-dirs|large-directories)
+            "$SCRIPT_DIR/scripts/mac-maintenance.sh" large-dirs
+            ;;
+        logs)
+            "$SCRIPT_DIR/scripts/mac-maintenance.sh" logs
+            ;;
+        dns)
+            "$SCRIPT_DIR/scripts/mac-maintenance.sh" dns
+            ;;
+        spotlight)
+            "$SCRIPT_DIR/scripts/mac-maintenance.sh" spotlight
+            ;;
+        hidden)
+            "$SCRIPT_DIR/scripts/mac-maintenance.sh" hidden
+            ;;
+        permissions)
+            "$SCRIPT_DIR/scripts/mac-maintenance.sh" permissions
+            ;;
+            
+        # Power management
+        sleep)
+            "$SCRIPT_DIR/scripts/mac-maintenance.sh" sleep
+            ;;
+        restart)
+            "$SCRIPT_DIR/scripts/mac-maintenance.sh" restart
+            ;;
+        shutdown)
+            "$SCRIPT_DIR/scripts/mac-maintenance.sh" shutdown
+            ;;
+        kill-apps)
+            "$SCRIPT_DIR/scripts/mac-maintenance.sh" kill-apps
+            ;;
+            
+        
+        # Unknown command
+        *)
+            echo -e "${RED}Unknown command: $1${NC}"
+            echo "Run 'mac help' for usage information"
+            exit 1
+            ;;
+    esac
+}
+
+# Check if scripts directory exists
+if [ ! -d "$SCRIPT_DIR/scripts" ]; then
+    echo -e "${RED}Error: scripts directory not found${NC}"
+    echo "Expected location: $SCRIPT_DIR/scripts"
+    exit 1
+fi
+
+# Run main function with all arguments
+main "$@"
