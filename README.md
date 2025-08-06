@@ -246,6 +246,11 @@ If you encounter any issues or have suggestions:
 
 ## Changelog
 
+### v1.2.1 (2025-08-06)
+- Added keep awake feature (`mac awake`)
+- Support for keeping Mac awake with screensaver
+- Timed awake sessions and process monitoring
+
 ### v1.2.0 (2025-08-06)
 - Added system junk cleaner (`mac clean`)
 - Added memory optimizer (`mac memory`)
