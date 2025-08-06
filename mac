@@ -42,6 +42,7 @@ show_help() {
     printf "        trash             Empty trash\n"
     printf "        cache             Clear caches\n"
     printf "        downloads         Clean/organize downloads folder\n"
+    printf "        duplicates [path] Find duplicate files\n"
     printf "        large-files       Find large files (>100MB)\n"
     printf "        large-dirs        Find large directories\n"
     printf "        logs              Clean old log files\n"
@@ -134,6 +135,10 @@ main() {
             ;;
         downloads)
             "$SCRIPT_DIR/scripts/mac-maintenance.sh" downloads
+            ;;
+        duplicates)
+            shift
+            "$SCRIPT_DIR/scripts/mac-duplicates.sh" "$@"
             ;;
         large-files)
             "$SCRIPT_DIR/scripts/mac-maintenance.sh" large-files
