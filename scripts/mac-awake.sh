@@ -19,6 +19,7 @@ PREVENT_DISK_SLEEP=false
 PREVENT_DISPLAY_SLEEP=true
 WAIT_FOR_PROCESS=""
 PID_FILE="/tmp/mac-awake.pid"
+INFO_FILE="/tmp/mac-awake.info"
 
 # Function to print colored output
 print_color() {
@@ -36,6 +37,7 @@ cleanup() {
             print_color "$YELLOW" "Stopped keeping Mac awake"
         fi
         rm -f "$PID_FILE"
+        rm -f "$INFO_FILE"
     fi
 }
 
@@ -58,6 +60,7 @@ stop_awake() {
         local pid=$(cat "$PID_FILE")
         kill "$pid" 2>/dev/null
         rm -f "$PID_FILE"
+        rm -f "$INFO_FILE"
         print_color "$GREEN" "✓ Stopped keeping Mac awake"
     else
         print_color "$YELLOW" "Mac awake mode is not currently running"
@@ -70,10 +73,53 @@ show_status() {
         local pid=$(cat "$PID_FILE")
         print_color "$GREEN" "✓ Mac is being kept awake (PID: $pid)"
         
-        # Show process details
-        local cmd=$(ps -p "$pid" -o command= 2>/dev/null)
-        if [[ -n "$cmd" ]]; then
-            print_color "$CYAN" "Command: $cmd"
+        # Check for session info
+        if [[ -f "$INFO_FILE" ]]; then
+            source "$INFO_FILE"
+            
+            # Show session type
+            if [[ -n "$AWAKE_DURATION" ]] && [[ "$AWAKE_DURATION" -gt 0 ]]; then
+                local current_time=$(date +%s)
+                local elapsed=$((current_time - AWAKE_START))
+                local remaining=$((AWAKE_DURATION - elapsed))
+                
+                if [[ $remaining -gt 0 ]]; then
+                    local hours=$((remaining / 3600))
+                    local minutes=$(((remaining % 3600) / 60))
+                    local seconds=$((remaining % 60))
+                    
+                    print_color "$CYAN" "Time remaining: ${hours}h ${minutes}m ${seconds}s"
+                    
+                    # Show progress bar
+                    local progress=$((elapsed * 100 / AWAKE_DURATION))
+                    local bar_length=30
+                    local filled=$((progress * bar_length / 100))
+                    local empty=$((bar_length - filled))
+                    
+                    printf "${CYAN}Progress: ["
+                    printf "%${filled}s" | tr ' ' '='
+                    printf "%${empty}s" | tr ' ' '-'
+                    printf "] %d%%${NC}\n" "$progress"
+                else
+                    print_color "$YELLOW" "Session should have ended (may be extending)"
+                fi
+            else
+                print_color "$CYAN" "Running indefinitely"
+            fi
+            
+            if [[ "$AWAKE_SCREENSAVER" == "true" ]]; then
+                print_color "$CYAN" "Screensaver mode enabled"
+            fi
+            
+            if [[ -n "$AWAKE_PROCESS" ]]; then
+                print_color "$CYAN" "Waiting for process: $AWAKE_PROCESS"
+            fi
+        else
+            # Show process details
+            local cmd=$(ps -p "$pid" -o command= 2>/dev/null)
+            if [[ -n "$cmd" ]]; then
+                print_color "$CYAN" "Command: $cmd"
+            fi
         fi
     else
         print_color "$YELLOW" "Mac awake mode is not currently running"
@@ -135,12 +181,23 @@ keep_awake() {
         duration_msg=" (indefinitely)"
     fi
     
-    # Start caffeinate in background
-    caffeinate -${caffeinate_args} &
+    # Start caffeinate in background with nohup
+    nohup caffeinate -${caffeinate_args} > /dev/null 2>&1 &
     local pid=$!
+    
+    # Disown the process so it continues after script exits
+    disown $pid
     
     # Save PID
     echo "$pid" > "$PID_FILE"
+    
+    # Save session info
+    {
+        echo "AWAKE_START=$(date +%s)"
+        echo "AWAKE_DURATION=${DURATION:-0}"
+        echo "AWAKE_SCREENSAVER=$USE_SCREENSAVER"
+        echo "AWAKE_PROCESS=\"$WAIT_FOR_PROCESS\""
+    } > "$INFO_FILE"
     
     print_color "$GREEN" "✓ Mac will stay awake${duration_msg}"
     print_color "$CYAN" "PID: $pid"
@@ -320,8 +377,8 @@ main() {
     keep_awake
 }
 
-# Set trap for cleanup
-trap cleanup EXIT INT TERM
+# Set trap for cleanup only on interrupt/term, not on normal exit
+trap cleanup INT TERM
 
 # Run main function if script is executed directly
 if [[ "${BASH_SOURCE[0]}" == "${0}" ]]; then
