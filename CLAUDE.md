@@ -17,12 +17,24 @@ mac-power-tools/
 ```
 
 ## Key Commands
+
+### System Management
 - `mac update` - Update system packages (Homebrew, npm, Ruby gems, Python packages, Mac App Store)
 - `mac info` - Display system information (CPU, memory, disk, network, battery)
 - `mac maintenance` - Interactive maintenance menu for system cleanup
+
+### CleanMyMac Replacement Features (v1.1.0+)
+- `mac uninstall <app>` - Complete app uninstaller (removes app and all associated files)
+- `mac duplicates [path]` - Find and remove duplicate files
+- `mac clean` - Deep clean system junk (Xcode, caches, logs, iOS backups)
+- `mac memory` - Monitor and optimize memory usage
+
+### Basic Maintenance
 - `mac trash` - Empty trash
 - `mac cache` - Clear system caches
 - `mac dns` - Flush DNS cache
+- `mac large-files` - Find large files
+- `mac logs` - Clean old log files
 
 ## Development Guidelines
 
@@ -34,10 +46,24 @@ mac-power-tools/
 - **User Prompts**: Use confirmation prompts for destructive operations
 
 ### Testing Requirements
-- No formal test suite currently exists
+- **Test Suite Available**: Run `./test/run_tests.sh` to execute all tests
+- **Test Framework**: Custom bash testing framework in `test/test_helper.sh`
+- **Test Coverage**: All major features have comprehensive test suites
 - Test commands manually before committing
 - Verify scripts work on macOS 10.15+
 - Check for command availability (brew, mas, npm, etc.) before using
+
+### Running Tests
+```bash
+# Run all tests
+./test/run_tests.sh
+
+# Run specific test suite
+./test/run_tests.sh uninstall
+./test/run_tests.sh duplicates
+./test/run_tests.sh clean
+./test/run_tests.sh memory
+```
 
 ### Important Patterns
 1. **Color Output**: Use predefined color variables (RED, GREEN, YELLOW, BLUE, CYAN, MAGENTA, NC)
@@ -53,9 +79,10 @@ mac-power-tools/
 - Validate user input to prevent injection attacks
 
 ### Version Management
-- Current version: 1.0.2
+- Current version: 1.2.0
 - Version defined in main `mac` script
 - Update version when making significant changes
+- Releases automatically update Homebrew formula via GitHub Actions
 
 ### Common Tasks
 
@@ -88,6 +115,24 @@ mac-power-tools/
 - Run manual tests before committing
 - Keep commits focused on single features/fixes
 
+## Release History
+
+### v1.2.0 (2025-08-06)
+- Added system junk cleaner (`mac clean`)
+- Added memory optimizer (`mac memory`)
+- Enhanced test coverage
+
+### v1.1.0 (2025-08-06)
+- Added complete app uninstaller (`mac uninstall`)
+- Added duplicate file finder (`mac duplicates`)
+- Introduced comprehensive test suite
+- Created testing framework
+
+### v1.0.x
+- Initial release with basic maintenance features
+- System update utilities
+- System information tools
+
 ## Notes for AI Assistants
 - This is a system administration tool - focus on safety and reliability
 - Always preserve existing functionality when making changes
@@ -95,3 +140,6 @@ mac-power-tools/
 - Consider edge cases (missing dependencies, different macOS versions)
 - Maintain backward compatibility where possible
 - Keep user experience consistent with existing commands
+- **CleanMyMac Alternative**: This tool provides free, open-source alternatives to CleanMyMac features
+- **Testing is Required**: Always write tests for new features using the test framework
+- **Lint and Typecheck**: Run appropriate linters when available
