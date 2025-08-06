@@ -1,5 +1,9 @@
 name: Update Homebrew Formula
 
+# This workflow requires a HOMEBREW_TAP_TOKEN secret to be set in the repository
+# The token needs write access to the homebrew-mac-power-tools repository
+# Create a Personal Access Token at https://github.com/settings/tokens with repo scope
+
 on:
   release:
     types: [published]
@@ -42,7 +46,7 @@ jobs:
       uses: actions/checkout@v4
       with:
         repository: mikejennings/homebrew-mac-power-tools
-        token: ${{ secrets.GITHUB_TOKEN }}
+        token: ${{ secrets.HOMEBREW_TAP_TOKEN || secrets.GITHUB_TOKEN }}
         path: homebrew-tap
     
     - name: Update Formula

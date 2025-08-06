@@ -125,7 +125,7 @@ jobs:
         echo "Formula update script created (manual run required)"
     
     - name: Upload formula update script
-      uses: actions/upload-artifact@v3
+      uses: actions/upload-artifact@v4
       with:
         name: formula-update-script
         path: update_formula.sh
