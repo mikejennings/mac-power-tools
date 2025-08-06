@@ -162,12 +162,14 @@ jobs:
         echo "Homebrew tap should be updated manually or via separate workflow"
         
         # Create issue as reminder if needed
+        ISSUE_BODY="New release available: ${VERSION}
+        
+        Download URL: https://github.com/mikejennings/mac-power-tools/archive/refs/tags/${VERSION}.tar.gz
+        SHA256: ${SHA256}
+        
+        Please update the formula."
+        
         gh issue create \
           --repo mikejennings/homebrew-mac-power-tools \
           --title "Update formula for Mac Power Tools ${VERSION}" \
-          --body "New release available: ${VERSION}
-          
-Download URL: https://github.com/mikejennings/mac-power-tools/archive/refs/tags/${VERSION}.tar.gz
-SHA256: ${SHA256}
-
-Please update the formula." || true
+          --body "$ISSUE_BODY" || true
