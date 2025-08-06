@@ -64,6 +64,10 @@ show_help() {
     printf "    ${CYAN}Backup:${NC}\n"
     printf "        backup            Run Mackup backup\n\n"
     
+    printf "    ${CYAN}Application Management:${NC}\n"
+    printf "        uninstall <app>   Completely uninstall an application\n"
+    printf "        uninstall --list  List all installed applications\n\n"
+    
     printf "    ${CYAN}Other:${NC}\n"
     printf "        help              Show this help message\n"
     printf "        version           Show version information\n\n"
@@ -186,6 +190,12 @@ main() {
                 printf "${RED}Mackup backup script not found${NC}\n"
                 exit 1
             fi
+            ;;
+            
+        # Application management
+        uninstall)
+            shift
+            "$SCRIPT_DIR/scripts/mac-uninstall.sh" "$@"
             ;;
             
         # Unknown command
