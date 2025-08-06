@@ -135,7 +135,12 @@ update_ruby() {
         print_success "Ruby gems updated"
         
         print_status "Cleaning up old gem versions..."
-        gem cleanup
+        # Use sudo for Homebrew-installed gems to avoid permission errors
+        if [[ -d "/opt/homebrew/lib/ruby/gems" ]]; then
+            sudo gem cleanup 2>/dev/null || gem cleanup
+        else
+            gem cleanup
+        fi
         print_success "Old gem versions cleaned up"
     else
         print_warning "Ruby gems not available"

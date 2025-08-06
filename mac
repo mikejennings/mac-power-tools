@@ -1,7 +1,7 @@
 #!/bin/bash
 
-# Mac Power Tools - Main wrapper script
-# Modern replacement for mac-cli with enhanced functionality
+# Mac CLI - Main wrapper script
+# Replacement for mac-cli with custom functionality
 
 # Get the directory where this script is located
 SCRIPT_DIR="$( cd "$( dirname "${BASH_SOURCE[0]}" )" && pwd )"
@@ -20,67 +20,72 @@ VERSION="1.0.0"
 
 # Function to show help
 show_help() {
-    cat << EOF
-${BLUE}Mac Power Tools v${VERSION}${NC}
-A comprehensive macOS management tool
-
-${YELLOW}USAGE:${NC}
-    mac <command> [options]
-
-${YELLOW}COMMANDS:${NC}
-    ${CYAN}System Updates:${NC}
-        update [target]     Update system, packages, and apps
-                           Targets: macos, brew, mas, npm, ruby, pip
-                           No target updates everything
-        
-    ${CYAN}System Information:${NC}
-        info [type]        Show system information
-                          Types: system, memory, disk, network, battery, temp, cpu
-                          No type shows all information
-        
-    ${CYAN}Maintenance:${NC}
-        maintenance        Interactive maintenance menu
-        trash             Empty trash
-        cache             Clear caches
-        downloads         Clean/organize downloads folder
-        large-files       Find large files (>100MB)
-        large-dirs        Find large directories
-        logs              Clean old log files
-        dns               Flush DNS cache
-        spotlight         Rebuild Spotlight index
-        hidden            Toggle hidden files visibility
-        permissions       Repair disk permissions
-        
-    ${CYAN}Power Management:${NC}
-        sleep             Put Mac to sleep
-        restart           Restart Mac
-        shutdown          Shutdown Mac
-        kill-apps         Close all applications
-        
+    printf "${BLUE}Mac CLI v${VERSION}${NC}\n"
+    printf "A comprehensive macOS management tool\n\n"
     
-    ${CYAN}Other:${NC}
-        help              Show this help message
-        version           Show version information
-
-${YELLOW}EXAMPLES:${NC}
-    mac update                # Update everything
-    mac update brew           # Update only Homebrew
-    mac info                  # Show all system information
-    mac info memory           # Show only memory information
-    mac maintenance           # Open maintenance menu
-    mac trash                 # Empty trash
-
-${YELLOW}PROJECT:${NC}
-    Location: $SCRIPT_DIR
-    GitHub: https://github.com/mikejennings/mac-power-tools
-    Logs: ~/Library/Logs/
-
-EOF
+    printf "${YELLOW}USAGE:${NC}\n"
+    printf "    mac <command> [options]\n\n"
+    
+    printf "${YELLOW}COMMANDS:${NC}\n"
+    printf "    ${CYAN}System Updates:${NC}\n"
+    printf "        update [target]     Update system, packages, and apps\n"
+    printf "                           Targets: macos, brew, mas, npm, ruby, pip\n"
+    printf "                           No target updates everything\n\n"
+    
+    printf "    ${CYAN}System Information:${NC}\n"
+    printf "        info [type]        Show system information\n"
+    printf "                          Types: system, memory, disk, network, battery, temp, cpu\n"
+    printf "                          No type shows all information\n\n"
+    
+    printf "    ${CYAN}Maintenance:${NC}\n"
+    printf "        maintenance        Interactive maintenance menu\n"
+    printf "        trash             Empty trash\n"
+    printf "        cache             Clear caches\n"
+    printf "        downloads         Clean/organize downloads folder\n"
+    printf "        large-files       Find large files (>100MB)\n"
+    printf "        large-dirs        Find large directories\n"
+    printf "        logs              Clean old log files\n"
+    printf "        dns               Flush DNS cache\n"
+    printf "        spotlight         Rebuild Spotlight index\n"
+    printf "        hidden            Toggle hidden files visibility\n"
+    printf "        permissions       Repair disk permissions\n\n"
+    
+    printf "    ${CYAN}Power Management:${NC}\n"
+    printf "        sleep             Put Mac to sleep\n"
+    printf "        restart           Restart Mac\n"
+    printf "        shutdown          Shutdown Mac\n"
+    printf "        kill-apps         Close all applications\n\n"
+    
+    printf "    ${CYAN}Downloads Management:${NC}\n"
+    printf "        sort-downloads    Sort downloads by date and type\n"
+    printf "        watch-downloads   Monitor downloads folder activity\n"
+    printf "        downloads-status  Show downloads organization status\n\n"
+    
+    printf "    ${CYAN}Backup:${NC}\n"
+    printf "        backup            Run Mackup backup\n\n"
+    
+    printf "    ${CYAN}Other:${NC}\n"
+    printf "        help              Show this help message\n"
+    printf "        version           Show version information\n\n"
+    
+    printf "${YELLOW}EXAMPLES:${NC}\n"
+    printf "    mac update                # Update everything\n"
+    printf "    mac update brew           # Update only Homebrew\n"
+    printf "    mac info                  # Show all system information\n"
+    printf "    mac info memory           # Show only memory information\n"
+    printf "    mac maintenance           # Open maintenance menu\n"
+    printf "    mac trash                 # Empty trash\n"
+    printf "    mac sort-downloads        # Organize downloads folder\n\n"
+    
+    printf "${YELLOW}PROJECT:${NC}\n"
+    printf "    Location: $SCRIPT_DIR\n"
+    printf "    Config: $SCRIPT_DIR/CLAUDE.md\n"
+    printf "    Logs: ~/Library/Logs/\n\n"
 }
 
 # Function to show version
 show_version() {
-    echo "Mac Power Tools v${VERSION}"
+    echo "Mac CLI v${VERSION}"
     echo "Location: $SCRIPT_DIR"
     echo "macOS: $(sw_vers -productVersion)"
 }
@@ -162,10 +167,30 @@ main() {
             "$SCRIPT_DIR/scripts/mac-maintenance.sh" kill-apps
             ;;
             
-        
+        # Downloads management
+        sort-downloads)
+            "$SCRIPT_DIR/scripts/sort-downloads.sh"
+            ;;
+        watch-downloads)
+            "$SCRIPT_DIR/scripts/watch-downloads.sh"
+            ;;
+        downloads-status)
+            "$SCRIPT_DIR/scripts/downloads-status.sh"
+            ;;
+            
+        # Backup
+        backup)
+            if [ -f "$SCRIPT_DIR/mackup-backup.sh" ]; then
+                "$SCRIPT_DIR/mackup-backup.sh"
+            else
+                printf "${RED}Mackup backup script not found${NC}\n"
+                exit 1
+            fi
+            ;;
+            
         # Unknown command
         *)
-            echo -e "${RED}Unknown command: $1${NC}"
+            printf "${RED}Unknown command: $1${NC}\n"
             echo "Run 'mac help' for usage information"
             exit 1
             ;;
@@ -174,7 +199,7 @@ main() {
 
 # Check if scripts directory exists
 if [ ! -d "$SCRIPT_DIR/scripts" ]; then
-    echo -e "${RED}Error: scripts directory not found${NC}"
+    printf "${RED}Error: scripts directory not found${NC}\n"
     echo "Expected location: $SCRIPT_DIR/scripts"
     exit 1
 fi
