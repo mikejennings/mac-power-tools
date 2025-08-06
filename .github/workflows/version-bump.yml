@@ -1,0 +1,115 @@
+name: Version Bump
+
+on:
+  workflow_dispatch:
+    inputs:
+      bump_type:
+        description: 'Version bump type'
+        required: true
+        type: choice
+        options:
+          - patch
+          - minor
+          - major
+      changelog:
+        description: 'Changelog entry (optional)'
+        required: false
+        type: string
+
+jobs:
+  bump-version:
+    runs-on: ubuntu-latest
+    
+    permissions:
+      contents: write
+      pull-requests: write
+      
+    steps:
+    - uses: actions/checkout@v4
+      with:
+        token: ${{ secrets.GITHUB_TOKEN }}
+    
+    - name: Bump version
+      id: bump
+      run: |
+        # Get current version
+        CURRENT_VERSION=$(grep '^VERSION=' mac | cut -d'"' -f2)
+        echo "Current version: $CURRENT_VERSION"
+        
+        # Parse version components
+        IFS='.' read -r major minor patch <<< "$CURRENT_VERSION"
+        
+        # Bump based on type
+        case "${{ github.event.inputs.bump_type }}" in
+          major)
+            major=$((major + 1))
+            minor=0
+            patch=0
+            ;;
+          minor)
+            minor=$((minor + 1))
+            patch=0
+            ;;
+          patch)
+            patch=$((patch + 1))
+            ;;
+        esac
+        
+        NEW_VERSION="${major}.${minor}.${patch}"
+        echo "New version: $NEW_VERSION"
+        echo "old_version=$CURRENT_VERSION" >> $GITHUB_OUTPUT
+        echo "new_version=$NEW_VERSION" >> $GITHUB_OUTPUT
+    
+    - name: Update version in files
+      run: |
+        OLD_VERSION="${{ steps.bump.outputs.old_version }}"
+        NEW_VERSION="${{ steps.bump.outputs.new_version }}"
+        
+        # Update version in mac script
+        sed -i "s/^VERSION=\"${OLD_VERSION}\"/VERSION=\"${NEW_VERSION}\"/" mac
+        
+        # Update version in CLAUDE.md
+        sed -i "s/Current version: ${OLD_VERSION}/Current version: ${NEW_VERSION}/" CLAUDE.md
+        
+        # Add changelog entry to README if provided
+        if [ -n "${{ github.event.inputs.changelog }}" ]; then
+          # Find the Changelog section and add new entry
+          CHANGELOG_ENTRY="### v${NEW_VERSION} ($(date +%Y-%m-%d))\n- ${{ github.event.inputs.changelog }}\n"
+          
+          # Insert after ## Changelog header
+          awk '/^## Changelog$/ {print; print ""; print "'"${CHANGELOG_ENTRY}"'"; next} 1' README.md > README.tmp
+          mv README.tmp README.md
+        fi
+    
+    - name: Create Pull Request
+      uses: peter-evans/create-pull-request@v5
+      with:
+        token: ${{ secrets.GITHUB_TOKEN }}
+        commit-message: "Bump version to ${{ steps.bump.outputs.new_version }}"
+        title: "Release v${{ steps.bump.outputs.new_version }}"
+        body: |
+          ## Version Bump: v${{ steps.bump.outputs.old_version }} → v${{ steps.bump.outputs.new_version }}
+          
+          This PR bumps the version from `${{ steps.bump.outputs.old_version }}` to `${{ steps.bump.outputs.new_version }}`.
+          
+          ### Type of change
+          - ${{ github.event.inputs.bump_type }} version bump
+          
+          ### Changelog
+          ${{ github.event.inputs.changelog || 'No changelog entry provided' }}
+          
+          ### Checklist
+          - [ ] Version updated in `mac` script
+          - [ ] Version updated in `CLAUDE.md`
+          - [ ] Changelog entry added (if provided)
+          - [ ] Tests pass
+          
+          After merging this PR, the auto-release workflow will automatically:
+          1. Create a git tag
+          2. Create a GitHub release
+          3. Update the Homebrew formula
+        branch: version-bump-${{ steps.bump.outputs.new_version }}
+        delete-branch: true
+        labels: |
+          release
+          version-bump

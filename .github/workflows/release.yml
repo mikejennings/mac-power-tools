@@ -90,39 +90,27 @@ jobs:
           SHA256 checksum is available in the release assets.
     
     - name: Update Homebrew Formula
+      env:
+        GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
       run: |
         VERSION="${{ steps.version.outputs.version }}"
         SHA256=$(cat dist/mac-power-tools-${VERSION}.sha256 | awk '{print $1}')
         
-        # Create update script
-        cat > update_formula.sh << 'EOF'
-        #!/bin/bash
-        VERSION=$1
-        SHA256=$2
-        
-        # Clone homebrew tap
-        git clone https://github.com/mikejennings/homebrew-mac-power-tools.git homebrew-update
-        cd homebrew-update
-        
-        # Update formula
-        sed -i.bak "s|url \".*\"|url \"https://github.com/mikejennings/mac-power-tools/archive/refs/tags/${VERSION}.tar.gz\"|" Formula/mac-power-tools.rb
-        sed -i.bak "s|sha256 \".*\"|sha256 \"${SHA256}\"|" Formula/mac-power-tools.rb
-        sed -i.bak "s|version \".*\"|version \"${VERSION#v}\"|" Formula/mac-power-tools.rb
-        rm Formula/*.bak
-        
-        # Commit and push
-        git config user.name "GitHub Actions"
-        git config user.email "actions@github.com"
-        git add Formula/mac-power-tools.rb
-        git commit -m "Update Mac Power Tools to ${VERSION}"
-        git push
-        
-        cd ..
-        rm -rf homebrew-update
-        EOF
-        
-        chmod +x update_formula.sh
-        echo "Formula update script created (manual run required)"
+        # Create issue for Homebrew update
+        gh issue create \
+          --repo mikejennings/homebrew-mac-power-tools \
+          --title "Update formula for Mac Power Tools ${VERSION}" \
+          --body "New release available: ${VERSION}
+          
+Download URL: https://github.com/mikejennings/mac-power-tools/archive/refs/tags/${VERSION}.tar.gz
+SHA256: ${SHA256}
+
+Please update the formula with:
+\`\`\`ruby
+version \"${VERSION#v}\"
+url \"https://github.com/mikejennings/mac-power-tools/archive/refs/tags/${VERSION}.tar.gz\"
+sha256 \"${SHA256}\"
+\`\`\`" || echo "Could not create issue for Homebrew update"
     
     - name: Upload formula update script
       uses: actions/upload-artifact@v4

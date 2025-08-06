@@ -94,6 +94,23 @@ mac-power-tools/
 - Update version when making significant changes
 - Releases automatically update Homebrew formula via GitHub Actions
 
+#### Creating Releases
+There are three ways to create releases:
+
+1. **Automatic Release** (Recommended)
+   - Simply update the VERSION in `mac` script and push to master
+   - GitHub Actions will automatically create a release if the version is new
+   - Run `./bump-version.sh` for an interactive version bump
+
+2. **Manual Version Bump Workflow**
+   - Go to Actions → Version Bump → Run workflow
+   - Select bump type (patch/minor/major)
+   - Creates a PR with version changes
+
+3. **Direct Tag Push**
+   - Create and push a tag: `git tag v1.2.4 && git push origin v1.2.4`
+   - Release workflow will trigger automatically
+
 ### Common Tasks
 
 #### Adding New Commands

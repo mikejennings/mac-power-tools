@@ -1,0 +1,172 @@
+name: Auto Release
+
+on:
+  push:
+    branches:
+      - master
+    paths:
+      - 'mac'
+      - 'scripts/**'
+      - 'README.md'
+
+jobs:
+  check-version:
+    runs-on: ubuntu-latest
+    outputs:
+      should_release: ${{ steps.check.outputs.should_release }}
+      version: ${{ steps.check.outputs.version }}
+    
+    steps:
+    - uses: actions/checkout@v4
+      with:
+        fetch-depth: 0
+    
+    - name: Check if version changed
+      id: check
+      run: |
+        # Get current version from mac script
+        CURRENT_VERSION=$(grep '^VERSION=' mac | cut -d'"' -f2)
+        echo "Current version: $CURRENT_VERSION"
+        
+        # Check if tag already exists
+        if git rev-parse "v$CURRENT_VERSION" >/dev/null 2>&1; then
+          echo "Tag v$CURRENT_VERSION already exists"
+          echo "should_release=false" >> $GITHUB_OUTPUT
+        else
+          echo "Tag v$CURRENT_VERSION does not exist, will create release"
+          echo "should_release=true" >> $GITHUB_OUTPUT
+          echo "version=$CURRENT_VERSION" >> $GITHUB_OUTPUT
+        fi
+
+  auto-release:
+    needs: check-version
+    if: needs.check-version.outputs.should_release == 'true'
+    runs-on: macos-14
+    
+    permissions:
+      contents: write
+      
+    steps:
+    - uses: actions/checkout@v4
+    
+    - name: Set version
+      id: version
+      run: |
+        VERSION="${{ needs.check-version.outputs.version }}"
+        echo "version=v$VERSION" >> $GITHUB_OUTPUT
+        echo "version_number=$VERSION" >> $GITHUB_OUTPUT
+    
+    - name: Extract changelog
+      id: changelog
+      run: |
+        # Try to extract recent changes from README.md
+        VERSION="${{ steps.version.outputs.version }}"
+        
+        # Default changelog
+        CHANGELOG="## Mac Power Tools ${VERSION}
+
+### What's Changed
+- Various improvements and bug fixes
+
+### Installation
+
+#### Via Homebrew (Recommended)
+\`\`\`bash
+brew tap mikejennings/mac-power-tools
+brew install mac-power-tools
+\`\`\`
+
+#### Manual Installation
+\`\`\`bash
+curl -LO https://github.com/mikejennings/mac-power-tools/releases/download/${VERSION}/mac-power-tools-${VERSION}.tar.gz
+tar -xzf mac-power-tools-${VERSION}.tar.gz
+./install.sh
+\`\`\`"
+        
+        # Try to extract from README changelog section
+        if grep -q "### ${VERSION}" README.md; then
+          EXTRACTED=$(sed -n "/### ${VERSION}/,/### v[0-9]/p" README.md | sed '$ d')
+          if [ -n "$EXTRACTED" ]; then
+            CHANGELOG="## Mac Power Tools ${VERSION}
+
+${EXTRACTED}
+
+### Installation
+
+#### Via Homebrew (Recommended)
+\`\`\`bash
+brew update
+brew upgrade mac-power-tools
+\`\`\`
+
+#### Manual Installation
+\`\`\`bash
+curl -LO https://github.com/mikejennings/mac-power-tools/releases/download/${VERSION}/mac-power-tools-${VERSION}.tar.gz
+tar -xzf mac-power-tools-${VERSION}.tar.gz
+./install.sh
+\`\`\`"
+          fi
+        fi
+        
+        # Save to file for later use
+        echo "$CHANGELOG" > release_notes.md
+    
+    - name: Create release archive
+      run: |
+        VERSION="${{ steps.version.outputs.version }}"
+        mkdir -p dist
+        tar -czf "dist/mac-power-tools-${VERSION}.tar.gz" \
+          --exclude='.git*' \
+          --exclude='dist' \
+          --exclude='.github' \
+          mac scripts README.md LICENSE install.sh CLAUDE.md
+        
+        # Calculate SHA256
+        cd dist
+        shasum -a 256 "mac-power-tools-${VERSION}.tar.gz" > "mac-power-tools-${VERSION}.sha256"
+        cd ..
+    
+    - name: Create Git Tag
+      run: |
+        VERSION="${{ steps.version.outputs.version }}"
+        git config user.name "GitHub Actions"
+        git config user.email "actions@github.com"
+        git tag -a "$VERSION" -m "Auto-release $VERSION"
+        git push origin "$VERSION"
+    
+    - name: Create Release
+      uses: softprops/action-gh-release@v1
+      with:
+        name: Mac Power Tools ${{ steps.version.outputs.version }}
+        tag_name: ${{ steps.version.outputs.version }}
+        draft: false
+        prerelease: false
+        generate_release_notes: false
+        files: |
+          dist/mac-power-tools-*.tar.gz
+          dist/mac-power-tools-*.sha256
+        body_path: release_notes.md
+    
+    - name: Trigger Homebrew Update
+      env:
+        GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+      run: |
+        VERSION="${{ steps.version.outputs.version }}"
+        SHA256=$(cat dist/mac-power-tools-${VERSION}.sha256 | awk '{print $1}')
+        
+        # Trigger homebrew formula update workflow if it exists
+        # This assumes you have a workflow in the homebrew tap repo
+        echo "Release created: $VERSION"
+        echo "SHA256: $SHA256"
+        echo "Homebrew tap should be updated manually or via separate workflow"
+        
+        # Create issue as reminder if needed
+        gh issue create \
+          --repo mikejennings/homebrew-mac-power-tools \
+          --title "Update formula for Mac Power Tools ${VERSION}" \
+          --body "New release available: ${VERSION}
+          
+Download URL: https://github.com/mikejennings/mac-power-tools/archive/refs/tags/${VERSION}.tar.gz
+SHA256: ${SHA256}
+
+Please update the formula." || true
