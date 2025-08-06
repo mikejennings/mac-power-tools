@@ -34,6 +34,8 @@ A powerful and comprehensive macOS system management CLI tool. Modern replacemen
 
 ### 💾 Power Management
 - **Keep Awake**: Prevent Mac from sleeping with screensaver option
+  - Shows time remaining and progress bar for timed sessions
+  - Status command displays detailed session information
 - Sleep, restart, and shutdown commands
 - Close all applications at once
 - Safe operation with confirmation prompts
@@ -118,6 +120,7 @@ mac memory --optimize # Optimize memory usage
 mac awake           # Keep Mac awake indefinitely
 mac awake --screensaver  # Keep awake with screensaver
 mac awake -t 2h     # Keep awake for 2 hours
+mac awake --status  # Check status with time remaining
 mac awake --stop    # Stop keeping Mac awake
 mac sleep           # Put Mac to sleep
 mac restart         # Restart Mac
@@ -245,6 +248,12 @@ If you encounter any issues or have suggestions:
 - Provide system information when reporting bugs
 
 ## Changelog
+
+### v1.2.3 (2025-08-06)
+- Enhanced awake status with time remaining display
+- Added progress bar for timed awake sessions
+- Improved process persistence for awake mode
+- Better session information tracking
 
 ### v1.2.2 (2025-08-06)
 - Fixed output formatting issues in various scripts

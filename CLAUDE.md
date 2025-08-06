@@ -32,6 +32,9 @@ mac-power-tools/
 ### Power Management
 - `mac awake` - Keep Mac awake (prevent sleep)
 - `mac awake --screensaver` - Keep awake with screensaver
+- `mac awake -t 2h` - Keep awake for 2 hours
+- `mac awake --status` - Check status with time remaining and progress bar
+- `mac awake --stop` - Stop keeping Mac awake
 - `mac sleep` - Put Mac to sleep
 - `mac restart` - Restart Mac
 - `mac shutdown` - Shutdown Mac
@@ -86,7 +89,7 @@ mac-power-tools/
 - Validate user input to prevent injection attacks
 
 ### Version Management
-- Current version: 1.2.2
+- Current version: 1.2.3
 - Version defined in main `mac` script
 - Update version when making significant changes
 - Releases automatically update Homebrew formula via GitHub Actions
@@ -123,6 +126,12 @@ mac-power-tools/
 - Keep commits focused on single features/fixes
 
 ## Release History
+
+### v1.2.3 (2025-08-06)
+- Enhanced awake status with time remaining display
+- Added progress bar for timed awake sessions
+- Improved process persistence for awake mode
+- Better session information tracking
 
 ### v1.2.2 (2025-08-06)
 - Fixed output formatting issues
