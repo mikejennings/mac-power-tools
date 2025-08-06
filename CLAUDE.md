@@ -29,6 +29,13 @@ mac-power-tools/
 - `mac clean` - Deep clean system junk (Xcode, caches, logs, iOS backups)
 - `mac memory` - Monitor and optimize memory usage
 
+### Power Management
+- `mac awake` - Keep Mac awake (prevent sleep)
+- `mac awake --screensaver` - Keep awake with screensaver
+- `mac sleep` - Put Mac to sleep
+- `mac restart` - Restart Mac
+- `mac shutdown` - Shutdown Mac
+
 ### Basic Maintenance
 - `mac trash` - Empty trash
 - `mac cache` - Clear system caches

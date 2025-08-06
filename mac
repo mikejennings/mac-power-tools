@@ -56,6 +56,7 @@ show_help() {
     printf "        memory [options]  Monitor and optimize memory\n\n"
     
     printf "    ${CYAN}Power Management:${NC}\n"
+    printf "        awake [options]   Keep Mac awake (with screensaver option)\n"
     printf "        sleep             Put Mac to sleep\n"
     printf "        restart           Restart Mac\n"
     printf "        shutdown          Shutdown Mac\n"
@@ -177,6 +178,10 @@ main() {
             ;;
             
         # Power management
+        awake)
+            shift
+            "$SCRIPT_DIR/scripts/mac-awake.sh" "$@"
+            ;;
         sleep)
             "$SCRIPT_DIR/scripts/mac-maintenance.sh" sleep
             ;;

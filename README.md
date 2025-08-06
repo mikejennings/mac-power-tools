@@ -33,6 +33,7 @@ A powerful and comprehensive macOS system management CLI tool. Modern replacemen
 - **Memory Optimizer**: Monitor and optimize RAM usage in real-time
 
 ### 💾 Power Management
+- **Keep Awake**: Prevent Mac from sleeping with screensaver option
 - Sleep, restart, and shutdown commands
 - Close all applications at once
 - Safe operation with confirmation prompts
@@ -114,6 +115,10 @@ mac memory          # Show memory status and top consumers
 mac memory --optimize # Optimize memory usage
 
 # Power management
+mac awake           # Keep Mac awake indefinitely
+mac awake --screensaver  # Keep awake with screensaver
+mac awake -t 2h     # Keep awake for 2 hours
+mac awake --stop    # Stop keeping Mac awake
 mac sleep           # Put Mac to sleep
 mac restart         # Restart Mac
 mac shutdown        # Shutdown Mac
@@ -138,6 +143,10 @@ mac memory --optimize   # Free up RAM
 # Uninstall apps completely
 mac uninstall "Google Chrome"
 mac uninstall --list   # See all installed apps
+
+# Keep Mac awake for presentations
+mac awake --screensaver  # Stay awake with screensaver
+mac awake -t 1h30m       # Stay awake for 1.5 hours
 
 # Quick system maintenance
 mac maintenance
@@ -165,7 +174,8 @@ mac-power-tools/
 │   ├── mac-uninstall.sh   # App uninstaller (NEW)
 │   ├── mac-duplicates.sh  # Duplicate finder (NEW)
 │   ├── mac-clean.sh       # System junk cleaner (NEW)
-│   └── mac-memory.sh      # Memory optimizer (NEW)
+│   ├── mac-memory.sh      # Memory optimizer (NEW)
+│   └── mac-awake.sh       # Keep awake/caffeinate (NEW)
 ├── test/                   # Test suite (NEW)
 │   ├── test_helper.sh     # Testing framework
 │   └── *.test.sh          # Test files for each feature
