@@ -72,7 +72,8 @@ show_help() {
     
     printf "    ${CYAN}Application Management:${NC}\n"
     printf "        uninstall <app>   Completely uninstall an application\n"
-    printf "        uninstall --list  List all installed applications\n\n"
+    printf "        uninstall --list  List all installed applications\n"
+    printf "        migrate-mas       Migrate Mac App Store apps to Homebrew\n\n"
     
     printf "    ${CYAN}Other:${NC}\n"
     printf "        help              Show this help message\n"
@@ -220,6 +221,10 @@ main() {
         uninstall)
             shift
             "$SCRIPT_DIR/scripts/mac-uninstall.sh" "$@"
+            ;;
+        migrate-mas|mas-migrate)
+            shift
+            "$SCRIPT_DIR/scripts/mac-migrate-mas.sh" "$@"
             ;;
             
         # Unknown command

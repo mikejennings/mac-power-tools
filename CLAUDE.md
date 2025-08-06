@@ -28,6 +28,7 @@ mac-power-tools/
 - `mac duplicates [path]` - Find and remove duplicate files
 - `mac clean` - Deep clean system junk (Xcode, caches, logs, iOS backups)
 - `mac memory` - Monitor and optimize memory usage
+- `mac migrate-mas` - Migrate Mac App Store apps to Homebrew Cask (v1.2.4+)
 
 ### Power Management
 - `mac awake` - Keep Mac awake (prevent sleep)
@@ -95,21 +96,37 @@ mac-power-tools/
 - Releases automatically update Homebrew formula via GitHub Actions
 
 #### Creating Releases
-There are three ways to create releases:
 
-1. **Automatic Release** (Recommended)
-   - Simply update the VERSION in `mac` script and push to master
-   - GitHub Actions will automatically create a release if the version is new
-   - Run `./bump-version.sh` for an interactive version bump
+## 🚀 Automatic Release System
 
-2. **Manual Version Bump Workflow**
+### How it works:
+When you push to master and the VERSION in the `mac` script has changed, it will automatically:
+- Create a git tag
+- Create a GitHub release with changelog
+- Generate release assets (.tar.gz and SHA256)
+- Create an issue in the Homebrew tap repo for updating the formula
+
+### Three ways to create releases:
+
+1. **Quick local version bump** (Recommended):
+   ```bash
+   ./bump-version.sh
+   # Interactive menu to bump version
+   # Automatically commits and can push to trigger release
+   ```
+
+2. **GitHub Actions UI**:
    - Go to Actions → Version Bump → Run workflow
-   - Select bump type (patch/minor/major)
+   - Select patch/minor/major
    - Creates a PR with version changes
 
-3. **Direct Tag Push**
-   - Create and push a tag: `git tag v1.2.4 && git push origin v1.2.4`
-   - Release workflow will trigger automatically
+3. **Manual tag**:
+   ```bash
+   git tag v1.2.4
+   git push origin v1.2.4
+   ```
+
+The auto-release workflow monitors the `mac` script, `scripts/` directory, and `README.md` for changes. When it detects a version change that doesn't have a corresponding tag, it automatically creates a release.
 
 ### Common Tasks
 

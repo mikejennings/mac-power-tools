@@ -31,6 +31,7 @@ A powerful and comprehensive macOS system management CLI tool. Modern replacemen
 - **Duplicate Finder**: Find and remove duplicate files to free up space
 - **System Junk Cleaner**: Deep clean Xcode, package manager caches, iOS backups
 - **Memory Optimizer**: Monitor and optimize RAM usage in real-time
+- **MAS to Homebrew Migration**: Migrate Mac App Store apps to Homebrew for better management
 
 ### 💾 Power Management
 - **Keep Awake**: Prevent Mac from sleeping with screensaver option
@@ -116,6 +117,11 @@ mac duplicates -i    # Interactive duplicate removal
 mac memory          # Show memory status and top consumers
 mac memory --optimize # Optimize memory usage
 
+# App Store Migration
+mac migrate-mas      # Analyze and migrate Mac App Store apps to Homebrew
+mac migrate-mas -a   # Analyze only (show migration opportunities)
+mac migrate-mas -e   # Execute migration (default is dry-run)
+
 # Power management
 mac awake           # Keep Mac awake indefinitely
 mac awake --screensaver  # Keep awake with screensaver
@@ -150,6 +156,10 @@ mac uninstall --list   # See all installed apps
 # Keep Mac awake for presentations
 mac awake --screensaver  # Stay awake with screensaver
 mac awake -t 1h30m       # Stay awake for 1.5 hours
+
+# Migrate from Mac App Store to Homebrew
+mac migrate-mas -a       # See what can be migrated
+mac migrate-mas -e       # Perform migration
 
 # Quick system maintenance
 mac maintenance
