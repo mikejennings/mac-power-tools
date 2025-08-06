@@ -1,6 +1,6 @@
 # Mac Power Tools
 
-A powerful and comprehensive macOS system management CLI tool. Modern replacement for the deprecated mac-cli with enhanced functionality for system updates, monitoring, and maintenance.
+A powerful and comprehensive macOS system management CLI tool. Modern replacement for the deprecated mac-cli with enhanced functionality for system updates, monitoring, and maintenance. **Now includes free, open-source alternatives to CleanMyMac features!**
 
 ## Features
 
@@ -26,12 +26,25 @@ A powerful and comprehensive macOS system management CLI tool. Modern replacemen
 - **Finder Controls**: Toggle hidden files visibility
 - **Disk Utilities**: Repair permissions
 
+### 🎯 CleanMyMac Alternative Features (NEW!)
+- **App Uninstaller**: Completely remove applications and all associated files
+- **Duplicate Finder**: Find and remove duplicate files to free up space
+- **System Junk Cleaner**: Deep clean Xcode, package manager caches, iOS backups
+- **Memory Optimizer**: Monitor and optimize RAM usage in real-time
+
 ### 💾 Power Management
 - Sleep, restart, and shutdown commands
 - Close all applications at once
 - Safe operation with confirmation prompts
 
 ## Installation
+
+### Via Homebrew (Recommended)
+
+```bash
+brew tap mikejennings/mac-power-tools
+brew install mac-power-tools
+```
 
 ### Quick Install
 
@@ -85,11 +98,20 @@ mac info battery     # Show battery status (laptops)
 
 # Maintenance
 mac maintenance      # Interactive maintenance menu
+mac clean           # Deep clean system junk (Xcode, caches, logs)
 mac trash           # Empty trash
 mac cache           # Clear caches
 mac large-files     # Find files >100MB
 mac dns             # Flush DNS cache
 mac hidden          # Toggle hidden files
+
+# CleanMyMac Alternative Features
+mac uninstall <app>  # Completely uninstall an application
+mac uninstall --list # List all installed applications
+mac duplicates       # Find duplicate files in home directory
+mac duplicates -i    # Interactive duplicate removal
+mac memory          # Show memory status and top consumers
+mac memory --optimize # Optimize memory usage
 
 # Power management
 mac sleep           # Put Mac to sleep
@@ -107,10 +129,15 @@ mac update
 mac info memory
 mac info cpu
 
-# Clean up disk space
-mac trash
-mac cache
-mac large-files
+# Clean up disk space (CleanMyMac alternative)
+mac clean --analyze     # See what can be cleaned
+mac clean              # Deep clean system junk
+mac duplicates ~/Downloads  # Find duplicates in Downloads
+mac memory --optimize   # Free up RAM
+
+# Uninstall apps completely
+mac uninstall "Google Chrome"
+mac uninstall --list   # See all installed apps
 
 # Quick system maintenance
 mac maintenance
@@ -134,8 +161,16 @@ mac-power-tools/
 ├── scripts/
 │   ├── mac-update.sh      # System update utilities
 │   ├── mac-info.sh        # System information tools
-│   └── mac-maintenance.sh # Maintenance utilities
+│   ├── mac-maintenance.sh # Maintenance utilities
+│   ├── mac-uninstall.sh   # App uninstaller (NEW)
+│   ├── mac-duplicates.sh  # Duplicate finder (NEW)
+│   ├── mac-clean.sh       # System junk cleaner (NEW)
+│   └── mac-memory.sh      # Memory optimizer (NEW)
+├── test/                   # Test suite (NEW)
+│   ├── test_helper.sh     # Testing framework
+│   └── *.test.sh          # Test files for each feature
 ├── install.sh             # Installation script
+├── CLAUDE.md              # AI assistant documentation
 ├── README.md              # Documentation
 └── LICENSE                # MIT License
 ```
@@ -164,6 +199,13 @@ Powerful cleanup and optimization:
 - Large file detection with sorting
 - DNS and Spotlight optimization
 - Interactive or command-line operation
+
+### CleanMyMac Alternative Features
+Complete replacement for paid CleanMyMac features:
+- **App Uninstaller**: Remove apps and ALL associated files (preferences, caches, support files)
+- **Duplicate Finder**: Find and remove duplicate files with multiple strategies
+- **System Junk Cleaner**: Clean Xcode derived data, iOS backups, package manager caches
+- **Memory Optimizer**: Real-time memory monitoring, purge inactive RAM, kill memory hogs
 
 ## Contributing
 
@@ -194,7 +236,18 @@ If you encounter any issues or have suggestions:
 
 ## Changelog
 
-### v1.0.0 (2025-08-06)
+### v1.2.0 (2025-08-06)
+- Added system junk cleaner (`mac clean`)
+- Added memory optimizer (`mac memory`)
+- Enhanced test coverage for all features
+
+### v1.1.0 (2025-08-06)
+- Added complete app uninstaller (`mac uninstall`)
+- Added duplicate file finder (`mac duplicates`)
+- Introduced comprehensive test suite
+- Created testing framework
+
+### v1.0.x (2025-08-06)
 - Initial release
 - Complete replacement for mac-cli
 - System update utilities
