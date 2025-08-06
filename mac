@@ -52,6 +52,9 @@ show_help() {
     printf "        hidden            Toggle hidden files visibility\n"
     printf "        permissions       Repair disk permissions\n\n"
     
+    printf "    ${CYAN}Performance:${NC}\n"
+    printf "        memory [options]  Monitor and optimize memory\n\n"
+    
     printf "    ${CYAN}Power Management:${NC}\n"
     printf "        sleep             Put Mac to sleep\n"
     printf "        restart           Restart Mac\n"
@@ -165,6 +168,12 @@ main() {
             ;;
         permissions)
             "$SCRIPT_DIR/scripts/mac-maintenance.sh" permissions
+            ;;
+            
+        # Performance
+        memory)
+            shift
+            "$SCRIPT_DIR/scripts/mac-memory.sh" "$@"
             ;;
             
         # Power management
