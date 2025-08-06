@@ -258,7 +258,8 @@ uninstall_app() {
     fi
     
     # Find all related files
-    print_color "$CYAN" "\nSearching for related files..."
+    echo
+    print_color "$CYAN" "Searching for related files..."
     local related_files=$(find_related_files "$app_name" "$bundle_id" | sort -u)
     
     # Add the main app to the list
@@ -269,7 +270,8 @@ uninstall_app() {
     
     # Display files to be removed
     local file_count=$(echo "$all_files" | grep -c '^')
-    print_color "$YELLOW" "\nFound $file_count items to remove (Total size: $total_size):"
+    echo
+    print_color "$YELLOW" "Found $file_count items to remove (Total size: $total_size):"
     
     echo "$all_files" | while read -r file; do
         if [[ -e "$file" ]]; then
@@ -296,7 +298,8 @@ uninstall_app() {
     fi
     
     # Remove files
-    print_color "$CYAN" "\nRemoving files..."
+    echo
+    print_color "$CYAN" "Removing files..."
     local removed_count=0
     local failed_count=0
     
@@ -316,7 +319,8 @@ uninstall_app() {
     fi
     
     # Summary
-    print_color "$GREEN" "\n✓ Uninstall complete!"
+    echo
+    print_color "$GREEN" "✓ Uninstall complete!"
     [[ "$DRY_RUN" == true ]] && print_color "$CYAN" "This was a dry run - no files were actually removed"
     
     return 0
@@ -329,13 +333,15 @@ list_applications() {
     
     # List from /Applications
     if [[ -d "/Applications" ]]; then
-        print_color "$CYAN" "\nSystem Applications (/Applications):"
+        echo
+        print_color "$CYAN" "System Applications (/Applications):"
         ls -1 "/Applications" | grep -E '\.app$' | sed 's/\.app$//' | sort
     fi
     
     # List from ~/Applications
     if [[ -d "$HOME/Applications" ]]; then
-        print_color "$CYAN" "\nUser Applications ($HOME/Applications):"
+        echo
+        print_color "$CYAN" "User Applications ($HOME/Applications):"
         ls -1 "$HOME/Applications" | grep -E '\.app$' | sed 's/\.app$//' | sort
     fi
 }

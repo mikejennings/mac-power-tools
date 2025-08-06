@@ -137,7 +137,8 @@ clean_pattern() {
 
 # Clean Xcode derived data and junk
 clean_xcode() {
-    print_color "$BLUE" "\n🔧 Cleaning Xcode junk..."
+    echo
+    print_color "$BLUE" "🔧 Cleaning Xcode junk..."
     
     # Derived Data
     clean_path "$HOME/Library/Developer/Xcode/DerivedData" "Xcode Derived Data"
@@ -178,7 +179,8 @@ clean_xcode() {
 
 # Clean iOS backups
 clean_ios_backups() {
-    print_color "$BLUE" "\n📱 Cleaning iOS backups..."
+    echo
+    print_color "$BLUE" "📱 Cleaning iOS backups..."
     
     local backup_dir="$HOME/Library/Application Support/MobileSync/Backup"
     
@@ -212,7 +214,8 @@ clean_ios_backups() {
 
 # Clean Mail attachments and cache
 clean_mail() {
-    print_color "$BLUE" "\n✉️  Cleaning Mail cache..."
+    echo
+    print_color "$BLUE" "✉️  Cleaning Mail cache..."
     
     # Mail Downloads
     clean_path "$HOME/Library/Containers/com.apple.mail/Data/Library/Mail Downloads" "Mail Downloads"
@@ -228,7 +231,8 @@ clean_mail() {
 
 # Clean Homebrew cache
 clean_homebrew() {
-    print_color "$BLUE" "\n🍺 Cleaning Homebrew cache..."
+    echo
+    print_color "$BLUE" "🍺 Cleaning Homebrew cache..."
     
     if command -v brew &> /dev/null; then
         local cache_size=$(get_size "$(brew --cache)")
@@ -249,7 +253,8 @@ clean_homebrew() {
 
 # Clean npm cache
 clean_npm() {
-    print_color "$BLUE" "\n📦 Cleaning npm cache..."
+    echo
+    print_color "$BLUE" "📦 Cleaning npm cache..."
     
     if command -v npm &> /dev/null; then
         local cache_dir="$HOME/.npm"
@@ -270,7 +275,8 @@ clean_npm() {
 
 # Clean pip cache
 clean_pip() {
-    print_color "$BLUE" "\n🐍 Cleaning pip cache..."
+    echo
+    print_color "$BLUE" "🐍 Cleaning pip cache..."
     
     if command -v pip3 &> /dev/null || command -v pip &> /dev/null; then
         local cache_dir="$HOME/Library/Caches/pip"
@@ -295,7 +301,8 @@ clean_pip() {
 
 # Clean Ruby gems cache
 clean_gems() {
-    print_color "$BLUE" "\n💎 Cleaning Ruby gems cache..."
+    echo
+    print_color "$BLUE" "💎 Cleaning Ruby gems cache..."
     
     if command -v gem &> /dev/null; then
         local cache_size=$(get_size "$HOME/.gem")
@@ -315,7 +322,8 @@ clean_gems() {
 
 # Clean Docker
 clean_docker() {
-    print_color "$BLUE" "\n🐳 Cleaning Docker..."
+    echo
+    print_color "$BLUE" "🐳 Cleaning Docker..."
     
     if command -v docker &> /dev/null; then
         if [[ "$DRY_RUN" == true ]]; then
@@ -331,7 +339,8 @@ clean_docker() {
 
 # Clean system caches
 clean_system_cache() {
-    print_color "$BLUE" "\n🗑️  Cleaning system caches..."
+    echo
+    print_color "$BLUE" "🗑️  Cleaning system caches..."
     
     # System caches (requires sudo)
     local system_cache="/Library/Caches"
@@ -356,7 +365,8 @@ clean_system_cache() {
 
 # Clean user caches
 clean_user_cache() {
-    print_color "$BLUE" "\n🏠 Cleaning user caches..."
+    echo
+    print_color "$BLUE" "🏠 Cleaning user caches..."
     
     # User cache
     clean_path "$HOME/Library/Caches" "User cache"
@@ -371,7 +381,8 @@ clean_user_cache() {
 
 # Clean logs
 clean_logs() {
-    print_color "$BLUE" "\n📝 Cleaning old logs..."
+    echo
+    print_color "$BLUE" "📝 Cleaning old logs..."
     
     # System logs older than 30 days
     if [[ "$DRY_RUN" != true ]]; then
@@ -388,7 +399,8 @@ clean_logs() {
 
 # Clean downloads
 clean_downloads() {
-    print_color "$BLUE" "\n⬇️  Cleaning old downloads..."
+    echo
+    print_color "$BLUE" "⬇️  Cleaning old downloads..."
     
     local downloads="$HOME/Downloads"
     local old_count=$(find "$downloads" -type f -mtime +30 2>/dev/null | wc -l)
@@ -416,7 +428,8 @@ clean_downloads() {
 
 # Clean trash
 clean_trash() {
-    print_color "$BLUE" "\n🗑️  Cleaning trash..."
+    echo
+    print_color "$BLUE" "🗑️  Cleaning trash..."
     
     local trash_size=$(get_size "$HOME/.Trash")
     
@@ -639,7 +652,8 @@ main() {
     fi
     
     # Summary
-    print_color "$BLUE" "\n═══════════════════════════════════════════"
+    echo
+    print_color "$BLUE" "═══════════════════════════════════════════"
     if [[ "$DRY_RUN" == true ]]; then
         print_color "$CYAN" "Potential space to free: $(format_bytes $TOTAL_FREED)"
         print_color "$YELLOW" "Run without --dry-run to actually clean"

@@ -94,12 +94,14 @@ find_duplicates() {
     print_color "$BLUE" "═══════════════════════════════════════════"
     
     # Count total files
-    print_color "$CYAN" "\nCounting files..."
+    echo
+    print_color "$CYAN" "Counting files..."
     file_count=$(find "$search_path" -type f -size +${MIN_SIZE}c 2>/dev/null | wc -l | tr -d ' ')
     print_color "$CYAN" "Found $file_count files to process"
     
     # Process files and calculate hashes
-    print_color "$CYAN" "\nCalculating file hashes..."
+    echo
+    print_color "$CYAN" "Calculating file hashes..."
     
     find "$search_path" -type f -size +${MIN_SIZE}c 2>/dev/null | while read -r file; do
         ((processed_count++))
@@ -120,7 +122,8 @@ find_duplicates() {
     printf "\n"
     
     # Find duplicates by grouping files with same hash
-    print_color "$CYAN" "\nAnalyzing duplicates..."
+    echo
+    print_color "$CYAN" "Analyzing duplicates..."
     
     sort "$HASH_FILE" | awk -F'|' '
     {
@@ -145,11 +148,13 @@ find_duplicates() {
     local dup_groups=$(wc -l < "$DUPLICATES_FILE" | tr -d ' ')
     
     if [[ $dup_groups -eq 0 ]]; then
-        print_color "$GREEN" "\n✓ No duplicate files found!"
+        echo
+        print_color "$GREEN" "✓ No duplicate files found!"
         return 0
     fi
     
-    print_color "$YELLOW" "\nFound $dup_groups groups of duplicate files"
+    echo
+    print_color "$YELLOW" "Found $dup_groups groups of duplicate files"
 }
 
 # Function to display duplicates
@@ -158,7 +163,8 @@ display_duplicates() {
     local total_wasted=0
     local total_files=0
     
-    print_color "$BLUE" "\n═══════════════════════════════════════════"
+    echo
+    print_color "$BLUE" "═══════════════════════════════════════════"
     print_color "$BLUE" "Duplicate Files Report"
     print_color "$BLUE" "═══════════════════════════════════════════"
     
@@ -176,7 +182,8 @@ display_duplicates() {
         local wasted_space=$((file_size * (file_count - 1)))
         ((total_wasted += wasted_space))
         
-        print_color "$YELLOW" "\n━━━ Group $group_num ($file_count files, $(format_bytes $file_size) each) ━━━"
+        echo
+        print_color "$YELLOW" "━━━ Group $group_num ($file_count files, $(format_bytes $file_size) each) ━━━"
         print_color "$CYAN" "Potential savings: $(format_bytes $wasted_space)"
         
         # Display each file with modification time
@@ -219,7 +226,8 @@ display_duplicates() {
     done < "$DUPLICATES_FILE"
     
     # Display summary
-    print_color "$BLUE" "\n═══════════════════════════════════════════"
+    echo
+    print_color "$BLUE" "═══════════════════════════════════════════"
     print_color "$BLUE" "Summary"
     print_color "$BLUE" "═══════════════════════════════════════════"
     print_color "$YELLOW" "Duplicate groups: $group_num"
@@ -235,7 +243,8 @@ handle_duplicates_interactive() {
     local total_deleted=0
     local space_freed=0
     
-    print_color "$BLUE" "\n═══════════════════════════════════════════"
+    echo
+    print_color "$BLUE" "═══════════════════════════════════════════"
     print_color "$BLUE" "Interactive Duplicate Removal"
     print_color "$BLUE" "═══════════════════════════════════════════"
     
@@ -246,7 +255,8 @@ handle_duplicates_interactive() {
         IFS='|' read -r group_id file_count file_size wasted_space files <<< "$line"
         IFS='|' read -ra file_array <<< "$files"
         
-        print_color "$YELLOW" "\n━━━ Group $group_num ━━━"
+        echo
+        print_color "$YELLOW" "━━━ Group $group_num ━━━"
         print_color "$CYAN" "Files: $file_count | Size each: $(format_bytes $file_size)"
         
         # Display files with numbers
@@ -344,7 +354,8 @@ handle_duplicates_interactive() {
     
     # Final summary
     if [[ $total_deleted -gt 0 ]]; then
-        print_color "$GREEN" "\n✓ Cleanup complete!"
+        echo
+        print_color "$GREEN" "✓ Cleanup complete!"
         print_color "$GREEN" "Files deleted: $total_deleted"
         print_color "$GREEN" "Space freed: $(format_bytes $space_freed)"
     fi
@@ -376,7 +387,8 @@ auto_delete_duplicates() {
     local space_freed=0
     local strategy="$1"
     
-    print_color "$BLUE" "\n═══════════════════════════════════════════"
+    echo
+    print_color "$BLUE" "═══════════════════════════════════════════"
     print_color "$BLUE" "Auto-Deleting Duplicates"
     print_color "$BLUE" "Strategy: Keep $strategy"
     print_color "$BLUE" "═══════════════════════════════════════════"
@@ -424,7 +436,8 @@ auto_delete_duplicates() {
         
     done < "$SUMMARY_FILE"
     
-    print_color "$GREEN" "\n✓ Auto-cleanup complete!"
+    echo
+    print_color "$GREEN" "✓ Auto-cleanup complete!"
     print_color "$GREEN" "Files deleted: $total_deleted"
     print_color "$GREEN" "Space freed: $(format_bytes $space_freed)"
 }

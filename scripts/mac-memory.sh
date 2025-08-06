@@ -104,7 +104,8 @@ display_memory_info() {
         print_color "$RED" "${MEMORY_PRESSURE}% (High)"
     fi
     
-    print_color "$BLUE" "\n━━━ Memory Breakdown ━━━"
+    echo
+    print_color "$BLUE" "━━━ Memory Breakdown ━━━"
     printf "Wired (locked):   %s\n" "$(format_bytes $MEMORY_WIRED)"
     printf "Active:           %s\n" "$(format_bytes $MEMORY_ACTIVE)"
     printf "Inactive:         %s\n" "$(format_bytes $MEMORY_INACTIVE)"
@@ -112,7 +113,8 @@ display_memory_info() {
     printf "Purgeable:        %s\n" "$(format_bytes $MEMORY_PURGEABLE)"
     printf "Free:             %s\n" "$(format_bytes $MEMORY_FREE)"
     
-    print_color "$BLUE" "\n━━━ Swap Usage ━━━"
+    echo
+    print_color "$BLUE" "━━━ Swap Usage ━━━"
     printf "Swap Total:       %s MB\n" "$SWAP_TOTAL"
     printf "Swap Used:        %s MB\n" "$SWAP_USED"
     printf "Swap Free:        %s MB\n" "$SWAP_FREE"
@@ -122,7 +124,8 @@ display_memory_info() {
 get_top_memory_apps() {
     local count=${1:-10}
     
-    print_color "$BLUE" "\n━━━ Top $count Memory Consumers ━━━"
+    echo
+    print_color "$BLUE" "━━━ Top $count Memory Consumers ━━━"
     
     ps aux | awk 'NR>1 {printf "%-8s %-6s %-6s %s\n", $1, $3, $4, $11}' | \
         sort -rnk 3 | head -n "$count" | \
@@ -132,7 +135,8 @@ get_top_memory_apps() {
 
 # Function to purge memory
 purge_memory() {
-    print_color "$YELLOW" "\n⚡ Purging inactive memory..."
+    echo
+    print_color "$YELLOW" "⚡ Purging inactive memory..."
     
     # Check current memory before purge
     get_memory_info
@@ -161,7 +165,8 @@ purge_memory() {
 kill_memory_hogs() {
     local threshold=${1:-10}
     
-    print_color "$YELLOW" "\n🎯 Finding processes using more than ${threshold}% memory..."
+    echo
+    print_color "$YELLOW" "🎯 Finding processes using more than ${threshold}% memory..."
     
     local hogs=$(ps aux | awk -v threshold="$threshold" '$4 > threshold {print $2, $4, $11}' | \
                  grep -v "PID" | sort -rnk 2)
@@ -199,10 +204,12 @@ optimize_memory() {
     # Get current status
     get_memory_info
     
-    print_color "$CYAN" "\nCurrent memory pressure: ${MEMORY_PRESSURE}%"
+    echo
+    print_color "$CYAN" "Current memory pressure: ${MEMORY_PRESSURE}%"
     
     # Optimization steps
-    print_color "$YELLOW" "\n1. Closing unused applications..."
+    echo
+    print_color "$YELLOW" "1. Closing unused applications..."
     
     # Close apps that haven't been used recently
     local inactive_apps=$(osascript -e 'tell application "System Events" to get name of every process whose background only is true' 2>/dev/null)
@@ -217,17 +224,20 @@ optimize_memory() {
         done
     fi
     
-    print_color "$YELLOW" "\n2. Purging inactive memory..."
+    echo
+    print_color "$YELLOW" "2. Purging inactive memory..."
     purge_memory
     
-    print_color "$YELLOW" "\n3. Clearing caches..."
+    echo
+    print_color "$YELLOW" "3. Clearing caches..."
     # Clear user cache safely
     rm -rf "$HOME/Library/Caches/"* 2>/dev/null
     print_color "$GREEN" "  ✓ Cleared user caches"
     
     # Final status
     get_memory_info
-    print_color "$GREEN" "\n✓ Optimization complete!"
+    echo
+    print_color "$GREEN" "✓ Optimization complete!"
     print_color "$CYAN" "New memory pressure: ${MEMORY_PRESSURE}%"
     
     local freed=$((before_available - MEMORY_AVAILABLE))
@@ -250,7 +260,8 @@ monitor_memory() {
         
         # Alert if memory pressure is high
         if (( $(echo "$MEMORY_PRESSURE > $THRESHOLD" | bc -l) )); then
-            print_color "$RED" "\n⚠️  HIGH MEMORY PRESSURE DETECTED!"
+            echo
+            print_color "$RED" "⚠️  HIGH MEMORY PRESSURE DETECTED!"
             print_color "$YELLOW" "Run 'mac memory --optimize' to free up memory"
         fi
         
@@ -274,7 +285,8 @@ show_system_memory_info() {
     printf "Free Target:      %s pages\n" "$vm_page_free_target"
     
     # Memory limits
-    print_color "$BLUE" "\n━━━ Process Limits ━━━"
+    echo
+    print_color "$BLUE" "━━━ Process Limits ━━━"
     ulimit -a | grep -E "memory|data|stack"
 }
 

@@ -153,7 +153,8 @@ keep_awake() {
         print_color "$YELLOW" "Note: Move mouse or press a key to exit screensaver (Mac will stay awake)"
     fi
     
-    print_color "$YELLOW" "\nTo stop: mac awake --stop"
+    echo
+    print_color "$YELLOW" "To stop: mac awake --stop"
 }
 
 # Function to parse duration string
