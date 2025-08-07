@@ -106,7 +106,7 @@ fzf_update_menu() {
         --prompt="Update target: " \
         --preview='echo {} | cut -d: -f2 | sed "s/^ *//"' \
         --preview-window=up:2:wrap \
-        --header="Choose what to update" \
+        --header="Press Enter for 'all' or use ↑↓ to navigate, type to filter" \
         --color="header:italic:blue,prompt:green")
     
     if [[ -n "$selected" ]]; then
@@ -119,6 +119,10 @@ fzf_update_menu() {
         else
             exec mac update "$target"
         fi
+    else
+        print_color "$YELLOW" "No target selected, defaulting to 'all'"
+        echo
+        exec mac update
     fi
 }
 
