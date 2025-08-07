@@ -311,6 +311,9 @@ If you encounter any issues or have suggestions:
 
 ## Changelog
 
+### v1.4.1 (2025-08-06)
+- Remove internal path info from help output
+
 ### v1.4.0 (2025-08-07)
 - **NEW: Privacy & Security Suite** (`mac privacy`, `mac security`)
   - Browser data cleaner (Safari, Chrome, Firefox)

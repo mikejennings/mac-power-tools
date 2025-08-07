@@ -16,7 +16,7 @@ MAGENTA='\033[0;35m'
 NC='\033[0m' # No Color
 
 # Version
-VERSION="1.4.0"
+VERSION="1.4.1"
 
 # Function to show help
 show_help() {
@@ -92,11 +92,6 @@ show_help() {
     printf "    mac maintenance           # Open maintenance menu\n"
     printf "    mac trash                 # Empty trash\n"
     printf "    mac sort-downloads        # Organize downloads folder\n\n"
-    
-    printf "${YELLOW}PROJECT:${NC}\n"
-    printf "    Location: $SCRIPT_DIR\n"
-    printf "    Config: $SCRIPT_DIR/CLAUDE.md\n"
-    printf "    Logs: ~/Library/Logs/\n\n"
 }
 
 # Function to show version
