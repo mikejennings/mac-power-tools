@@ -90,7 +90,7 @@ mac-power-tools/
 - Validate user input to prevent injection attacks
 
 ### Version Management
-- Current version: 1.3.0
+- Current version: 1.4.0
 - Version defined in main `mac` script
 - Update version when making significant changes
 - Releases automatically update Homebrew formula via GitHub Actions
@@ -199,6 +199,14 @@ If workflows fail with YAML syntax errors:
 4. **Permissions**: Add `issues: write` permission for creating issues
 
 ## Release History
+
+### v1.4.0 (2025-08-07)
+- Added Privacy & Security Suite (`mac privacy`, `mac security`)
+- Browser data cleaners for Safari, Chrome, Firefox
+- Comprehensive security audit with 8+ checks
+- Exposed secrets scanner for API keys and passwords
+- Privacy hardening with one-command protection
+- App permissions review
 
 ### v1.3.0 (2025-08-07)
 - Added Downloads Management Suite (`mac downloads`)

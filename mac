@@ -16,7 +16,7 @@ MAGENTA='\033[0;35m'
 NC='\033[0m' # No Color
 
 # Version
-VERSION="1.3.0"
+VERSION="1.4.0"
 
 # Function to show help
 show_help() {
@@ -54,6 +54,10 @@ show_help() {
     
     printf "    ${CYAN}Performance:${NC}\n"
     printf "        memory [options]  Monitor and optimize memory\n\n"
+    
+    printf "    ${CYAN}Security & Privacy:${NC}\n"
+    printf "        privacy           Privacy protection and cleaning\n"
+    printf "        security          Security audit and hardening\n\n"
     
     printf "    ${CYAN}Power Management:${NC}\n"
     printf "        awake [options]   Keep Mac awake (with screensaver option)\n"
@@ -177,6 +181,30 @@ main() {
         memory)
             shift
             "$SCRIPT_DIR/scripts/mac-memory.sh" "$@"
+            ;;
+            
+        # Security & Privacy
+        privacy)
+            shift
+            "$SCRIPT_DIR/scripts/mac-privacy.sh" "$@"
+            ;;
+        security)
+            shift
+            case "${1:-audit}" in
+                audit)
+                    "$SCRIPT_DIR/scripts/mac-privacy.sh" audit
+                    ;;
+                scan)
+                    shift
+                    "$SCRIPT_DIR/scripts/mac-privacy.sh" scan "$@"
+                    ;;
+                protect)
+                    "$SCRIPT_DIR/scripts/mac-privacy.sh" protect
+                    ;;
+                *)
+                    "$SCRIPT_DIR/scripts/mac-privacy.sh" audit
+                    ;;
+            esac
             ;;
             
         # Power management

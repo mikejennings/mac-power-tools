@@ -34,6 +34,14 @@ A powerful and comprehensive macOS system management CLI tool. Modern replacemen
 - **Cleanup Tools**: Remove old downloads with one command
 - **Real-time Monitoring**: Watch folder and sort instantly
 
+### 🔒 Privacy & Security Suite (NEW v1.4.0!)
+- **Privacy Cleaner**: Remove browser data, history, caches, cookies
+- **Security Audit**: Check SIP, FileVault, Firewall, Gatekeeper status
+- **Secrets Scanner**: Find exposed API keys, tokens, passwords
+- **Permission Manager**: Review app permissions (camera, mic, location)
+- **Privacy Hardening**: Enable protective settings with one command
+- **Process Monitor**: Detect suspicious activities
+
 ### 🎯 CleanMyMac Alternative Features (NEW!)
 - **App Uninstaller**: Completely remove applications and all associated files
 - **Duplicate Finder**: Find and remove duplicate files to free up space
@@ -130,13 +138,20 @@ mac migrate-mas      # Analyze and migrate Mac App Store apps to Homebrew
 mac migrate-mas -a   # Analyze only (show migration opportunities)
 mac migrate-mas -e   # Execute migration (default is dry-run)
 
-# Downloads Management (NEW!)
+# Downloads Management (NEW v1.3.0!)
 mac downloads setup     # Set up automatic sorting
 mac downloads sort      # Sort all downloads now
 mac downloads watch     # Monitor folder in real-time
 mac downloads analyze   # Show folder analytics
 mac downloads clean 30  # Clean files older than 30 days
 mac downloads status    # Check sorting status
+
+# Privacy & Security (NEW v1.4.0!)
+mac privacy clean all   # Clean all browser & system data
+mac privacy clean safari --dry-run  # Preview Safari cleanup
+mac security audit      # Full security audit
+mac security scan       # Scan for exposed secrets
+mac privacy protect     # Enable privacy protection
 
 # Power management
 mac awake           # Keep Mac awake indefinitely
@@ -295,6 +310,17 @@ If you encounter any issues or have suggestions:
 - Provide system information when reporting bugs
 
 ## Changelog
+
+### v1.4.0 (2025-08-07)
+- **NEW: Privacy & Security Suite** (`mac privacy`, `mac security`)
+  - Browser data cleaner (Safari, Chrome, Firefox)
+  - System privacy data removal
+  - Comprehensive security audit
+  - Exposed secrets scanner
+  - App permissions checker
+  - Privacy hardening tools
+- Security checks: SIP, FileVault, Firewall, Gatekeeper
+- Detects suspicious processes and insecure configurations
 
 ### v1.3.0 (2025-08-07)
 - **NEW: Downloads Management Suite** (`mac downloads`)
