@@ -337,6 +337,61 @@ esac
 - Test "all" or default selections thoroughly
 - Use `$(dirname "${BASH_SOURCE[0]}")` for script directory resolution
 
+## TODO: Expanded Application Support for Dotfiles
+
+### Priority 1 - Developer Tools
+- [ ] **Neovim** - ~/.config/nvim/ directory
+- [ ] **Sublime Text** - ~/Library/Application Support/Sublime Text/
+- [ ] **JetBrains IDEs** - ~/Library/Application Support/JetBrains/
+- [ ] **Zed Editor** - ~/.config/zed/settings.json
+- [ ] **Cursor** - Similar to VS Code settings
+- [ ] **Warp Terminal** - ~/.warp/
+- [ ] **Alacritty** - ~/.config/alacritty/
+- [ ] **Oh My Zsh** - ~/.oh-my-zsh/custom/
+- [ ] **tmux** - ~/.tmux.conf and ~/.tmux/
+- [ ] **Homebrew Bundle** - ~/Brewfile
+
+### Priority 2 - Productivity Tools
+- [ ] **Alfred** - ~/Library/Application Support/Alfred/
+- [ ] **Rectangle/Spectacle** - Window management prefs
+- [ ] **Raycast** - ~/Library/Application Support/com.raycast.macos/
+- [ ] **Karabiner-Elements** - ~/.config/karabiner/
+- [ ] **BetterTouchTool** - ~/Library/Application Support/BetterTouchTool/
+- [ ] **Hammerspoon** - ~/.hammerspoon/
+- [ ] **Keyboard Maestro** - ~/Library/Application Support/Keyboard Maestro/
+
+### Priority 3 - Development Services
+- [ ] **Docker Desktop** - ~/.docker/config.json
+- [ ] **Kubernetes** - ~/.kube/ (beyond just config)
+- [ ] **Postgres/MySQL** - Config files
+- [ ] **Redis** - Config files
+- [ ] **npm/yarn/pnpm** - RC files and global configs
+- [ ] **Ruby/rbenv** - ~/.rbenv/ and .ruby-version
+- [ ] **Python/pyenv** - ~/.pyenv/ and .python-version
+- [ ] **Rust/cargo** - ~/.cargo/config.toml
+
+### Priority 4 - Security & Privacy Tools
+- [ ] **1Password CLI** - ~/.config/op/
+- [ ] **GPG** - ~/.gnupg/ (careful with private keys!)
+- [ ] **SSH** - Full ~/.ssh/ directory support
+- [ ] **AWS CLI v2** - Additional config files
+- [ ] **GitHub CLI** - ~/.config/gh/
+
+### Implementation Approach
+1. Add an `--apps` flag to `mac dotfiles backup` for application configs
+2. Create app-specific backup functions in mac-dotfiles.sh
+3. Add interactive selection for which apps to sync
+4. Implement smart detection of installed applications
+5. Add `mac dotfiles apps` subcommand to manage app preferences
+6. Create restoration testing for each app config
+
+### Safety Considerations
+- Never sync sensitive credentials or private keys
+- Add .gitignore patterns for each app's sensitive files
+- Implement confirmation prompts for large directories
+- Create app-specific exclude lists
+- Add dry-run mode for testing
+
 ## Notes for AI Assistants
 - This is a system administration tool - focus on safety and reliability
 - Always preserve existing functionality when making changes
@@ -349,3 +404,4 @@ esac
 - **Lint and Typecheck**: Run appropriate linters when available
 - **fzf Integration**: Follow the patterns established in v1.5.2 - direct script execution, no recursion
 - **User-Driven Development**: Users provide excellent feedback via screenshots showing exact UX issues
+- **Dotfiles Expansion**: When implementing new app support, check Mackup's implementation for reference
