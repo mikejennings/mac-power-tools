@@ -26,6 +26,14 @@ A powerful and comprehensive macOS system management CLI tool. Modern replacemen
 - **Finder Controls**: Toggle hidden files visibility
 - **Disk Utilities**: Repair permissions
 
+### 📁 Downloads Management (NEW v1.3.0!)
+- **Automatic Sorting**: Files organized by date (YYYY-MM-DD) and type
+- **Smart Categories**: Documents, Images, Videos, Code, Archives, and more
+- **Multiple Triggers**: Folder Actions, launchd agent, manual sorting
+- **File Analytics**: See what's taking up space in Downloads
+- **Cleanup Tools**: Remove old downloads with one command
+- **Real-time Monitoring**: Watch folder and sort instantly
+
 ### 🎯 CleanMyMac Alternative Features (NEW!)
 - **App Uninstaller**: Completely remove applications and all associated files
 - **Duplicate Finder**: Find and remove duplicate files to free up space
@@ -121,6 +129,14 @@ mac memory --optimize # Optimize memory usage
 mac migrate-mas      # Analyze and migrate Mac App Store apps to Homebrew
 mac migrate-mas -a   # Analyze only (show migration opportunities)
 mac migrate-mas -e   # Execute migration (default is dry-run)
+
+# Downloads Management (NEW!)
+mac downloads setup     # Set up automatic sorting
+mac downloads sort      # Sort all downloads now
+mac downloads watch     # Monitor folder in real-time
+mac downloads analyze   # Show folder analytics
+mac downloads clean 30  # Clean files older than 30 days
+mac downloads status    # Check sorting status
 
 # Power management
 mac awake           # Keep Mac awake indefinitely
@@ -279,6 +295,16 @@ If you encounter any issues or have suggestions:
 - Provide system information when reporting bugs
 
 ## Changelog
+
+### v1.3.0 (2025-08-07)
+- **NEW: Downloads Management Suite** (`mac downloads`)
+  - Automatic sorting by date and file type
+  - Folder Actions for instant organization
+  - Launchd agent for periodic sorting
+  - File analysis and cleanup tools
+  - Real-time folder monitoring
+- Added comprehensive feature roadmap
+- Enhanced project documentation
 
 ### v1.2.4 (2025-08-06)
 - Added Mac App Store to Homebrew migration tool (`mac migrate-mas`)

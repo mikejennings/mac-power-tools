@@ -90,7 +90,7 @@ mac-power-tools/
 - Validate user input to prevent injection attacks
 
 ### Version Management
-- Current version: 1.2.4
+- Current version: 1.3.0
 - Version defined in main `mac` script
 - Update version when making significant changes
 - Releases automatically update Homebrew formula via GitHub Actions
@@ -199,6 +199,13 @@ If workflows fail with YAML syntax errors:
 4. **Permissions**: Add `issues: write` permission for creating issues
 
 ## Release History
+
+### v1.3.0 (2025-08-07)
+- Added Downloads Management Suite (`mac downloads`)
+- Automatic file sorting with Folder Actions and launchd
+- Downloads analytics and cleanup tools
+- Real-time folder monitoring
+- Comprehensive feature roadmap added
 
 ### v1.2.4 (2025-08-06)
 - Added Mac App Store to Homebrew migration tool (`mac migrate-mas`)

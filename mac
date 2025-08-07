@@ -16,7 +16,7 @@ MAGENTA='\033[0;35m'
 NC='\033[0m' # No Color
 
 # Version
-VERSION="1.2.4"
+VERSION="1.3.0"
 
 # Function to show help
 show_help() {
@@ -63,6 +63,7 @@ show_help() {
     printf "        kill-apps         Close all applications\n\n"
     
     printf "    ${CYAN}Downloads Management:${NC}\n"
+    printf "        downloads         Smart downloads folder management\n"
     printf "        sort-downloads    Sort downloads by date and type\n"
     printf "        watch-downloads   Monitor downloads folder activity\n"
     printf "        downloads-status  Show downloads organization status\n\n"
@@ -197,14 +198,18 @@ main() {
             ;;
             
         # Downloads management
+        downloads)
+            shift
+            "$SCRIPT_DIR/scripts/mac-downloads.sh" "$@"
+            ;;
         sort-downloads)
-            "$SCRIPT_DIR/scripts/sort-downloads.sh"
+            "$SCRIPT_DIR/scripts/mac-downloads.sh" sort
             ;;
         watch-downloads)
-            "$SCRIPT_DIR/scripts/watch-downloads.sh"
+            "$SCRIPT_DIR/scripts/mac-downloads.sh" watch
             ;;
         downloads-status)
-            "$SCRIPT_DIR/scripts/downloads-status.sh"
+            "$SCRIPT_DIR/scripts/mac-downloads.sh" status
             ;;
             
         # Backup
