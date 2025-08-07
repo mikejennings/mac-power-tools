@@ -325,6 +325,9 @@ If you encounter any issues or have suggestions:
 
 ## Changelog
 
+### v1.5.2 (2025-08-06)
+- Fix critical fzf infinite loop issue and improve user experience
+
 ### v1.5.1 (2025-08-06)
 - Improve fzf update menu usability - fix 'all' selection issue
 
