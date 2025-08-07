@@ -16,7 +16,7 @@ on:
 
 jobs:
   update-homebrew:
-    runs-on: ubuntu-latest
+    runs-on: macos-latest
     
     steps:
     - name: Checkout mac-power-tools
@@ -57,10 +57,11 @@ jobs:
         
         cd homebrew-tap
         
-        # Update the formula
-        sed -i "s|url \".*\"|url \"https://github.com/mikejennings/mac-power-tools/archive/refs/tags/${VERSION}.tar.gz\"|" Formula/mac-power-tools.rb
-        sed -i "s|sha256 \".*\"|sha256 \"${SHA256}\"|" Formula/mac-power-tools.rb
-        sed -i "s|version \".*\"|version \"${VERSION_NUM}\"|" Formula/mac-power-tools.rb
+        # Update the formula (use sed -i.bak for compatibility, then remove backup)
+        sed -i.bak "s|url \".*\"|url \"https://github.com/mikejennings/mac-power-tools/archive/refs/tags/${VERSION}.tar.gz\"|" Formula/mac-power-tools.rb
+        sed -i.bak "s|sha256 \".*\"|sha256 \"${SHA256}\"|" Formula/mac-power-tools.rb  
+        sed -i.bak "s|version \".*\"|version \"${VERSION_NUM}\"|" Formula/mac-power-tools.rb
+        rm -f Formula/mac-power-tools.rb.bak
         
         # Show changes
         git diff
