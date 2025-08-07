@@ -200,6 +200,11 @@ If workflows fail with YAML syntax errors:
 
 ## Release History
 
+### v1.4.1 (2025-08-07)
+- Remove internal path info from help output
+- Fix help text showing Homebrew Cellar paths
+- Cleaner help display for end users
+
 ### v1.4.0 (2025-08-07)
 - Added Privacy & Security Suite (`mac privacy`, `mac security`)
 - Browser data cleaners for Safari, Chrome, Firefox
