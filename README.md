@@ -325,6 +325,9 @@ If you encounter any issues or have suggestions:
 
 ## Changelog
 
+### v1.5.0 (2025-08-06)
+- Add comprehensive fzf integration for interactive command selection
+
 ### v1.4.1 (2025-08-06)
 - Remove internal path info from help output
 
