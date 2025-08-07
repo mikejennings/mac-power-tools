@@ -342,6 +342,9 @@ If you encounter any issues or have suggestions:
 
 ## Changelog
 
+### v1.6.0 (2025-08-07)
+- Add native dotfiles sync with iCloud - Simple, elegant dotfiles management without external dependencies
+
 ### v1.5.2 (2025-08-07) - LATEST
 - **CRITICAL FIX**: Resolved fzf infinite loop where selecting "all" in update menu kept showing menu instead of executing updates
 - All fzf functions now call underlying scripts directly instead of recursing through main mac command  
