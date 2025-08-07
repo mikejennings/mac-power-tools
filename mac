@@ -80,18 +80,21 @@ show_help() {
     printf "        uninstall --list  List all installed applications\n"
     printf "        migrate-mas       Migrate Mac App Store apps to Homebrew\n\n"
     
+    printf "    ${CYAN}Interactive:${NC}\n"
+    printf "        menu              Interactive command selection with fzf\n\n"
+    
     printf "    ${CYAN}Other:${NC}\n"
     printf "        help              Show this help message\n"
     printf "        version           Show version information\n\n"
     
     printf "${YELLOW}EXAMPLES:${NC}\n"
-    printf "    mac update                # Update everything\n"
+    printf "    mac menu                  # Interactive command selection (fzf)\n"
+    printf "    mac update                # Update everything (or fzf menu if no args)\n"
     printf "    mac update brew           # Update only Homebrew\n"
-    printf "    mac info                  # Show all system information\n"
-    printf "    mac info memory           # Show only memory information\n"
+    printf "    mac info                  # Show all system info (or fzf menu if no args)\n"
+    printf "    mac uninstall             # Interactive app selection with fzf\n"
     printf "    mac maintenance           # Open maintenance menu\n"
-    printf "    mac trash                 # Empty trash\n"
-    printf "    mac sort-downloads        # Organize downloads folder\n\n"
+    printf "    mac trash                 # Empty trash\n\n"
 }
 
 # Function to show version
@@ -113,6 +116,14 @@ main() {
         help|-h|--help)
             show_help
             ;;
+        menu|fzf)
+            if command -v fzf &> /dev/null; then
+                "$SCRIPT_DIR/scripts/mac-fzf.sh" menu
+            else
+                printf "${YELLOW}fzf not found. Install with: brew install fzf${NC}\n"
+                echo "Or use 'mac help' for command reference"
+            fi
+            ;;
         version|-v|--version)
             show_version
             ;;
@@ -120,13 +131,21 @@ main() {
         # System updates
         update)
             shift
-            "$SCRIPT_DIR/scripts/mac-update.sh" "$@"
+            if [[ $# -eq 0 ]] && command -v fzf &> /dev/null; then
+                "$SCRIPT_DIR/scripts/mac-fzf.sh" update
+            else
+                "$SCRIPT_DIR/scripts/mac-update.sh" "$@"
+            fi
             ;;
             
         # System information
         info|system)
             shift
-            "$SCRIPT_DIR/scripts/mac-info.sh" "$@"
+            if [[ $# -eq 0 ]] && command -v fzf &> /dev/null; then
+                "$SCRIPT_DIR/scripts/mac-fzf.sh" info
+            else
+                "$SCRIPT_DIR/scripts/mac-info.sh" "$@"
+            fi
             ;;
             
         # Maintenance commands
@@ -148,7 +167,11 @@ main() {
             ;;
         duplicates)
             shift
-            "$SCRIPT_DIR/scripts/mac-duplicates.sh" "$@"
+            if [[ $# -eq 0 ]] && command -v fzf &> /dev/null; then
+                "$SCRIPT_DIR/scripts/mac-fzf.sh" duplicates
+            else
+                "$SCRIPT_DIR/scripts/mac-duplicates.sh" "$@"
+            fi
             ;;
         large-files)
             "$SCRIPT_DIR/scripts/mac-maintenance.sh" large-files
@@ -181,7 +204,11 @@ main() {
         # Security & Privacy
         privacy)
             shift
-            "$SCRIPT_DIR/scripts/mac-privacy.sh" "$@"
+            if [[ $# -eq 0 ]] && command -v fzf &> /dev/null; then
+                "$SCRIPT_DIR/scripts/mac-fzf.sh" privacy
+            else
+                "$SCRIPT_DIR/scripts/mac-privacy.sh" "$@"
+            fi
             ;;
         security)
             shift
@@ -223,7 +250,11 @@ main() {
         # Downloads management
         downloads)
             shift
-            "$SCRIPT_DIR/scripts/mac-downloads.sh" "$@"
+            if [[ $# -eq 0 ]] && command -v fzf &> /dev/null; then
+                "$SCRIPT_DIR/scripts/mac-fzf.sh" downloads
+            else
+                "$SCRIPT_DIR/scripts/mac-downloads.sh" "$@"
+            fi
             ;;
         sort-downloads)
             "$SCRIPT_DIR/scripts/mac-downloads.sh" sort
@@ -248,7 +279,11 @@ main() {
         # Application management
         uninstall)
             shift
-            "$SCRIPT_DIR/scripts/mac-uninstall.sh" "$@"
+            if [[ $# -eq 0 ]] && command -v fzf &> /dev/null; then
+                "$SCRIPT_DIR/scripts/mac-fzf.sh" uninstall
+            else
+                "$SCRIPT_DIR/scripts/mac-uninstall.sh" "$@"
+            fi
             ;;
         migrate-mas|mas-migrate)
             shift

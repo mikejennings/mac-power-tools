@@ -57,6 +57,13 @@ A powerful and comprehensive macOS system management CLI tool. Modern replacemen
 - Close all applications at once
 - Safe operation with confirmation prompts
 
+### 🎯 Interactive Interface (NEW!)
+- **fzf Integration**: Fuzzy finder for lightning-fast command selection
+  - `mac menu` - Interactive command browser with search
+  - Smart auto-detection when no arguments provided
+  - Multi-select for batch operations (like app uninstall)
+  - Real-time preview and filtering
+
 ## Installation
 
 ### Via Homebrew (Recommended)
@@ -167,12 +174,15 @@ mac shutdown        # Shutdown Mac
 ### Examples
 
 ```bash
+# Interactive command selection
+mac menu                     # Browse all commands with fzf
+
 # Morning routine - update everything
-mac update
+mac update                   # Interactive target selection (or update all)
 
 # Check system performance
-mac info memory
-mac info cpu
+mac info                     # Interactive info selection
+mac info memory              # Specific memory info
 
 # Clean up disk space (CleanMyMac alternative)
 mac clean --analyze     # See what can be cleaned
@@ -205,6 +215,7 @@ mac maintenance
   - Homebrew (for `brew` updates)
   - mas-cli (for Mac App Store updates)
   - npm (for Node.js package updates)
+  - fzf (for interactive command selection: `brew install fzf`)
 
 ## Project Structure
 
@@ -220,7 +231,10 @@ mac-power-tools/
 │   ├── mac-clean.sh       # System junk cleaner (NEW)
 │   ├── mac-memory.sh      # Memory optimizer (NEW)
 │   ├── mac-awake.sh       # Keep awake/caffeinate (NEW)
-│   └── mac-migrate-mas.sh # MAS to Homebrew migration (NEW)
+│   ├── mac-migrate-mas.sh # MAS to Homebrew migration (NEW)
+│   ├── mac-downloads.sh   # Downloads management (NEW)
+│   ├── mac-privacy.sh     # Privacy & security suite (NEW)
+│   └── mac-fzf.sh         # Interactive fzf integration (NEW)
 ├── test/                   # Test suite (NEW)
 │   ├── test_helper.sh     # Testing framework
 │   └── *.test.sh          # Test files for each feature
