@@ -16,7 +16,7 @@ MAGENTA='\033[0;35m'
 NC='\033[0m' # No Color
 
 # Version
-VERSION="1.5.1"
+VERSION="1.5.2"
 
 # Function to show help
 show_help() {
@@ -72,8 +72,9 @@ show_help() {
     printf "        watch-downloads   Monitor downloads folder activity\n"
     printf "        downloads-status  Show downloads organization status\n\n"
     
-    printf "    ${CYAN}Backup:${NC}\n"
-    printf "        backup            Run Mackup backup\n\n"
+    printf "    ${CYAN}Backup & Sync:${NC}\n"
+    printf "        dotfiles          Sync dotfiles to iCloud\n"
+    printf "        backup            Alias for dotfiles backup\n\n"
     
     printf "    ${CYAN}Application Management:${NC}\n"
     printf "        uninstall <app>   Completely uninstall an application\n"
@@ -266,14 +267,18 @@ main() {
             "$SCRIPT_DIR/scripts/mac-downloads.sh" status
             ;;
             
-        # Backup
-        backup)
-            if [ -f "$SCRIPT_DIR/mackup-backup.sh" ]; then
-                "$SCRIPT_DIR/mackup-backup.sh"
+        # Dotfiles & Backup
+        dotfiles)
+            shift
+            if [[ $# -eq 0 ]] && command -v fzf &> /dev/null; then
+                "$SCRIPT_DIR/scripts/mac-fzf.sh" dotfiles
             else
-                printf "${RED}Mackup backup script not found${NC}\n"
-                exit 1
+                "$SCRIPT_DIR/scripts/mac-dotfiles.sh" "$@"
             fi
+            ;;
+        backup)
+            shift
+            "$SCRIPT_DIR/scripts/mac-dotfiles.sh" "$@"
             ;;
             
         # Application management
