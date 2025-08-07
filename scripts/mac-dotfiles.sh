@@ -7,7 +7,7 @@ set -euo pipefail
 
 # Get the directory of this script
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
-source "$SCRIPT_DIR/../mac" 2>/dev/null || true
+# Don't source the main script to avoid conflicts
 
 # Colors for output
 RED='\033[0;31m'
@@ -38,6 +38,20 @@ DEFAULT_DOTFILES=(
     ".aws/credentials"
 )
 
+# Extended dotfiles for developer tools
+DEVELOPER_CONFIGS=(
+    ".config/nvim"
+    ".config/gh"
+    ".config/raycast"
+    ".config/zed"
+    ".config/fish"
+    ".hammerspoon"
+    ".docker/config.json"
+    ".kube/config"
+    ".npmrc"
+    ".yarnrc"
+)
+
 # Common application preferences
 APP_PREFS=(
     "com.apple.Terminal.plist"
@@ -45,6 +59,9 @@ APP_PREFS=(
     "com.microsoft.VSCode.plist"
     "com.sublimetext.4.plist"
     "com.github.atom.plist"
+    "com.knollsoft.Rectangle.plist"
+    "net.matthewpalmer.Rectangle-Pro.plist"
+    "com.raycast.macos.plist"
 )
 
 # Check if iCloud is available
@@ -291,6 +308,33 @@ list_tracked() {
     [[ $count -eq 0 ]] && printf "  None\n"
 }
 
+# Backup developer configs
+backup_dev_configs() {
+    check_icloud || return 1
+    init_dotfiles
+    
+    printf "\n${CYAN}=== Backing Up Developer Configs ===${NC}\n\n"
+    
+    local backed_up=0
+    
+    for config in "${DEVELOPER_CONFIGS[@]}"; do
+        local source="$HOME/$config"
+        
+        # Check if the config exists
+        if [[ -e "$source" ]]; then
+            printf "${YELLOW}Found $config - Back up? (y/n)${NC} "
+            read -r response
+            if [[ "$response" =~ ^[Yy]$ ]]; then
+                if backup_dotfile "$config"; then
+                    ((backed_up++))
+                fi
+            fi
+        fi
+    done
+    
+    printf "\n${GREEN}✓ Backed up $backed_up developer configs${NC}\n"
+}
+
 # Add a new dotfile to track
 add_dotfile() {
     local file="${1:-}"
@@ -391,6 +435,7 @@ ${YELLOW}Commands:${NC}
   remove <file>                 Stop syncing a dotfile
   list                          List tracked dotfiles
   prefs                         Backup application preferences
+  dev                           Backup developer tool configs
   help                          Show this help message
 
 ${YELLOW}Examples:${NC}
@@ -441,6 +486,9 @@ main() {
             ;;
         prefs|preferences)
             backup_preferences
+            ;;
+        dev|developer)
+            backup_dev_configs
             ;;
         help|--help|-h)
             show_help
