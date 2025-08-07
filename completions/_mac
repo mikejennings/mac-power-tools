@@ -53,6 +53,8 @@ _mac_commands() {
     commands=(
         'help:Show help message'
         'version:Show version information'
+        'menu:Interactive command selection with fzf'
+        'fzf:Interactive command selection with fzf'
         'update:Update system packages and apps'
         'info:Show system information'
         'maintenance:Interactive maintenance menu'

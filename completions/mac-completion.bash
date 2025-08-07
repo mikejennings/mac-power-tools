@@ -9,7 +9,7 @@ _mac_completion() {
     prev="${COMP_WORDS[COMP_CWORD-1]}"
 
     # Main commands
-    local commands="help version update info maintenance clean trash cache downloads duplicates large-files large-dirs logs dns spotlight hidden permissions memory privacy security awake sleep restart shutdown kill-apps sort-downloads watch-downloads downloads-status backup uninstall migrate-mas"
+    local commands="help version menu fzf update info maintenance clean trash cache downloads duplicates large-files large-dirs logs dns spotlight hidden permissions memory privacy security awake sleep restart shutdown kill-apps sort-downloads watch-downloads downloads-status backup uninstall migrate-mas"
 
     case "${prev}" in
         mac)
