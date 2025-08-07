@@ -57,6 +57,14 @@ A powerful and comprehensive macOS system management CLI tool. Modern replacemen
 - Close all applications at once
 - Safe operation with confirmation prompts
 
+### 🔄 Dotfiles & Backup
+- **Native iCloud Sync**: Simple dotfiles management without external dependencies
+  - Symlinks dotfiles to iCloud Drive for automatic sync
+  - Backup and restore configuration files across machines
+  - Support for nested configs (.ssh/config, .aws/credentials)
+  - Application preferences backup (VS Code, iTerm2, Terminal)
+  - Interactive fzf menu for easy management
+
 ### 🎯 Interactive Interface (NEW!)
 - **fzf Integration**: Fuzzy finder for lightning-fast command selection
   - `mac menu` - Interactive command browser with search
@@ -144,6 +152,14 @@ mac memory --optimize # Optimize memory usage
 mac migrate-mas      # Analyze and migrate Mac App Store apps to Homebrew
 mac migrate-mas -a   # Analyze only (show migration opportunities)
 mac migrate-mas -e   # Execute migration (default is dry-run)
+
+# Dotfiles Management
+mac dotfiles            # Interactive menu (requires fzf)
+mac dotfiles init       # Initialize iCloud sync
+mac dotfiles backup     # Backup all dotfiles
+mac dotfiles restore    # Restore from iCloud
+mac dotfiles add .vimrc # Add specific file
+mac dotfiles list       # Show tracked files
 
 # Downloads Management (NEW v1.3.0!)
 mac downloads setup     # Set up automatic sorting
@@ -234,6 +250,7 @@ mac-power-tools/
 │   ├── mac-migrate-mas.sh # MAS to Homebrew migration (NEW)
 │   ├── mac-downloads.sh   # Downloads management (NEW)
 │   ├── mac-privacy.sh     # Privacy & security suite (NEW)
+│   ├── mac-dotfiles.sh    # Dotfiles & backup sync (NEW)
 │   └── mac-fzf.sh         # Interactive fzf integration (NEW)
 ├── test/                   # Test suite (NEW)
 │   ├── test_helper.sh     # Testing framework
@@ -325,8 +342,12 @@ If you encounter any issues or have suggestions:
 
 ## Changelog
 
-### v1.5.2 (2025-08-06)
-- Fix critical fzf infinite loop issue and improve user experience
+### v1.5.2 (2025-08-07) - LATEST
+- **CRITICAL FIX**: Resolved fzf infinite loop where selecting "all" in update menu kept showing menu instead of executing updates
+- All fzf functions now call underlying scripts directly instead of recursing through main mac command  
+- Added "Esc to exit" instructions to all fzf menu headers for better UX
+- Improved user experience with clearer menu navigation
+- **Release Status**: ✅ Complete - Available via Homebrew (`brew upgrade mac-power-tools`)
 
 ### v1.5.1 (2025-08-06)
 - Improve fzf update menu usability - fix 'all' selection issue

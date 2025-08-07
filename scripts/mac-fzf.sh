@@ -55,6 +55,7 @@ fzf_command_menu() {
         "restart:Restart Mac with confirmation"
         "shutdown:Shutdown Mac with confirmation"
         "kill-apps:Close all running applications"
+        "dotfiles:Sync dotfiles to iCloud Drive"
         "uninstall:Completely remove applications"
         "migrate-mas:Migrate Mac App Store apps to Homebrew"
     )
@@ -80,7 +81,7 @@ fzf_command_menu() {
         # Get script directory and execute appropriate script
         local scripts_dir="$(dirname "${BASH_SOURCE[0]}")"
         case "$cmd" in
-            update|info|uninstall|duplicates|downloads|privacy|security)
+            update|info|uninstall|duplicates|downloads|privacy|security|dotfiles)
                 exec "$scripts_dir/mac-$cmd.sh"
                 ;;
             *)
@@ -390,6 +391,38 @@ fzf_duplicates_menu() {
     fi
 }
 
+# fzf-enhanced dotfiles menu
+fzf_dotfiles_menu() {
+    local options=(
+        "backup:Backup all dotfiles to iCloud"
+        "restore:Restore dotfiles from iCloud"
+        "add:Add a specific dotfile to sync"
+        "remove:Stop syncing a specific dotfile"
+        "list:List all tracked dotfiles"
+        "prefs:Backup application preferences"
+        "init:Initialize dotfiles directories"
+    )
+    
+    local selected=$(printf '%s\n' "${options[@]}" | fzf \
+        --height=12 \
+        --layout=reverse \
+        --border \
+        --prompt="Dotfiles operation: " \
+        --preview='echo {} | cut -d: -f2 | sed "s/^ *//"' \
+        --preview-window=up:2:wrap \
+        --header="Select dotfiles operation, Esc to exit" \
+        --color="header:italic:blue,prompt:cyan")
+    
+    if [[ -n "$selected" ]]; then
+        local action=$(echo "$selected" | cut -d: -f1)
+        echo
+        print_color "$GREEN" "Executing: mac dotfiles $action"
+        echo
+        local scripts_dir="$(dirname "${BASH_SOURCE[0]}")"
+        exec "$scripts_dir/mac-dotfiles.sh" "$action"
+    fi
+}
+
 # Main fzf integration function
 main() {
     case "${1:-menu}" in
@@ -414,9 +447,12 @@ main() {
         duplicates)
             check_fzf && fzf_duplicates_menu
             ;;
+        dotfiles)
+            check_fzf && fzf_dotfiles_menu
+            ;;
         *)
             print_color "$RED" "Unknown fzf command: $1"
-            echo "Available: menu, update, info, uninstall, privacy, downloads, duplicates"
+            echo "Available: menu, update, info, uninstall, privacy, downloads, duplicates, dotfiles"
             exit 1
             ;;
     esac

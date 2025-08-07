@@ -30,6 +30,17 @@ mac-power-tools/
 - `mac memory` - Monitor and optimize memory usage
 - `mac migrate-mas` - Migrate Mac App Store apps to Homebrew Cask (v1.2.4+)
 
+### Interactive fzf Integration (v1.5.0+)
+- `mac menu` - Interactive command browser with fuzzy finder search
+- `mac update` (no args) - Interactive update target selection
+- `mac info` (no args) - Interactive system info selection  
+- `mac uninstall` (no args) - Interactive app selection with multi-select (TAB)
+- `mac duplicates` (no args) - Interactive directory selection for duplicate search
+- `mac downloads` (no args) - Interactive downloads management menu
+- `mac privacy` (no args) - Interactive privacy and security tools menu
+- **Requirements**: `brew install fzf` for full interactive functionality
+- **Fallback**: All commands work without fzf, just with different UX
+
 ### Power Management
 - `mac awake` - Keep Mac awake (prevent sleep)
 - `mac awake --screensaver` - Keep awake with screensaver
@@ -90,10 +101,11 @@ mac-power-tools/
 - Validate user input to prevent injection attacks
 
 ### Version Management
-- Current version: 1.5.2
+- **Current version: 1.5.2** ✅ LATEST (Released 2025-08-07)
 - Version defined in main `mac` script
 - Update version when making significant changes
 - Releases automatically update Homebrew formula via GitHub Actions
+- **Status**: All systems operational, Homebrew formula updated successfully
 
 #### Creating Releases
 
@@ -200,6 +212,28 @@ If workflows fail with YAML syntax errors:
 
 ## Release History
 
+### v1.5.2 (2025-08-07) - CURRENT RELEASE ✅
+- **CRITICAL FIX**: Fixed infinite loop bug in fzf integration where selecting "all" in update menu would keep showing the menu instead of executing updates
+- **Technical Details**: Changed fzf functions to call underlying scripts directly (`mac-update.sh`) instead of recursing through main `mac` command
+- **UX Improvements**: Added "Esc to exit" instructions to all fzf menu headers for better user experience
+- **Release Process**: Complete automation from commit to Homebrew formula update
+- **User Impact**: Resolved major usability issue affecting interactive command selection
+- **Status**: ✅ Released, GitHub Actions workflows completed, Homebrew formula updated
+
+### v1.5.1 (2025-08-06)
+- **fzf Menu Enhancements**: Improved update menu usability with clearer instructions
+- **Selection Fix**: Made "all" option more discoverable and selectable in fzf interface
+- **User Feedback**: Added default fallback for easier "all" selection
+- **Status**: Superseded by v1.5.2 due to infinite loop discovery
+
+### v1.5.0 (2025-08-06)
+- **NEW FEATURE**: Comprehensive fzf integration for interactive command selection
+- **Interactive Menus**: Added fuzzy finder support for update, info, uninstall, privacy, downloads, and duplicates commands
+- **Command Browser**: New `mac menu` command for browsing all available commands with search
+- **Multi-select**: TAB support for batch operations (like app uninstalling)
+- **Branch Workflow**: Implemented proper git workflow (feature branch → PR → merge → release)
+- **Status**: Foundation for interactive features, enhanced by v1.5.1 and v1.5.2
+
 ### v1.4.1 (2025-08-07)
 - Remove internal path info from help output
 - Fix help text showing Homebrew Cellar paths
@@ -258,6 +292,51 @@ If workflows fail with YAML syntax errors:
 - System update utilities
 - System information tools
 
+## Recent Development Patterns & Lessons Learned (v1.5.x)
+
+### fzf Integration Architecture (Critical Learning)
+The v1.5.x series revealed important patterns for interactive shell script design:
+
+**❌ AVOID: Command Recursion**
+```bash
+# BAD - Creates infinite loops
+case "$target" in
+    all) exec mac update ;;  # This triggers fzf detection again!
+esac
+```
+
+**✅ CORRECT: Direct Script Execution**
+```bash
+# GOOD - Calls scripts directly
+local scripts_dir="$(dirname "${BASH_SOURCE[0]}")"
+case "$target" in
+    all) exec "$scripts_dir/mac-update.sh" ;;  # Direct script call
+esac
+```
+
+### Key Development Insights
+1. **User Feedback via Screenshots**: Visual feedback from users showing exact issues (menu loops, selection problems) is invaluable
+2. **Iterative Release Process**: v1.5.0 → v1.5.1 → v1.5.2 shows importance of quick iterations based on real usage
+3. **Automated Release Pipeline**: GitHub Actions automation from commit to Homebrew formula update works flawlessly
+4. **Shell Script Recursion**: Be extremely careful with `exec mac command` patterns in wrapper scripts
+5. **fzf UX Patterns**: Always provide escape instructions and clear default selections
+
+### Development Workflow That Works
+1. **User Reports Issue** (via screenshot/demo)
+2. **Quick Fix & Test** (focus on specific problem)  
+3. **Version Bump** (bump-version.sh or manual)
+4. **Commit & Push** (triggers auto-release)
+5. **GitHub Actions** (creates release, updates Homebrew)
+6. **User Verification** (brew upgrade mac-power-tools)
+
+### fzf Integration Best Practices
+- Always call underlying scripts directly, never recurse through main wrapper
+- Provide clear exit instructions ("Esc to exit")
+- Use consistent prompt styles across all menus
+- Include preview windows for better UX
+- Test "all" or default selections thoroughly
+- Use `$(dirname "${BASH_SOURCE[0]}")` for script directory resolution
+
 ## Notes for AI Assistants
 - This is a system administration tool - focus on safety and reliability
 - Always preserve existing functionality when making changes
@@ -268,3 +347,5 @@ If workflows fail with YAML syntax errors:
 - **CleanMyMac Alternative**: This tool provides free, open-source alternatives to CleanMyMac features
 - **Testing is Required**: Always write tests for new features using the test framework
 - **Lint and Typecheck**: Run appropriate linters when available
+- **fzf Integration**: Follow the patterns established in v1.5.2 - direct script execution, no recursion
+- **User-Driven Development**: Users provide excellent feedback via screenshots showing exact UX issues

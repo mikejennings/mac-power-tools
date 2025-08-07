@@ -1,0 +1,457 @@
+#!/bin/bash
+
+# Mac Power Tools - Dotfiles & Preferences Sync
+# Simple, elegant iCloud-based dotfiles management
+
+set -euo pipefail
+
+# Get the directory of this script
+SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
+source "$SCRIPT_DIR/../mac" 2>/dev/null || true
+
+# Colors for output
+RED='\033[0;31m'
+GREEN='\033[0;32m'
+YELLOW='\033[1;33m'
+BLUE='\033[0;34m'
+CYAN='\033[0;36m'
+MAGENTA='\033[0;35m'
+NC='\033[0m' # No Color
+
+# iCloud Drive path
+ICLOUD_PATH="$HOME/Library/Mobile Documents/com~apple~CloudDocs"
+DOTFILES_DIR="$ICLOUD_PATH/Dotfiles"
+PREFS_DIR="$ICLOUD_PATH/AppPreferences"
+
+# Common dotfiles to track
+DEFAULT_DOTFILES=(
+    ".bashrc"
+    ".bash_profile"
+    ".zshrc"
+    ".zprofile"
+    ".gitconfig"
+    ".gitignore_global"
+    ".vimrc"
+    ".tmux.conf"
+    ".ssh/config"
+    ".aws/config"
+    ".aws/credentials"
+)
+
+# Common application preferences
+APP_PREFS=(
+    "com.apple.Terminal.plist"
+    "com.googlecode.iterm2.plist"
+    "com.microsoft.VSCode.plist"
+    "com.sublimetext.4.plist"
+    "com.github.atom.plist"
+)
+
+# Check if iCloud is available
+check_icloud() {
+    if [[ ! -d "$ICLOUD_PATH" ]]; then
+        printf "${RED}Error: iCloud Drive not found${NC}\n"
+        printf "Please ensure iCloud Drive is enabled in System Preferences\n"
+        return 1
+    fi
+    return 0
+}
+
+# Initialize dotfiles directory
+init_dotfiles() {
+    check_icloud || return 1
+    
+    printf "${CYAN}=== Initializing Dotfiles Sync ===${NC}\n\n"
+    
+    # Create directories if they don't exist
+    if [[ ! -d "$DOTFILES_DIR" ]]; then
+        mkdir -p "$DOTFILES_DIR"
+        printf "${GREEN}✓ Created dotfiles directory in iCloud${NC}\n"
+    else
+        printf "${BLUE}Dotfiles directory already exists${NC}\n"
+    fi
+    
+    if [[ ! -d "$PREFS_DIR" ]]; then
+        mkdir -p "$PREFS_DIR"
+        printf "${GREEN}✓ Created preferences directory in iCloud${NC}\n"
+    else
+        printf "${BLUE}Preferences directory already exists${NC}\n"
+    fi
+    
+    # Create subdirectories for nested configs
+    mkdir -p "$DOTFILES_DIR/.ssh"
+    mkdir -p "$DOTFILES_DIR/.aws"
+    mkdir -p "$DOTFILES_DIR/.config"
+    
+    printf "${GREEN}✓ Dotfiles sync initialized${NC}\n"
+    printf "  Dotfiles: $DOTFILES_DIR\n"
+    printf "  Preferences: $PREFS_DIR\n"
+}
+
+# Backup a single dotfile
+backup_dotfile() {
+    local file="$1"
+    local source="$HOME/$file"
+    local backup="$DOTFILES_DIR/$file"
+    
+    # Skip if source doesn't exist
+    if [[ ! -e "$source" ]]; then
+        return 1
+    fi
+    
+    # Create parent directory if needed
+    local backup_dir=$(dirname "$backup")
+    mkdir -p "$backup_dir"
+    
+    # If it's already a symlink pointing to our backup, skip
+    if [[ -L "$source" ]] && [[ "$(readlink "$source")" == "$backup" ]]; then
+        printf "${BLUE}✓ $file (already linked)${NC}\n"
+        return 0
+    fi
+    
+    # If backup exists and is not the same, prompt
+    if [[ -e "$backup" ]] && [[ ! -L "$source" ]]; then
+        if ! diff -q "$source" "$backup" > /dev/null 2>&1; then
+            printf "${YELLOW}Conflict for $file. Keep (l)ocal, (i)Cloud, or (s)kip?${NC} "
+            read -r choice
+            case "$choice" in
+                l|L)
+                    cp -f "$source" "$backup"
+                    ;;
+                i|I)
+                    # Will be handled below
+                    ;;
+                s|S)
+                    return 0
+                    ;;
+                *)
+                    return 0
+                    ;;
+            esac
+        fi
+    fi
+    
+    # Move file to iCloud if it's not there yet
+    if [[ ! -L "$source" ]]; then
+        if [[ -e "$source" ]]; then
+            cp -a "$source" "$backup"
+            rm -rf "$source"
+        fi
+    fi
+    
+    # Create symlink
+    ln -sf "$backup" "$source"
+    printf "${GREEN}✓ $file${NC}\n"
+    return 0
+}
+
+# Backup all dotfiles
+backup_all() {
+    check_icloud || return 1
+    init_dotfiles
+    
+    printf "\n${CYAN}=== Backing Up Dotfiles ===${NC}\n\n"
+    
+    local backed_up=0
+    
+    # Backup default dotfiles
+    for file in "${DEFAULT_DOTFILES[@]}"; do
+        if backup_dotfile "$file"; then
+            ((backed_up++))
+        fi
+    done
+    
+    # Look for other common dotfiles
+    while IFS= read -r file; do
+        local basename="${file#$HOME/}"
+        # Skip if already in our list or if it's our symlink
+        if [[ ! " ${DEFAULT_DOTFILES[@]} " =~ " ${basename} " ]] && [[ ! -L "$file" ]]; then
+            printf "${YELLOW}Found: $basename - Back up? (y/n)${NC} "
+            read -r response
+            if [[ "$response" =~ ^[Yy]$ ]]; then
+                if backup_dotfile "$basename"; then
+                    ((backed_up++))
+                fi
+            fi
+        fi
+    done < <(find "$HOME" -maxdepth 1 -name ".*" -type f 2>/dev/null)
+    
+    printf "\n${GREEN}✓ Backed up $backed_up dotfiles to iCloud${NC}\n"
+}
+
+# Restore dotfiles
+restore_all() {
+    check_icloud || return 1
+    
+    if [[ ! -d "$DOTFILES_DIR" ]]; then
+        printf "${RED}Error: No dotfiles backup found in iCloud${NC}\n"
+        return 1
+    fi
+    
+    printf "${CYAN}=== Restoring Dotfiles ===${NC}\n\n"
+    
+    local restored=0
+    
+    # Find all files in the backup directory
+    while IFS= read -r backup_file; do
+        local relative_path="${backup_file#$DOTFILES_DIR/}"
+        local target="$HOME/$relative_path"
+        
+        # Skip if it's already a correct symlink
+        if [[ -L "$target" ]] && [[ "$(readlink "$target")" == "$backup_file" ]]; then
+            printf "${BLUE}✓ $relative_path (already linked)${NC}\n"
+            ((restored++))
+            continue
+        fi
+        
+        # Handle existing files
+        if [[ -e "$target" ]] && [[ ! -L "$target" ]]; then
+            printf "${YELLOW}$relative_path exists. Overwrite? (y/n)${NC} "
+            read -r response
+            if [[ ! "$response" =~ ^[Yy]$ ]]; then
+                continue
+            fi
+            rm -rf "$target"
+        fi
+        
+        # Create parent directory if needed
+        local target_dir=$(dirname "$target")
+        mkdir -p "$target_dir"
+        
+        # Create symlink
+        ln -sf "$backup_file" "$target"
+        printf "${GREEN}✓ $relative_path${NC}\n"
+        ((restored++))
+    done < <(find "$DOTFILES_DIR" -type f 2>/dev/null)
+    
+    printf "\n${GREEN}✓ Restored $restored dotfiles from iCloud${NC}\n"
+}
+
+# Backup application preferences
+backup_preferences() {
+    check_icloud || return 1
+    init_dotfiles
+    
+    printf "\n${CYAN}=== Backing Up Application Preferences ===${NC}\n\n"
+    
+    local prefs_source="$HOME/Library/Preferences"
+    local backed_up=0
+    
+    for pref in "${APP_PREFS[@]}"; do
+        local source="$prefs_source/$pref"
+        local backup="$PREFS_DIR/$pref"
+        
+        if [[ -f "$source" ]]; then
+            cp -a "$source" "$backup"
+            printf "${GREEN}✓ $pref${NC}\n"
+            ((backed_up++))
+        fi
+    done
+    
+    # VS Code settings
+    local vscode_dir="$HOME/Library/Application Support/Code/User"
+    if [[ -d "$vscode_dir" ]]; then
+        local vscode_backup="$PREFS_DIR/VSCode"
+        mkdir -p "$vscode_backup"
+        
+        for file in settings.json keybindings.json snippets; do
+            if [[ -e "$vscode_dir/$file" ]]; then
+                cp -a "$vscode_dir/$file" "$vscode_backup/"
+                printf "${GREEN}✓ VS Code $file${NC}\n"
+                ((backed_up++))
+            fi
+        done
+    fi
+    
+    printf "\n${GREEN}✓ Backed up $backed_up preference files${NC}\n"
+}
+
+# List tracked files
+list_tracked() {
+    check_icloud || return 1
+    
+    printf "${CYAN}=== Tracked Dotfiles ===${NC}\n\n"
+    
+    if [[ -d "$DOTFILES_DIR" ]]; then
+        printf "${YELLOW}Dotfiles in iCloud:${NC}\n"
+        find "$DOTFILES_DIR" -type f -exec basename {} \; | sort | sed 's/^/  /'
+    else
+        printf "${YELLOW}No dotfiles backed up yet${NC}\n"
+    fi
+    
+    printf "\n${YELLOW}Symlinked files:${NC}\n"
+    local count=0
+    while IFS= read -r link; do
+        if [[ "$(readlink "$link" 2>/dev/null)" =~ $DOTFILES_DIR ]]; then
+            printf "  ${link#$HOME/}\n"
+            ((count++))
+        fi
+    done < <(find "$HOME" -maxdepth 3 -type l 2>/dev/null)
+    
+    [[ $count -eq 0 ]] && printf "  None\n"
+}
+
+# Add a new dotfile to track
+add_dotfile() {
+    local file="${1:-}"
+    
+    if [[ -z "$file" ]]; then
+        printf "${YELLOW}Enter path to dotfile (relative to home):${NC} "
+        read -r file
+    fi
+    
+    # Remove leading slash or ~/
+    file="${file#/}"
+    file="${file#~/}"
+    
+    if backup_dotfile "$file"; then
+        printf "${GREEN}✓ Added $file to dotfiles sync${NC}\n"
+    else
+        printf "${RED}Failed to add $file${NC}\n"
+    fi
+}
+
+# Remove a dotfile from tracking
+remove_dotfile() {
+    local file="${1:-}"
+    
+    if [[ -z "$file" ]]; then
+        printf "${YELLOW}Enter dotfile to remove (relative to home):${NC} "
+        read -r file
+    fi
+    
+    file="${file#/}"
+    file="${file#~/}"
+    
+    local source="$HOME/$file"
+    local backup="$DOTFILES_DIR/$file"
+    
+    if [[ -L "$source" ]] && [[ "$(readlink "$source")" == "$backup" ]]; then
+        # Copy the file back
+        rm "$source"
+        cp -a "$backup" "$source"
+        printf "${GREEN}✓ Removed $file from sync (file kept locally)${NC}\n"
+    else
+        printf "${YELLOW}$file is not currently synced${NC}\n"
+    fi
+}
+
+# Interactive menu
+interactive_menu() {
+    if command -v fzf &> /dev/null; then
+        local options=(
+            "backup:Backup all dotfiles to iCloud"
+            "restore:Restore dotfiles from iCloud"
+            "add:Add a specific dotfile"
+            "remove:Stop syncing a dotfile"
+            "list:List tracked dotfiles"
+            "prefs:Backup application preferences"
+            "init:Initialize dotfiles directories"
+        )
+        
+        local choice=$(printf '%s\n' "${options[@]}" | \
+            fzf --height=40% \
+                --border \
+                --prompt="Select dotfiles operation > " \
+                --header="Dotfiles Manager (Esc to exit)" \
+                --preview='echo {}' \
+                --preview-window=right:50%:wrap)
+        
+        [[ -z "$choice" ]] && return
+        
+        local action="${choice%%:*}"
+        case "$action" in
+            backup) backup_all ;;
+            restore) restore_all ;;
+            add) add_dotfile ;;
+            remove) remove_dotfile ;;
+            list) list_tracked ;;
+            prefs) backup_preferences ;;
+            init) init_dotfiles ;;
+        esac
+    else
+        show_help
+    fi
+}
+
+# Show help
+show_help() {
+    cat << EOF
+${CYAN}Mac Dotfiles - Simple iCloud Sync${NC}
+
+${YELLOW}Usage:${NC}
+  mac dotfiles                  Interactive menu (requires fzf)
+  mac dotfiles <command>        Run specific command
+
+${YELLOW}Commands:${NC}
+  init                          Initialize dotfiles directories
+  backup                        Backup all dotfiles to iCloud
+  restore                       Restore dotfiles from iCloud
+  add <file>                    Add a specific dotfile
+  remove <file>                 Stop syncing a dotfile
+  list                          List tracked dotfiles
+  prefs                         Backup application preferences
+  help                          Show this help message
+
+${YELLOW}Examples:${NC}
+  mac dotfiles                  # Interactive menu
+  mac dotfiles init             # First-time setup
+  mac dotfiles backup           # Backup all dotfiles
+  mac dotfiles add .bashrc      # Add specific file
+  mac dotfiles restore          # Restore on new machine
+
+${YELLOW}How it works:${NC}
+  1. Copies your dotfiles to iCloud Drive
+  2. Replaces local files with symlinks
+  3. Changes sync automatically via iCloud
+  4. Simple, native, no external dependencies
+
+${YELLOW}Default tracked files:${NC}
+  .bashrc, .zshrc, .gitconfig, .vimrc, .tmux.conf
+  .ssh/config, .aws/config, and more
+
+EOF
+}
+
+# Main function
+main() {
+    local command="${1:-}"
+    
+    case "$command" in
+        "")
+            interactive_menu
+            ;;
+        init)
+            init_dotfiles
+            ;;
+        backup)
+            backup_all
+            ;;
+        restore)
+            restore_all
+            ;;
+        add)
+            add_dotfile "$2"
+            ;;
+        remove)
+            remove_dotfile "$2"
+            ;;
+        list)
+            list_tracked
+            ;;
+        prefs|preferences)
+            backup_preferences
+            ;;
+        help|--help|-h)
+            show_help
+            ;;
+        *)
+            printf "${RED}Unknown command: $command${NC}\n"
+            show_help
+            exit 1
+            ;;
+    esac
+}
+
+# Run main function
+main "$@"
