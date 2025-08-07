@@ -101,7 +101,7 @@ mac-power-tools/
 - Validate user input to prevent injection attacks
 
 ### Version Management
-- **Current version: 1.6.0** ✅ LATEST (Released 2025-08-07)
+- **Current version: 1.6.1** ✅ LATEST (Released 2025-08-07)
 - Version defined in main `mac` script
 - Update version when making significant changes
 - Releases automatically update Homebrew formula via GitHub Actions

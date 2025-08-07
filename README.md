@@ -342,6 +342,9 @@ If you encounter any issues or have suggestions:
 
 ## Changelog
 
+### v1.6.1 (2025-08-07)
+- Expanded application support for dotfiles - Added dev command for developer tool configs
+
 ### v1.6.0 (2025-08-07)
 - Add native dotfiles sync with iCloud - Simple, elegant dotfiles management without external dependencies
 
