@@ -77,7 +77,17 @@ fzf_command_menu() {
         echo
         print_color "$GREEN" "Executing: mac $cmd"
         echo
-        exec mac "$cmd"
+        # Get script directory and execute appropriate script
+        local scripts_dir="$(dirname "${BASH_SOURCE[0]}")"
+        case "$cmd" in
+            update|info|uninstall|duplicates|downloads|privacy|security)
+                exec "$scripts_dir/mac-$cmd.sh"
+                ;;
+            *)
+                # For other commands, use the main script but with the specific command
+                exec mac "$cmd"
+                ;;
+        esac
     else
         print_color "$YELLOW" "No command selected"
         exit 0
@@ -106,7 +116,7 @@ fzf_update_menu() {
         --prompt="Update target: " \
         --preview='echo {} | cut -d: -f2 | sed "s/^ *//"' \
         --preview-window=up:2:wrap \
-        --header="Press Enter for 'all' or use ↑↓ to navigate, type to filter" \
+        --header="Press Enter for 'all', ↑↓ to navigate, type to filter, Esc to exit" \
         --color="header:italic:blue,prompt:green")
     
     if [[ -n "$selected" ]]; then
@@ -114,15 +124,20 @@ fzf_update_menu() {
         echo
         print_color "$GREEN" "Updating: $target"
         echo
+        # Get the scripts directory (same directory as this script)
+        local scripts_dir="$(dirname "${BASH_SOURCE[0]}")"
+        
         if [[ "$target" == "all" ]]; then
-            exec mac update
+            exec "$scripts_dir/mac-update.sh"
         else
-            exec mac update "$target"
+            exec "$scripts_dir/mac-update.sh" "$target"
         fi
     else
         print_color "$YELLOW" "No target selected, defaulting to 'all'"
         echo
-        exec mac update
+        # Get the scripts directory (same directory as this script)
+        local scripts_dir="$(dirname "${BASH_SOURCE[0]}")"
+        exec "$scripts_dir/mac-update.sh"
     fi
 }
 
@@ -149,7 +164,7 @@ fzf_info_menu() {
         --prompt="Info type: " \
         --preview='echo {} | cut -d: -f2 | sed "s/^ *//"' \
         --preview-window=up:2:wrap \
-        --header="Choose information to display" \
+        --header="Choose info to display, Esc to exit" \
         --color="header:italic:blue,prompt:green")
     
     if [[ -n "$selected" ]]; then
@@ -157,10 +172,13 @@ fzf_info_menu() {
         echo
         print_color "$GREEN" "Showing: $info_type information"
         echo
+        # Get the scripts directory (same directory as this script)
+        local scripts_dir="$(dirname "${BASH_SOURCE[0]}")"
+        
         if [[ "$info_type" == "all" ]]; then
-            exec mac info
+            exec "$scripts_dir/mac-info.sh"
         else
-            exec mac info "$info_type"
+            exec "$scripts_dir/mac-info.sh" "$info_type"
         fi
     fi
 }
@@ -242,7 +260,7 @@ fzf_privacy_menu() {
         --prompt="Privacy action: " \
         --preview='echo {} | cut -d: -f2 | sed "s/^ *//"' \
         --preview-window=up:2:wrap \
-        --header="Choose privacy/security action" \
+        --header="Choose privacy/security action, Esc to exit" \
         --color="header:italic:blue,prompt:cyan")
     
     if [[ -n "$selected" ]]; then
@@ -251,33 +269,36 @@ fzf_privacy_menu() {
         print_color "$GREEN" "Executing: $action"
         echo
         
+        # Get the scripts directory
+        local scripts_dir="$(dirname "${BASH_SOURCE[0]}")"
+        
         case "$action" in
             audit)
-                exec mac security audit
+                exec "$scripts_dir/mac-privacy.sh" audit
                 ;;
             scan)
-                exec mac security scan
+                exec "$scripts_dir/mac-privacy.sh" scan
                 ;;
             clean-all)
-                exec mac privacy clean all
+                exec "$scripts_dir/mac-privacy.sh" clean all
                 ;;
             clean-safari)
-                exec mac privacy clean safari
+                exec "$scripts_dir/mac-privacy.sh" clean safari
                 ;;
             clean-chrome)
-                exec mac privacy clean chrome
+                exec "$scripts_dir/mac-privacy.sh" clean chrome
                 ;;
             clean-firefox)
-                exec mac privacy clean firefox
+                exec "$scripts_dir/mac-privacy.sh" clean firefox
                 ;;
             clean-system)
-                exec mac privacy clean system
+                exec "$scripts_dir/mac-privacy.sh" clean system
                 ;;
             permissions)
-                exec mac privacy permissions
+                exec "$scripts_dir/mac-privacy.sh" permissions
                 ;;
             protect)
-                exec mac privacy protect
+                exec "$scripts_dir/mac-privacy.sh" protect
                 ;;
         esac
     fi
@@ -305,7 +326,7 @@ fzf_downloads_menu() {
         --prompt="Downloads action: " \
         --preview='echo {} | cut -d: -f2 | sed "s/^ *//"' \
         --preview-window=up:2:wrap \
-        --header="Manage your Downloads folder" \
+        --header="Manage your Downloads folder, Esc to exit" \
         --color="header:italic:blue,prompt:magenta")
     
     if [[ -n "$selected" ]]; then
@@ -313,7 +334,9 @@ fzf_downloads_menu() {
         echo
         print_color "$GREEN" "Executing: mac downloads $action"
         echo
-        exec mac downloads "$action"
+        # Get the scripts directory
+        local scripts_dir="$(dirname "${BASH_SOURCE[0]}")"
+        exec "$scripts_dir/mac-downloads.sh" "$action"
     fi
 }
 
@@ -341,7 +364,7 @@ fzf_duplicates_menu() {
         --prompt="Search directory: " \
         --preview='echo {} | cut -d: -f2 | sed "s/^ *//"' \
         --preview-window=up:2:wrap \
-        --header="Select directory to scan for duplicates" \
+        --header="Select directory to scan for duplicates, Esc to exit" \
         --color="header:italic:blue,prompt:yellow")
     
     if [[ -n "$selected" ]]; then
@@ -357,7 +380,9 @@ fzf_duplicates_menu() {
             echo
             print_color "$GREEN" "Searching for duplicates in: $dir"
             echo
-            exec mac duplicates "$dir"
+            # Get the scripts directory
+            local scripts_dir="$(dirname "${BASH_SOURCE[0]}")"
+            exec "$scripts_dir/mac-duplicates.sh" "$dir"
         else
             print_color "$RED" "Directory not found: $dir"
             exit 1
