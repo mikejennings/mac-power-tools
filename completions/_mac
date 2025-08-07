@@ -1,0 +1,230 @@
+#compdef mac
+
+# Mac Power Tools tab completion for zsh
+
+_mac() {
+    local context state state_descr line
+    typeset -A opt_args
+
+    _arguments -C \
+        '1: :_mac_commands' \
+        '*::arg:->args'
+
+    case $state in
+        args)
+            case $words[1] in
+                update)
+                    _mac_update_targets
+                    ;;
+                info)
+                    _mac_info_types
+                    ;;
+                uninstall)
+                    _mac_uninstall_args
+                    ;;
+                duplicates)
+                    _directories
+                    ;;
+                downloads)
+                    _mac_downloads_commands
+                    ;;
+                privacy)
+                    _mac_privacy_commands
+                    ;;
+                security)
+                    _mac_security_commands
+                    ;;
+                awake)
+                    _mac_awake_args
+                    ;;
+                memory)
+                    _mac_memory_args
+                    ;;
+                clean)
+                    _mac_clean_args
+                    ;;
+            esac
+            ;;
+    esac
+}
+
+_mac_commands() {
+    local commands
+    commands=(
+        'help:Show help message'
+        'version:Show version information'
+        'update:Update system packages and apps'
+        'info:Show system information'
+        'maintenance:Interactive maintenance menu'
+        'clean:Deep clean system junk'
+        'trash:Empty trash'
+        'cache:Clear caches'
+        'downloads:Downloads folder management'
+        'duplicates:Find duplicate files'
+        'large-files:Find large files'
+        'large-dirs:Find large directories'
+        'logs:Clean old log files'
+        'dns:Flush DNS cache'
+        'spotlight:Rebuild Spotlight index'
+        'hidden:Toggle hidden files visibility'
+        'permissions:Repair disk permissions'
+        'memory:Monitor and optimize memory'
+        'privacy:Privacy protection and cleaning'
+        'security:Security audit and hardening'
+        'awake:Keep Mac awake'
+        'sleep:Put Mac to sleep'
+        'restart:Restart Mac'
+        'shutdown:Shutdown Mac'
+        'kill-apps:Close all applications'
+        'sort-downloads:Sort downloads by date and type'
+        'watch-downloads:Monitor downloads folder'
+        'downloads-status:Show downloads status'
+        'backup:Run Mackup backup'
+        'uninstall:Completely uninstall applications'
+        'migrate-mas:Migrate Mac App Store apps to Homebrew'
+    )
+    _describe 'command' commands
+}
+
+_mac_update_targets() {
+    local targets
+    targets=(
+        'macos:Check for macOS updates'
+        'brew:Update Homebrew packages'
+        'mas:Update Mac App Store apps'
+        'npm:Update npm packages'
+        'ruby:Update Ruby gems'
+        'pip:Update Python packages'
+    )
+    _describe 'update target' targets
+}
+
+_mac_info_types() {
+    local types
+    types=(
+        'system:Show all system information'
+        'memory:Show memory usage'
+        'disk:Show disk usage'
+        'network:Show network status'
+        'battery:Show battery status'
+        'temp:Show CPU temperature'
+        'cpu:Show CPU information'
+    )
+    _describe 'info type' types
+}
+
+_mac_uninstall_args() {
+    local args
+    args=(
+        '--list:List all installed applications'
+        '--dry-run:Preview what would be removed'
+    )
+    _describe 'uninstall options' args
+    
+    # Also complete application names from /Applications
+    local apps
+    apps=(${(f)"$(find /Applications -name "*.app" -maxdepth 1 -exec basename {} .app \;)"})
+    _describe 'applications' apps
+}
+
+_mac_downloads_commands() {
+    local commands
+    commands=(
+        'sort:Sort all files in Downloads folder'
+        'sort-file:Sort a specific file'
+        'setup:Install automatic sorting'
+        'status:Show current setup status'
+        'watch:Watch folder and sort in real-time'
+        'analyze:Analyze downloads folder contents'
+        'clean:Clean files older than N days'
+        'disable:Disable automatic sorting'
+        'help:Show downloads help'
+    )
+    _describe 'downloads command' commands
+}
+
+_mac_privacy_commands() {
+    local commands
+    commands=(
+        'clean:Clean browser and system privacy data'
+        'audit:Perform security audit'
+        'scan:Scan for exposed secrets'
+        'permissions:Check app permissions'
+        'protect:Enable privacy protection settings'
+        'help:Show privacy help'
+    )
+    _describe 'privacy command' commands
+    
+    case $words[2] in
+        clean)
+            local targets
+            targets=(
+                'safari:Clean Safari data'
+                'chrome:Clean Chrome data'
+                'firefox:Clean Firefox data'
+                'system:Clean system privacy data'
+                'all:Clean everything'
+            )
+            _describe 'clean target' targets
+            ;;
+    esac
+}
+
+_mac_security_commands() {
+    local commands
+    commands=(
+        'audit:Perform security audit'
+        'scan:Scan for exposed secrets'
+        'protect:Enable privacy protection settings'
+    )
+    _describe 'security command' commands
+}
+
+_mac_awake_args() {
+    local args
+    args=(
+        '--screensaver:Keep awake with screensaver'
+        '--status:Check awake status'
+        '--stop:Stop keeping Mac awake'
+        '-t:Keep awake for specified time'
+        '--time:Keep awake for specified time'
+        '-w:Wait for process to finish'
+        '--wait-for:Wait for process to finish'
+        '--help:Show awake help'
+    )
+    _describe 'awake options' args
+}
+
+_mac_memory_args() {
+    local args
+    args=(
+        '--optimize:Optimize memory usage'
+        '--status:Show memory status'
+        '--help:Show memory help'
+    )
+    _describe 'memory options' args
+}
+
+_mac_clean_args() {
+    local args
+    args=(
+        '--analyze:Analyze what can be cleaned'
+        '--dry-run:Preview changes without applying'
+        '--help:Show clean help'
+    )
+    _describe 'clean options' args
+}
+
+# Global options that work with most commands
+_mac_global_options() {
+    local options
+    options=(
+        '-h:Show help'
+        '--help:Show help'
+        '-v:Show version'
+        '--version:Show version'
+    )
+    _describe 'global options' options
+}
+
+_mac "$@"

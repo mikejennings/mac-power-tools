@@ -115,6 +115,7 @@ install_mac_power_tools() {
     # Make scripts executable
     chmod +x "$install_dir/mac"
     chmod +x "$install_dir/scripts/"*.sh
+    [ -f "$install_dir/install-completions.sh" ] && chmod +x "$install_dir/install-completions.sh"
     
     print_success "Mac Power Tools installed to $install_dir"
 }
@@ -218,6 +219,20 @@ main() {
     echo "1. Reload your shell: source $SHELL_RC"
     echo "2. Run: mac help"
     echo
+    
+    # Offer to install tab completion
+    if [ -f "$INSTALL_DIR/install-completions.sh" ]; then
+        echo "Would you like to install tab completion? (y/N)"
+        read -r install_completion
+        if [[ "$install_completion" =~ ^[Yy]$ ]]; then
+            "$INSTALL_DIR/install-completions.sh"
+        else
+            echo "You can install tab completion later by running:"
+            echo "$INSTALL_DIR/install-completions.sh"
+        fi
+        echo
+    fi
+    
     echo "For more information, visit:"
     echo "https://github.com/mikejennings/mac-power-tools"
 }
