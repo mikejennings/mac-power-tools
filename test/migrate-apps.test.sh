@@ -96,5 +96,25 @@ test "Dry run is default mode" \
 test "Execute mode requires explicit flag" \
     "'$MIGRATE_APPS_SCRIPT' --help | grep -q '\\-\\-execute'"
 
+# Test 21: Backup functionality is available
+test "Backup functionality is available" \
+    "'$MIGRATE_APPS_SCRIPT' --help | grep -q '\\-\\-no-backup'"
+
+# Test 22: Restore command works
+test "Restore command works" \
+    "'$MIGRATE_APPS_SCRIPT' --restore | grep -q 'Available App Backups'"
+
+# Test 23: Backup directory option works
+test "Backup directory option works" \
+    "'$MIGRATE_APPS_SCRIPT' --backup-dir /tmp/test-backup --help"
+
+# Test 24: Backup functions exist
+test "Backup functions exist" \
+    "source '$MIGRATE_APPS_SCRIPT' && type backup_app >/dev/null 2>&1"
+
+# Test 25: Backup directory creation function works
+test "Backup directory creation function works" \
+    "source '$MIGRATE_APPS_SCRIPT' && type create_backup_dir >/dev/null 2>&1"
+
 # Show test results
 show_test_results

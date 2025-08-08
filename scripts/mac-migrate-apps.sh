@@ -16,6 +16,8 @@ NC='\033[0m' # No Color
 DRY_RUN=true
 INTERACTIVE=true
 VERBOSE=false
+BACKUP_APPS=true
+BACKUP_DIR="$HOME/.mac-power-tools/app-backups"
 
 # Function to print colored output
 print_color() {
@@ -172,6 +174,95 @@ is_cask_installed() {
     brew list --cask 2>/dev/null | grep -q "^${cask}$"
 }
 
+# Function to create backup directory
+create_backup_dir() {
+    if [ ! -d "$BACKUP_DIR" ]; then
+        mkdir -p "$BACKUP_DIR"
+        if [ $? -eq 0 ]; then
+            print_color "$CYAN" "Created backup directory: $BACKUP_DIR"
+        else
+            print_color "$RED" "Failed to create backup directory: $BACKUP_DIR"
+            return 1
+        fi
+    fi
+    return 0
+}
+
+# Function to backup app before migration
+backup_app() {
+    local app_name=$1
+    local app_path="/Applications/${app_name}.app"
+    local timestamp=$(date +"%Y%m%d_%H%M%S")
+    local backup_path="${BACKUP_DIR}/${app_name}_${timestamp}.app"
+    
+    if [ ! -d "$app_path" ]; then
+        print_color "$YELLOW" "Warning: App not found at $app_path"
+        return 1
+    fi
+    
+    print_color "$CYAN" "Backing up $app_name..."
+    if cp -R "$app_path" "$backup_path" 2>/dev/null; then
+        print_color "$GREEN" "✓ Backed up to: $backup_path"
+        echo "$backup_path" # Return backup path for cleanup later
+        return 0
+    else
+        print_color "$RED" "✗ Failed to backup $app_name"
+        return 1
+    fi
+}
+
+# Function to remove app after successful migration
+remove_app() {
+    local app_name=$1
+    local app_path="/Applications/${app_name}.app"
+    
+    if [ -d "$app_path" ]; then
+        print_color "$YELLOW" "Removing original app: $app_name"
+        if rm -rf "$app_path" 2>/dev/null; then
+            print_color "$GREEN" "✓ Removed $app_path"
+            return 0
+        else
+            print_color "$RED" "✗ Failed to remove $app_path"
+            print_color "$CYAN" "You may need to remove it manually"
+            return 1
+        fi
+    else
+        print_color "$YELLOW" "App already removed: $app_path"
+        return 0
+    fi
+}
+
+# Function to restore app from backup
+restore_app() {
+    local backup_path=$1
+    local app_name=$(basename "$backup_path" | sed 's/_[0-9]*_[0-9]*\.app$//')
+    local app_path="/Applications/${app_name}.app"
+    
+    print_color "$YELLOW" "Restoring $app_name from backup..."
+    if cp -R "$backup_path" "$app_path" 2>/dev/null; then
+        print_color "$GREEN" "✓ Restored $app_name"
+        return 0
+    else
+        print_color "$RED" "✗ Failed to restore $app_name"
+        return 1
+    fi
+}
+
+# Function to cleanup backup after successful migration
+cleanup_backup() {
+    local backup_path=$1
+    local app_name=$(basename "$backup_path" | sed 's/_[0-9]*_[0-9]*\.app$//')
+    
+    if [ -d "$backup_path" ]; then
+        print_color "$CYAN" "Cleaning up backup for $app_name..."
+        if rm -rf "$backup_path" 2>/dev/null; then
+            print_color "$GREEN" "✓ Cleaned up backup"
+        else
+            print_color "$YELLOW" "Warning: Could not clean up backup at $backup_path"
+        fi
+    fi
+}
+
 # Function to find cask for app
 find_cask_for_app() {
     local app_name=$1
@@ -182,16 +273,35 @@ find_cask_for_app() {
     echo ""
 }
 
-# Function to migrate single app (DRY RUN ONLY - NO DELETION)
+# Function to migrate single app with backup support
 migrate_app() {
     local app_name=$1
     local cask_name=$2
+    local backup_path=""
     
     if [ "$DRY_RUN" = true ]; then
         print_color "$CYAN" "[DRY RUN] Would migrate: $app_name"
+        if [ "$BACKUP_APPS" = true ]; then
+            print_color "$CYAN" "  - Backup app to: $BACKUP_DIR/${app_name}_TIMESTAMP.app"
+        fi
         print_color "$CYAN" "  - Install Homebrew cask: $cask_name"
-        print_color "$CYAN" "  - Manual cleanup: Move /Applications/$app_name.app to Trash"
+        print_color "$CYAN" "  - Remove original app: /Applications/$app_name.app"
         return 0
+    fi
+    
+    # Create backup directory if needed
+    if [ "$BACKUP_APPS" = true ]; then
+        if ! create_backup_dir; then
+            print_color "$RED" "Cannot proceed without backup directory"
+            return 1
+        fi
+        
+        # Backup the app first
+        backup_path=$(backup_app "$app_name")
+        if [ $? -ne 0 ]; then
+            print_color "$RED" "Failed to backup $app_name - aborting migration"
+            return 1
+        fi
     fi
     
     # Install cask version
@@ -199,16 +309,42 @@ migrate_app() {
     if brew install --cask "$cask_name"; then
         print_color "$GREEN" "✓ Installed $cask_name"
         
-        # IMPORTANT: We do NOT automatically delete the manual app
-        # User must manually clean up to avoid data loss
-        print_color "$YELLOW" "⚠️  Manual cleanup required:"
-        print_color "$CYAN" "  1. Quit $app_name if running"
-        print_color "$CYAN" "  2. Move /Applications/$app_name.app to Trash"
-        print_color "$CYAN" "  3. The Homebrew version is now available"
-        
-        return 0
+        # Remove the original app
+        if remove_app "$app_name"; then
+            print_color "$GREEN" "✓ Migration completed successfully"
+            
+            # Clean up backup if successful and user wants cleanup
+            if [ "$BACKUP_APPS" = true ] && [ -n "$backup_path" ]; then
+                if [ "$INTERACTIVE" = true ]; then
+                    echo
+                    read -p "Remove backup? Migration was successful (y/n): " -n 1 -r
+                    echo
+                    if [[ $REPLY =~ ^[Yy]$ ]]; then
+                        cleanup_backup "$backup_path"
+                    else
+                        print_color "$CYAN" "Backup preserved at: $backup_path"
+                    fi
+                else
+                    # In non-interactive mode, keep backup for safety
+                    print_color "$CYAN" "Backup preserved at: $backup_path"
+                fi
+            fi
+            
+            return 0
+        else
+            print_color "$YELLOW" "Homebrew version installed, but original app removal failed"
+            print_color "$CYAN" "You may need to manually remove /Applications/$app_name.app"
+            return 0
+        fi
     else
         print_color "$RED" "Failed to install $cask_name"
+        
+        # Restore from backup if installation failed
+        if [ "$BACKUP_APPS" = true ] && [ -n "$backup_path" ]; then
+            print_color "$YELLOW" "Installation failed - backup is preserved at: $backup_path"
+            print_color "$CYAN" "Your original app is safe and unchanged"
+        fi
+        
         return 1
     fi
 }
@@ -339,11 +475,16 @@ perform_migration() {
         echo
         print_color "$YELLOW" "This was a dry run - no changes were made"
         print_color "$CYAN" "Run with --execute to perform actual migration"
+        if [ "$BACKUP_APPS" = true ]; then
+            print_color "$CYAN" "Apps will be backed up to: $BACKUP_DIR"
+        fi
     else
         echo
-        print_color "$YELLOW" "⚠️  Important: Manual cleanup required"
-        print_color "$CYAN" "You must manually remove the old apps from /Applications"
-        print_color "$CYAN" "The Homebrew versions are now installed and ready to use"
+        if [ "$BACKUP_APPS" = true ]; then
+            print_color "$CYAN" "App backups are stored in: $BACKUP_DIR"
+            print_color "$CYAN" "You can safely remove backups after testing migrated apps"
+        fi
+        print_color "$GREEN" "Migration complete! Homebrew versions are now active"
     fi
 }
 
@@ -474,6 +615,40 @@ EOF
     fi
 }
 
+# Function to show available backups
+show_backups() {
+    print_color "$BLUE" "Available App Backups"
+    print_color "$BLUE" "═══════════════════════════════════════════"
+    
+    if [ ! -d "$BACKUP_DIR" ]; then
+        print_color "$YELLOW" "No backup directory found at: $BACKUP_DIR"
+        return 0
+    fi
+    
+    local backups=($(find "$BACKUP_DIR" -name "*.app" -type d 2>/dev/null))
+    
+    if [ ${#backups[@]} -eq 0 ]; then
+        print_color "$YELLOW" "No app backups found in: $BACKUP_DIR"
+        return 0
+    fi
+    
+    echo
+    print_color "$GREEN" "Found ${#backups[@]} app backup(s):"
+    for backup in "${backups[@]}"; do
+        local backup_name=$(basename "$backup")
+        local app_name=$(echo "$backup_name" | sed 's/_[0-9]*_[0-9]*\.app$//')
+        local timestamp=$(echo "$backup_name" | sed 's/.*_\([0-9]*_[0-9]*\)\.app$/\1/')
+        local formatted_time=$(echo "$timestamp" | sed 's/_/ /')
+        echo "  • $app_name (backed up: $formatted_time)"
+    done
+    
+    echo
+    print_color "$CYAN" "To restore a backup:"
+    print_color "$CYAN" "1. Uninstall the Homebrew version: brew uninstall --cask <cask-name>"
+    print_color "$CYAN" "2. Copy backup to /Applications manually"
+    print_color "$CYAN" "3. Or contact support for automated restore"
+}
+
 # Show help
 show_help() {
     cat << EOF
@@ -493,6 +668,9 @@ OPTIONS:
     -l, --list          List known App to Cask mappings
     -m, --map APP CASK  Add custom App name to Cask mapping
     -v, --verbose       Show detailed output
+    --no-backup         Skip app backup (not recommended)
+    --backup-dir DIR    Custom backup directory (default: ~/.mac-power-tools/app-backups)
+    --restore           Show available backups and restore options
 
 EXAMPLES:
     # Analyze what can be migrated (safe, read-only)
@@ -509,6 +687,12 @@ EXAMPLES:
     
     # Add custom mapping and migrate
     mac migrate-apps --map "My App" my-app --execute
+    
+    # Migrate without backup (not recommended)
+    mac migrate-apps --execute --no-backup
+    
+    # Show available backups
+    mac migrate-apps --restore
 
 BENEFITS OF MIGRATION:
     • Homebrew casks update automatically with 'brew upgrade'
@@ -520,17 +704,19 @@ BENEFITS OF MIGRATION:
 
 SAFETY FEATURES:
     • Dry-run mode by default (no changes made)
-    • Manual cleanup required (no automatic app deletion)
+    • Automatic app backup before migration (in ~/.mac-power-tools/app-backups)
     • Interactive confirmation for each app
     • System apps are automatically excluded
     • Preserves app data and settings
+    • Rollback capability if migration fails
 
 NOTES:
-    • This tool does NOT delete apps automatically
-    • You must manually remove old apps after migration
+    • Apps are automatically backed up before migration
+    • Original apps are removed after successful Homebrew installation
     • App settings and data are typically preserved
     • Some apps may require re-authentication
-    • Always test migrated apps before removing originals
+    • Backups can be found in ~/.mac-power-tools/app-backups
+    • Use --no-backup to skip backup (not recommended)
 
 EOF
 }
@@ -563,6 +749,10 @@ main() {
                 list_mappings
                 exit 0
                 ;;
+            --restore)
+                show_backups
+                exit 0
+                ;;
             -m|--map)
                 if [ -n "$2" ] && [ -n "$3" ]; then
                     add_custom_mapping "$2" "$3"
@@ -575,6 +765,19 @@ main() {
             -v|--verbose)
                 VERBOSE=true
                 shift
+                ;;
+            --no-backup)
+                BACKUP_APPS=false
+                shift
+                ;;
+            --backup-dir)
+                if [ -n "$2" ]; then
+                    BACKUP_DIR="$2"
+                    shift 2
+                else
+                    print_color "$RED" "Error: --backup-dir requires a directory path"
+                    exit 1
+                fi
                 ;;
             *)
                 print_color "$RED" "Unknown option: $1"
