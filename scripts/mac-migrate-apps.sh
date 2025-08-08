@@ -171,12 +171,21 @@ get_cask_for_app_name() {
     esac
 }
 
-# Function to get installed apps from /Applications
+# Function to get installed apps from /Applications and ~/Applications
 get_installed_apps() {
-    find /Applications -maxdepth 1 -name "*.app" -type d 2>/dev/null | while read -r app_path; do
-        local app_name=$(basename "$app_path" .app)
-        echo "$app_name"
-    done | sort
+    {
+        # Search system Applications directory
+        find /Applications -maxdepth 1 -name "*.app" -type d 2>/dev/null | while read -r app_path; do
+            local app_name=$(basename "$app_path" .app)
+            echo "$app_name"
+        done
+        
+        # Search user Applications directory
+        find ~/Applications -maxdepth 1 -name "*.app" -type d 2>/dev/null | while read -r app_path; do
+            local app_name=$(basename "$app_path" .app)
+            echo "$app_name"
+        done
+    } | sort -u  # Remove duplicates and sort
 }
 
 # Function to check if cask is installed
@@ -199,30 +208,36 @@ create_backup_dir() {
     return 0
 }
 
-# Function to find actual app path
+# Function to find actual app path in both /Applications and ~/Applications
 find_app_path() {
     local app_name=$1
-    local exact_path="/Applications/${app_name}.app"
     
-    # Try exact match first
-    if [ -d "$exact_path" ]; then
-        echo "$exact_path"
-        return 0
-    fi
+    # Search locations in order of preference
+    local search_paths=("/Applications" "$HOME/Applications")
     
-    # Try case-insensitive search
-    local found_app=$(find /Applications -maxdepth 1 -iname "${app_name}.app" -type d 2>/dev/null | head -1)
-    if [ -n "$found_app" ]; then
-        echo "$found_app"
-        return 0
-    fi
-    
-    # Try partial match (for apps with version numbers or extra text)
-    local partial_match=$(find /Applications -maxdepth 1 -iname "*${app_name}*.app" -type d 2>/dev/null | head -1)
-    if [ -n "$partial_match" ]; then
-        echo "$partial_match"
-        return 0
-    fi
+    for base_path in "${search_paths[@]}"; do
+        local exact_path="${base_path}/${app_name}.app"
+        
+        # Try exact match first
+        if [ -d "$exact_path" ]; then
+            echo "$exact_path"
+            return 0
+        fi
+        
+        # Try case-insensitive search
+        local found_app=$(find "$base_path" -maxdepth 1 -iname "${app_name}.app" -type d 2>/dev/null | head -1)
+        if [ -n "$found_app" ]; then
+            echo "$found_app"
+            return 0
+        fi
+        
+        # Try partial match (for apps with version numbers or extra text)
+        local partial_match=$(find "$base_path" -maxdepth 1 -iname "*${app_name}*.app" -type d 2>/dev/null | head -1)
+        if [ -n "$partial_match" ]; then
+            echo "$partial_match"
+            return 0
+        fi
+    done
     
     return 1
 }
@@ -394,7 +409,7 @@ migrate_app() {
 
 # Function to analyze migration opportunities
 analyze_migration() {
-    print_color "$BLUE" "Analyzing /Applications for migration opportunities..." >&2
+    print_color "$BLUE" "Analyzing /Applications and ~/Applications for migration opportunities..." >&2
     echo >&2
     
     local migratable=()
@@ -402,8 +417,8 @@ analyze_migration() {
     local already_migrated=()
     local system_apps=()
     
-    # Get a limited set of apps for testing
-    local app_list=$(get_installed_apps | head -20)
+    # Get all installed apps from both locations
+    local app_list=$(get_installed_apps)
     
     while IFS= read -r app_name; do
         if [ -n "$app_name" ]; then
@@ -708,8 +723,8 @@ show_help() {
     cat << EOF
 Mac Power Tools - Manual Apps to Homebrew Migration
 
-Helps migrate manually downloaded apps from /Applications to Homebrew Cask 
-versions for better management, updates, and automation.
+Helps migrate manually downloaded apps from /Applications and ~/Applications to 
+Homebrew Cask versions for better management, updates, and automation.
 
 USAGE:
     mac migrate-apps [OPTIONS]
@@ -727,7 +742,7 @@ OPTIONS:
     --restore           Show available backups and restore options
 
 EXAMPLES:
-    # Analyze what can be migrated (safe, read-only)
+    # Analyze what can be migrated from both /Applications and ~/Applications (safe, read-only)
     mac migrate-apps --analyze
     
     # Perform dry-run migration (default)
