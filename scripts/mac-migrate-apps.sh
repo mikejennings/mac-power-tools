@@ -152,6 +152,12 @@ get_cask_for_app_name() {
         "Little Snitch") echo "little-snitch" ;;
         "Jellyfin") echo "jellyfin-media-player" ;;
         "KeyClu") echo "keyclu" ;;
+        "Malwarebytes") echo "malwarebytes" ;;
+        "OrbStack") echo "orbstack" ;;
+        "Rectangle Pro") echo "rectangle-pro" ;;
+        "Signal") echo "signal" ;;
+        "Tailscale") echo "tailscale-app" ;;
+        "Wireshark") echo "wireshark-app" ;;
         
         # Browsers
         "Arc") echo "arc" ;;
@@ -319,14 +325,44 @@ cleanup_backup() {
     fi
 }
 
-# Function to find cask for app
+# Function to find cask for app using intelligent search
 find_cask_for_app() {
     local app_name=$1
     local search_name=$(echo "$app_name" | tr '[:upper:]' '[:lower:]' | sed 's/ /-/g' | sed 's/[^a-z0-9-]//g')
     
-    # Skip brew search for now to speed up testing - just return empty
-    # This can be re-enabled later for production use
+    # Try exact search first (most reliable)
+    local result=$(brew search --cask "^${search_name}$" 2>/dev/null | grep -v "==>" | head -1)
+    if [ -n "$result" ]; then
+        echo "$result"
+        return 0
+    fi
+    
+    # Try search with common app name patterns
+    local patterns=(
+        "${search_name}"
+        "${search_name}-app"
+        "${search_name}app"
+        "$(echo "$search_name" | sed 's/-//g')"
+    )
+    
+    for pattern in "${patterns[@]}"; do
+        result=$(brew search --cask "$pattern" 2>/dev/null | grep -v "==>" | head -1)
+        if [ -n "$result" ]; then
+            echo "$result"
+            return 0
+        fi
+    done
+    
+    # If no exact matches, try partial search (less reliable, so we're more careful)
+    local partial_results=$(brew search --cask "${search_name}" 2>/dev/null | grep -v "==>" | head -3)
+    if [ -n "$partial_results" ]; then
+        # Return the first result but mark it as suggested
+        echo "$partial_results" | head -1
+        return 0
+    fi
+    
     echo ""
+    return 1
 }
 
 # Function to migrate single app with backup support
@@ -439,8 +475,18 @@ analyze_migration() {
             elif [ "$cask" = "" ] && [[ "$app_name" =~ ^(Finder|Safari|Mail|Messages|FaceTime|Calendar|Contacts|Maps|Photos|Music|TV|Podcasts|News|Stocks|Weather|Clock|Calculator|Chess|Dictionary|DVD Player|Font Book|Grapher|Image Capture|Keychain Access|Migration Assistant|Photo Theater|Preview|QuickTime Player|Stickies|System Preferences|TextEdit|Time Machine|VoiceOver Utility)$ ]]; then
                 system_apps+=("$app_name")
             else
-                # Skip brew search for now - just add to unknown
-                unknown+=("$app_name")
+                # Try to find a cask using intelligent search
+                local possible_cask=$(find_cask_for_app "$app_name")
+                if [ -n "$possible_cask" ]; then
+                    # Check if this suggested cask is already installed
+                    if is_cask_installed "$possible_cask"; then
+                        already_migrated+=("$app_name (→ $possible_cask)")
+                    else
+                        migratable+=("${app_name}|${possible_cask}|suggested")
+                    fi
+                else
+                    unknown+=("$app_name")
+                fi
             fi
         fi
     done <<< "$app_list"
@@ -662,9 +708,15 @@ Utilities:
   Karabiner-Elements → karabiner-elements
   Little Snitch → little-snitch
   Magnet → magnet
+  Malwarebytes → malwarebytes
+  OrbStack → orbstack
   Raycast → raycast
+  Rectangle Pro → rectangle-pro
+  Signal → signal
+  Tailscale → tailscale-app
   The Unarchiver → the-unarchiver
   TopNotch → topnotch
+  Wireshark → wireshark-app
 
 Browsers:
   Arc → arc
