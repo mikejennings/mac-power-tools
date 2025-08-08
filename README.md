@@ -342,6 +342,9 @@ If you encounter any issues or have suggestions:
 
 ## Changelog
 
+### v1.6.2 (2025-08-07)
+- Fix dotfiles output clarity - Cleaner, less confusing backup messages
+
 ### v1.6.1 (2025-08-07)
 - Expanded application support for dotfiles - Added dev command for developer tool configs
 
