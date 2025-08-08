@@ -79,7 +79,8 @@ show_help() {
     printf "    ${CYAN}Application Management:${NC}\n"
     printf "        uninstall <app>   Completely uninstall an application\n"
     printf "        uninstall --list  List all installed applications\n"
-    printf "        migrate-mas       Migrate Mac App Store apps to Homebrew\n\n"
+    printf "        migrate-mas       Migrate Mac App Store apps to Homebrew
+        migrate-apps      Migrate manually downloaded apps to Homebrew\n\n"
     
     printf "    ${CYAN}Interactive:${NC}\n"
     printf "        menu              Interactive command selection with fzf\n\n"
@@ -293,6 +294,10 @@ main() {
         migrate-mas|mas-migrate)
             shift
             "$SCRIPT_DIR/scripts/mac-migrate-mas.sh" "$@"
+            ;;
+        migrate-apps|apps-migrate)
+            shift
+            "$SCRIPT_DIR/scripts/mac-migrate-apps.sh" "$@"
             ;;
             
         # Unknown command

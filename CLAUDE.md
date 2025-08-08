@@ -29,6 +29,7 @@ mac-power-tools/
 - `mac clean` - Deep clean system junk (Xcode, caches, logs, iOS backups)
 - `mac memory` - Monitor and optimize memory usage
 - `mac migrate-mas` - Migrate Mac App Store apps to Homebrew Cask (v1.2.4+)
+- `mac migrate-apps` - Migrate manually downloaded apps to Homebrew Cask
 
 ### Interactive fzf Integration (v1.5.0+)
 - `mac menu` - Interactive command browser with fuzzy finder search
@@ -263,6 +264,12 @@ If workflows fail with YAML syntax errors:
 - Maps 50+ popular apps for easy migration
 - Fixed GitHub Actions workflow YAML syntax issues
 - Improved release automation
+
+### Future Enhancement: Manual App Migration
+- **Planned Feature**: `mac migrate-apps` - Migrate manually downloaded apps to Homebrew Cask
+- **Scope**: Scan /Applications for manually installed apps and suggest Homebrew Cask alternatives
+- **Benefits**: Complete migration from manual app management to Homebrew ecosystem
+- **Implementation**: Similar to mas migration but scans Applications folder instead of mas list
 
 ### v1.2.3 (2025-08-06)
 - Enhanced awake status with time remaining display
