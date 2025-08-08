@@ -71,11 +71,17 @@ get_cask_for_app_name() {
         "Bear") echo "bear" ;;
         "Bitwarden") echo "bitwarden" ;;
         "CleanMyMac X") echo "cleanmymac" ;;
+        "CleanMyMac_5") echo "cleanmymac" ;;
+        "CleanMyMac 5") echo "cleanmymac" ;;
         "Discord") echo "discord" ;;
         "Dropbox") echo "dropbox" ;;
         "Figma") echo "figma" ;;
         "Google Chrome") echo "google-chrome" ;;
         "Google Drive") echo "google-drive" ;;
+        "Google Docs") echo "google-docs" ;;
+        "Google Sheets") echo "google-sheets" ;;
+        "Google Slides") echo "google-slides" ;;
+        "Keynote") echo "keynote" ;;
         "Kindle") echo "kindle" ;;
         "Microsoft Excel") echo "microsoft-excel" ;;
         "Microsoft PowerPoint") echo "microsoft-powerpoint" ;;
@@ -110,6 +116,8 @@ get_cask_for_app_name() {
         "Visual Studio Code") echo "visual-studio-code" ;;
         "WebStorm") echo "webstorm" ;;
         "Xcode") echo "xcode" ;;
+        "iTerm") echo "iterm2" ;;
+        "iTermAI") echo "iterm2" ;;  # Assuming this is iTerm with AI features
         
         # Media
         "Adobe Photoshop 2024") echo "adobe-photoshop" ;;
@@ -141,6 +149,9 @@ get_cask_for_app_name() {
         "Raycast") echo "raycast" ;;
         "The Unarchiver") echo "the-unarchiver" ;;
         "TopNotch") echo "topnotch" ;;
+        "Little Snitch") echo "little-snitch" ;;
+        "Jellyfin") echo "jellyfin-media-player" ;;
+        "KeyClu") echo "keyclu" ;;
         
         # Browsers
         "Arc") echo "arc" ;;
@@ -564,6 +575,12 @@ Productivity:
   Figma → figma
   Google Chrome → google-chrome
   Google Drive → google-drive
+  Google Docs → google-docs
+  Google Sheets → google-sheets
+  Google Slides → google-slides
+  Jellyfin → jellyfin-media-player
+  KeyClu → keyclu
+  Keynote → keynote
   Kindle → kindle
   Microsoft Excel → microsoft-excel
   Microsoft PowerPoint → microsoft-powerpoint
@@ -588,6 +605,8 @@ Development:
   GitKraken → gitkraken
   IntelliJ IDEA CE → intellij-idea-ce
   IntelliJ IDEA → intellij-idea
+  iTerm → iterm2
+  iTermAI → iterm2
   JetBrains Toolbox → jetbrains-toolbox
   Postman → postman
   PyCharm CE → pycharm-ce
@@ -622,8 +641,11 @@ Utilities:
   AppCleaner → appcleaner
   BetterTouchTool → bettertouchtool
   CleanMaster- Remove Junk Files → cleanmaster
+  CleanMyMac X → cleanmymac
+  CleanMyMac 5 → cleanmymac
   Hammerspoon → hammerspoon
   Karabiner-Elements → karabiner-elements
+  Little Snitch → little-snitch
   Magnet → magnet
   Raycast → raycast
   The Unarchiver → the-unarchiver
