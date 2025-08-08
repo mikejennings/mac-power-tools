@@ -70,6 +70,7 @@ get_cask_for_app_name() {
         "Alfred") echo "alfred" ;;
         "Bear") echo "bear" ;;
         "Bitwarden") echo "bitwarden" ;;
+        "Claude") echo "claude" ;;
         "CleanMyMac X") echo "cleanmymac" ;;
         "CleanMyMac_5") echo "cleanmymac" ;;
         "CleanMyMac 5") echo "cleanmymac" ;;
@@ -98,6 +99,7 @@ get_cask_for_app_name() {
         "Twitter") echo "twitter" ;;
         "WhatsApp") echo "whatsapp" ;;
         "Zoom") echo "zoom" ;;
+        "zoom.us") echo "zoom" ;;
         
         # Development
         "Android Studio") echo "android-studio" ;;
@@ -630,6 +632,7 @@ Productivity:
   Alfred → alfred
   Bear → bear
   Bitwarden → bitwarden
+  Claude → claude
   CleanMyMac X → cleanmymac
   Discord → discord
   Dropbox → dropbox
@@ -643,6 +646,7 @@ Productivity:
   KeyClu → keyclu
   Keynote → keynote
   Kindle → kindle
+  Zoom → zoom
   Microsoft Excel → microsoft-excel
   Microsoft PowerPoint → microsoft-powerpoint
   Microsoft Word → microsoft-word
