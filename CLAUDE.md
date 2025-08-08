@@ -408,4 +408,6 @@ esac
 - **Lint and Typecheck**: Run appropriate linters when available
 - **fzf Integration**: Follow the patterns established in v1.5.2 - direct script execution, no recursion
 - **User-Driven Development**: Users provide excellent feedback via screenshots showing exact UX issues
+- **IMPORTANT: Always bump version and push to master** when making changes to this project
+- **Automatic Homebrew Updates**: Version bumps trigger automatic Homebrew formula updates within ~1 minute
 - **Dotfiles Expansion**: When implementing new app support, check Mackup's implementation for reference
