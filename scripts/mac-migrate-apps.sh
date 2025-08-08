@@ -84,6 +84,7 @@ get_cask_for_app_name() {
         "Google Slides") echo "google-slides" ;;
         "Keynote") echo "keynote" ;;
         "Kindle") echo "kindle" ;;
+        "LastPass") echo "lastpass" ;;
         "Microsoft Excel") echo "microsoft-excel" ;;
         "Microsoft PowerPoint") echo "microsoft-powerpoint" ;;
         "Microsoft Word") echo "microsoft-word" ;;
@@ -358,9 +359,12 @@ find_cask_for_app() {
     # If no exact matches, try partial search (less reliable, so we're more careful)
     local partial_results=$(brew search --cask "${search_name}" 2>/dev/null | grep -v "==>" | head -3)
     if [ -n "$partial_results" ]; then
-        # Return the first result but mark it as suggested
-        echo "$partial_results" | head -1
-        return 0
+        # Filter out obviously bad matches
+        local filtered_result=$(echo "$partial_results" | grep -v -E "(font-|color|theme|icon)" | head -1)
+        if [ -n "$filtered_result" ]; then
+            echo "$filtered_result"
+            return 0
+        fi
     fi
     
     echo ""
@@ -454,6 +458,7 @@ analyze_migration() {
     local unknown=()
     local already_migrated=()
     local system_apps=()
+    local browser_extensions=()
     
     # Get all installed apps from both locations
     local app_list=$(get_installed_apps)
@@ -476,6 +481,8 @@ analyze_migration() {
                 fi
             elif [ "$cask" = "" ] && [[ "$app_name" =~ ^(Finder|Safari|Mail|Messages|FaceTime|Calendar|Contacts|Maps|Photos|Music|TV|Podcasts|News|Stocks|Weather|Clock|Calculator|Chess|Dictionary|DVD Player|Font Book|Grapher|Image Capture|Keychain Access|Migration Assistant|Photo Theater|Preview|QuickTime Player|Stickies|System Preferences|TextEdit|Time Machine|VoiceOver Utility)$ ]]; then
                 system_apps+=("$app_name")
+            elif [[ "$app_name" =~ (for Safari|Classic|Lite)$ ]] || [[ "$app_name" =~ ^(Dark Reader|LastPass for Safari|uBlock Origin Lite|Tampermonkey Classic|1Blocker|AdBlock)$ ]]; then
+                browser_extensions+=("$app_name")
             else
                 # Try to find a cask using intelligent search
                 local possible_cask=$(find_cask_for_app "$app_name")
@@ -518,6 +525,14 @@ analyze_migration() {
     if [ ${#system_apps[@]} -gt 0 ]; then
         print_color "$MAGENTA" "System apps (cannot be migrated):" >&2
         for app in "${system_apps[@]}"; do
+            echo "  • $app" >&2
+        done
+        echo >&2
+    fi
+    
+    if [ ${#browser_extensions[@]} -gt 0 ]; then
+        print_color "$MAGENTA" "Browser extensions and plugins (not migratable):" >&2
+        for app in "${browser_extensions[@]}"; do
             echo "  • $app" >&2
         done
         echo >&2
@@ -646,7 +661,7 @@ Productivity:
   KeyClu → keyclu
   Keynote → keynote
   Kindle → kindle
-  Zoom → zoom
+  LastPass → lastpass
   Microsoft Excel → microsoft-excel
   Microsoft PowerPoint → microsoft-powerpoint
   Microsoft Word → microsoft-word
