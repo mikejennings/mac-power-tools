@@ -23,7 +23,7 @@ ICLOUD_PATH="$HOME/Library/Mobile Documents/com~apple~CloudDocs"
 DOTFILES_DIR="$ICLOUD_PATH/Dotfiles"
 PREFS_DIR="$ICLOUD_PATH/AppPreferences"
 
-# Common dotfiles to track
+# Common dotfiles to track - only the most essential ones
 DEFAULT_DOTFILES=(
     ".bashrc"
     ".bash_profile"
@@ -33,13 +33,13 @@ DEFAULT_DOTFILES=(
     ".gitignore_global"
     ".vimrc"
     ".tmux.conf"
+)
+
+# Extended dotfiles for developer tools (opt-in via 'mac dotfiles dev')
+DEVELOPER_CONFIGS=(
     ".ssh/config"
     ".aws/config"
     ".aws/credentials"
-)
-
-# Extended dotfiles for developer tools
-DEVELOPER_CONFIGS=(
     ".config/nvim"
     ".config/gh"
     ".config/raycast"
@@ -183,31 +183,25 @@ backup_all() {
     printf "${CYAN}=== Backing Up Dotfiles ===${NC}\n\n"
     
     local backed_up=0
+    local skipped=0
     
     # Backup default dotfiles
+    printf "${YELLOW}Backing up common dotfiles...${NC}\n"
     for file in "${DEFAULT_DOTFILES[@]}"; do
-        if backup_dotfile "$file"; then
-            ((backed_up++))
+        if [[ -e "$HOME/$file" ]]; then
+            if backup_dotfile "$file"; then
+                ((backed_up++))
+            fi
+        else
+            ((skipped++))
         fi
     done
     
-    # Look for other common dotfiles
-    while IFS= read -r file; do
-        local basename="${file#$HOME/}"
-        # Skip if already in our list or if it's our symlink
-        if [[ ! " ${DEFAULT_DOTFILES[@]} " =~ " ${basename} " ]] && [[ ! -L "$file" ]]; then
-            printf "${YELLOW}Found: $basename - Back up? (y/n)${NC} "
-            read -r response
-            if [[ "$response" =~ ^[Yy]$ ]]; then
-                if backup_dotfile "$basename"; then
-                    ((backed_up++))
-                fi
-            fi
-        fi
-    done < <(find "$HOME" -maxdepth 1 -name ".*" -type f 2>/dev/null)
-    
     printf "\n${GREEN}✓ Backed up $backed_up dotfiles${NC}\n"
+    [[ $skipped -gt 0 ]] && printf "${BLUE}Skipped $skipped files (not found)${NC}\n"
     printf "${BLUE}Location: $DOTFILES_DIR${NC}\n"
+    printf "\n${YELLOW}Tip:${NC} To add more files, use: mac dotfiles add <filename>\n"
+    printf "${YELLOW}Tip:${NC} For SSH/AWS configs, use: mac dotfiles dev\n"
 }
 
 # Restore dotfiles
