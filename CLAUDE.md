@@ -116,7 +116,9 @@ When you push to master and the VERSION in the `mac` script has changed, it will
 - Create a git tag
 - Create a GitHub release with changelog
 - Generate release assets (.tar.gz and SHA256)
-- Create an issue in the Homebrew tap repo for updating the formula
+- Trigger the Homebrew formula update workflow
+- Update the Homebrew tap repository with the new version
+- **Complete automation**: From commit to Homebrew in ~1 minute!
 
 ### Three ways to create releases:
 
@@ -177,8 +179,10 @@ The auto-release workflow monitors the `mac` script, `scripts/` directory, and `
 
 1. **auto-release.yml** - Automatic release on version change
    - Triggers on push to master when VERSION changes
-   - Creates git tag, GitHub release, and Homebrew update issue
+   - Creates git tag and GitHub release
    - Extracts changelog from README.md automatically
+   - Automatically triggers Homebrew formula update workflow
+   - Homebrew tap is updated within ~30 seconds
 
 2. **release.yml** - Manual release on tag push
    - Triggers when pushing tags like `v1.2.3`

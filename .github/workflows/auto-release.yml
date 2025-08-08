@@ -160,30 +160,31 @@ jobs:
           dist/mac-power-tools-*.sha256
         body_path: release_notes.md
     
-    - name: Create Homebrew Update Issue
+    - name: Trigger Homebrew Formula Update
       env:
-        GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        GITHUB_TOKEN: ${{ secrets.HOMEBREW_TAP_TOKEN || secrets.GITHUB_TOKEN }}
       run: |
         VERSION="${{ steps.version.outputs.version }}"
-        SHA256=$(cat dist/mac-power-tools-${VERSION}.sha256 | awk '{print $1}')
         
-        # Create issue body
-        {
-          echo "New release available: ${VERSION}"
-          echo ""
-          echo "Download URL: https://github.com/mikejennings/mac-power-tools/archive/refs/tags/${VERSION}.tar.gz"
-          echo "SHA256: ${SHA256}"
-          echo ""
-          echo "Please update the formula with:"
-          echo '```ruby'
-          echo "version \"${VERSION#v}\""
-          echo "url \"https://github.com/mikejennings/mac-power-tools/archive/refs/tags/${VERSION}.tar.gz\""
-          echo "sha256 \"${SHA256}\""
-          echo '```'
-        } > issue_body.md
+        echo "🍺 Triggering Homebrew formula update..."
         
-        # Create issue
-        gh issue create \
-          --repo mikejennings/homebrew-mac-power-tools \
-          --title "Update formula for Mac Power Tools ${VERSION}" \
-          --body-file issue_body.md || echo "Could not create issue"
+        # Wait for release to be fully available
+        sleep 10
+        
+        # Trigger the homebrew-update workflow
+        gh workflow run homebrew-update.yml \
+          --repo mikejennings/mac-power-tools \
+          --ref master \
+          --field version="${VERSION}"
+        
+        if [ $? -eq 0 ]; then
+          echo "✅ Successfully triggered Homebrew formula update for ${VERSION}"
+          echo ""
+          echo "The formula will be updated automatically in ~30 seconds."
+          echo "Users can then install with:"
+          echo "  brew update && brew upgrade mac-power-tools"
+        else
+          echo "⚠️ Could not trigger automatic Homebrew update."
+          echo "You may need to manually trigger the homebrew-update workflow."
+          echo "Or ensure HOMEBREW_TAP_TOKEN secret is set with repo access."
+        fi
