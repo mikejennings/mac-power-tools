@@ -188,19 +188,49 @@ create_backup_dir() {
     return 0
 }
 
+# Function to find actual app path
+find_app_path() {
+    local app_name=$1
+    local exact_path="/Applications/${app_name}.app"
+    
+    # Try exact match first
+    if [ -d "$exact_path" ]; then
+        echo "$exact_path"
+        return 0
+    fi
+    
+    # Try case-insensitive search
+    local found_app=$(find /Applications -maxdepth 1 -iname "${app_name}.app" -type d 2>/dev/null | head -1)
+    if [ -n "$found_app" ]; then
+        echo "$found_app"
+        return 0
+    fi
+    
+    # Try partial match (for apps with version numbers or extra text)
+    local partial_match=$(find /Applications -maxdepth 1 -iname "*${app_name}*.app" -type d 2>/dev/null | head -1)
+    if [ -n "$partial_match" ]; then
+        echo "$partial_match"
+        return 0
+    fi
+    
+    return 1
+}
+
 # Function to backup app before migration
 backup_app() {
     local app_name=$1
-    local app_path="/Applications/${app_name}.app"
+    local app_path=$(find_app_path "$app_name")
     local timestamp=$(date +"%Y%m%d_%H%M%S")
-    local backup_path="${BACKUP_DIR}/${app_name}_${timestamp}.app"
+    local safe_name=$(echo "$app_name" | sed 's/[^a-zA-Z0-9._-]/_/g')
+    local backup_path="${BACKUP_DIR}/${safe_name}_${timestamp}.app"
     
-    if [ ! -d "$app_path" ]; then
-        print_color "$YELLOW" "Warning: App not found at $app_path"
+    if [ -z "$app_path" ] || [ ! -d "$app_path" ]; then
+        print_color "$YELLOW" "Warning: App '$app_name' not found in /Applications"
+        print_color "$CYAN" "Skipping backup for this app"
         return 1
     fi
     
-    print_color "$CYAN" "Backing up $app_name..."
+    print_color "$CYAN" "Backing up $(basename "$app_path" .app)..."
     if cp -R "$app_path" "$backup_path" 2>/dev/null; then
         print_color "$GREEN" "✓ Backed up to: $backup_path"
         echo "$backup_path" # Return backup path for cleanup later
@@ -214,10 +244,10 @@ backup_app() {
 # Function to remove app after successful migration
 remove_app() {
     local app_name=$1
-    local app_path="/Applications/${app_name}.app"
+    local app_path=$(find_app_path "$app_name")
     
-    if [ -d "$app_path" ]; then
-        print_color "$YELLOW" "Removing original app: $app_name"
+    if [ -n "$app_path" ] && [ -d "$app_path" ]; then
+        print_color "$YELLOW" "Removing original app: $(basename "$app_path" .app)"
         if rm -rf "$app_path" 2>/dev/null; then
             print_color "$GREEN" "✓ Removed $app_path"
             return 0
@@ -227,7 +257,7 @@ remove_app() {
             return 1
         fi
     else
-        print_color "$YELLOW" "App already removed: $app_path"
+        print_color "$YELLOW" "App not found or already removed: $app_name"
         return 0
     fi
 }
@@ -297,10 +327,12 @@ migrate_app() {
         fi
         
         # Backup the app first
-        backup_path=$(backup_app "$app_name")
-        if [ $? -ne 0 ]; then
-            print_color "$RED" "Failed to backup $app_name - aborting migration"
-            return 1
+        backup_path=$(backup_app "$app_name" 2>/dev/null)
+        backup_result=$?
+        if [ $backup_result -ne 0 ]; then
+            print_color "$YELLOW" "Could not backup $app_name - app may not exist or have different name"
+            print_color "$CYAN" "Continuing with migration (Homebrew version will be installed)"
+            backup_path=""
         fi
     fi
     
@@ -351,8 +383,8 @@ migrate_app() {
 
 # Function to analyze migration opportunities
 analyze_migration() {
-    print_color "$BLUE" "Analyzing /Applications for migration opportunities..."
-    echo
+    print_color "$BLUE" "Analyzing /Applications for migration opportunities..." >&2
+    echo >&2
     
     local migratable=()
     local unknown=()
@@ -387,45 +419,45 @@ analyze_migration() {
         fi
     done <<< "$app_list"
     
-    # Display results
+    # Display results to stderr so they don't interfere with return data
     if [ ${#migratable[@]} -gt 0 ]; then
-        print_color "$GREEN" "Apps that can be migrated to Homebrew:"
+        print_color "$GREEN" "Apps that can be migrated to Homebrew:" >&2
         for item in "${migratable[@]}"; do
             IFS='|' read -r name cask suggested <<< "$item"
             if [ "$suggested" = "suggested" ]; then
-                echo "  • $name → $cask (suggested)"
+                echo "  • $name → $cask (suggested)" >&2
             else
-                echo "  • $name → $cask"
+                echo "  • $name → $cask" >&2
             fi
         done
-        echo
+        echo >&2
     fi
     
     if [ ${#already_migrated[@]} -gt 0 ]; then
-        print_color "$CYAN" "Apps already available via Homebrew:"
+        print_color "$CYAN" "Apps already available via Homebrew:" >&2
         for app in "${already_migrated[@]}"; do
-            echo "  • $app"
+            echo "  • $app" >&2
         done
-        echo
+        echo >&2
     fi
     
     if [ ${#system_apps[@]} -gt 0 ]; then
-        print_color "$MAGENTA" "System apps (cannot be migrated):"
+        print_color "$MAGENTA" "System apps (cannot be migrated):" >&2
         for app in "${system_apps[@]}"; do
-            echo "  • $app"
+            echo "  • $app" >&2
         done
-        echo
+        echo >&2
     fi
     
     if [ ${#unknown[@]} -gt 0 ]; then
-        print_color "$YELLOW" "Apps without known Homebrew equivalents:"
+        print_color "$YELLOW" "Apps without known Homebrew equivalents:" >&2
         for app in "${unknown[@]}"; do
-            echo "  • $app"
+            echo "  • $app" >&2
         done
-        echo
+        echo >&2
     fi
     
-    # Return migratable apps for processing
+    # Return migratable apps for processing (to stdout)
     printf '%s\n' "${migratable[@]}"
 }
 
