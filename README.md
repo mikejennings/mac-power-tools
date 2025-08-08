@@ -342,6 +342,9 @@ If you encounter any issues or have suggestions:
 
 ## Changelog
 
+### v1.6.4 (2025-08-07)
+- Fix dotfiles backup to be less noisy and remove y/n prompts
+
 ### v1.6.3 (2025-08-07)
 - Fix dotfiles help text color output formatting
 
