@@ -78,21 +78,32 @@ check_icloud() {
 init_dotfiles() {
     check_icloud || return 1
     
-    printf "${CYAN}=== Initializing Dotfiles Sync ===${NC}\n\n"
+    local show_header=true
+    # Don't show header if called from backup_all or other functions
+    if [[ "${1:-}" == "--quiet" ]]; then
+        show_header=false
+    fi
+    
+    if $show_header; then
+        printf "${CYAN}=== Initializing Dotfiles Sync ===${NC}\n\n"
+    fi
     
     # Create directories if they don't exist
+    local created_new=false
     if [[ ! -d "$DOTFILES_DIR" ]]; then
         mkdir -p "$DOTFILES_DIR"
-        printf "${GREEN}✓ Created dotfiles directory in iCloud${NC}\n"
-    else
-        printf "${BLUE}Dotfiles directory already exists${NC}\n"
+        if $show_header; then
+            printf "${GREEN}✓ Created dotfiles directory in iCloud${NC}\n"
+        fi
+        created_new=true
     fi
     
     if [[ ! -d "$PREFS_DIR" ]]; then
         mkdir -p "$PREFS_DIR"
-        printf "${GREEN}✓ Created preferences directory in iCloud${NC}\n"
-    else
-        printf "${BLUE}Preferences directory already exists${NC}\n"
+        if $show_header; then
+            printf "${GREEN}✓ Created preferences directory in iCloud${NC}\n"
+        fi
+        created_new=true
     fi
     
     # Create subdirectories for nested configs
@@ -100,9 +111,11 @@ init_dotfiles() {
     mkdir -p "$DOTFILES_DIR/.aws"
     mkdir -p "$DOTFILES_DIR/.config"
     
-    printf "${GREEN}✓ Dotfiles sync initialized${NC}\n"
-    printf "  Dotfiles: $DOTFILES_DIR\n"
-    printf "  Preferences: $PREFS_DIR\n"
+    if $show_header && $created_new; then
+        printf "${GREEN}✓ Dotfiles sync initialized${NC}\n"
+        printf "  Dotfiles: $DOTFILES_DIR\n"
+        printf "  Preferences: $PREFS_DIR\n"
+    fi
 }
 
 # Backup a single dotfile
@@ -165,9 +178,9 @@ backup_dotfile() {
 # Backup all dotfiles
 backup_all() {
     check_icloud || return 1
-    init_dotfiles
+    init_dotfiles --quiet
     
-    printf "\n${CYAN}=== Backing Up Dotfiles ===${NC}\n\n"
+    printf "${CYAN}=== Backing Up Dotfiles ===${NC}\n\n"
     
     local backed_up=0
     
@@ -193,7 +206,8 @@ backup_all() {
         fi
     done < <(find "$HOME" -maxdepth 1 -name ".*" -type f 2>/dev/null)
     
-    printf "\n${GREEN}✓ Backed up $backed_up dotfiles to iCloud${NC}\n"
+    printf "\n${GREEN}✓ Backed up $backed_up dotfiles${NC}\n"
+    printf "${BLUE}Location: $DOTFILES_DIR${NC}\n"
 }
 
 # Restore dotfiles
@@ -247,9 +261,9 @@ restore_all() {
 # Backup application preferences
 backup_preferences() {
     check_icloud || return 1
-    init_dotfiles
+    init_dotfiles --quiet
     
-    printf "\n${CYAN}=== Backing Up Application Preferences ===${NC}\n\n"
+    printf "${CYAN}=== Backing Up Application Preferences ===${NC}\n\n"
     
     local prefs_source="$HOME/Library/Preferences"
     local backed_up=0
@@ -281,6 +295,7 @@ backup_preferences() {
     fi
     
     printf "\n${GREEN}✓ Backed up $backed_up preference files${NC}\n"
+    printf "${BLUE}Location: $PREFS_DIR${NC}\n"
 }
 
 # List tracked files
@@ -311,9 +326,9 @@ list_tracked() {
 # Backup developer configs
 backup_dev_configs() {
     check_icloud || return 1
-    init_dotfiles
+    init_dotfiles --quiet
     
-    printf "\n${CYAN}=== Backing Up Developer Configs ===${NC}\n\n"
+    printf "${CYAN}=== Backing Up Developer Configs ===${NC}\n\n"
     
     local backed_up=0
     
