@@ -435,42 +435,39 @@ interactive_menu() {
 
 # Show help
 show_help() {
-    cat << EOF
-${CYAN}Mac Dotfiles - Simple iCloud Sync${NC}
-
-${YELLOW}Usage:${NC}
-  mac dotfiles                  Interactive menu (requires fzf)
-  mac dotfiles <command>        Run specific command
-
-${YELLOW}Commands:${NC}
-  init                          Initialize dotfiles directories
-  backup                        Backup all dotfiles to iCloud
-  restore                       Restore dotfiles from iCloud
-  add <file>                    Add a specific dotfile
-  remove <file>                 Stop syncing a dotfile
-  list                          List tracked dotfiles
-  prefs                         Backup application preferences
-  dev                           Backup developer tool configs
-  help                          Show this help message
-
-${YELLOW}Examples:${NC}
-  mac dotfiles                  # Interactive menu
-  mac dotfiles init             # First-time setup
-  mac dotfiles backup           # Backup all dotfiles
-  mac dotfiles add .bashrc      # Add specific file
-  mac dotfiles restore          # Restore on new machine
-
-${YELLOW}How it works:${NC}
-  1. Copies your dotfiles to iCloud Drive
-  2. Replaces local files with symlinks
-  3. Changes sync automatically via iCloud
-  4. Simple, native, no external dependencies
-
-${YELLOW}Default tracked files:${NC}
-  .bashrc, .zshrc, .gitconfig, .vimrc, .tmux.conf
-  .ssh/config, .aws/config, and more
-
-EOF
+    echo -e "${CYAN}Mac Dotfiles - Simple iCloud Sync${NC}\n"
+    
+    echo -e "${YELLOW}Usage:${NC}"
+    echo "  mac dotfiles                  Interactive menu (requires fzf)"
+    echo -e "  mac dotfiles <command>        Run specific command\n"
+    
+    echo -e "${YELLOW}Commands:${NC}"
+    echo "  init                          Initialize dotfiles directories"
+    echo "  backup                        Backup all dotfiles to iCloud"
+    echo "  restore                       Restore dotfiles from iCloud"
+    echo "  add <file>                    Add a specific dotfile"
+    echo "  remove <file>                 Stop syncing a dotfile"
+    echo "  list                          List tracked dotfiles"
+    echo "  prefs                         Backup application preferences"
+    echo "  dev                           Backup developer tool configs"
+    echo -e "  help                          Show this help message\n"
+    
+    echo -e "${YELLOW}Examples:${NC}"
+    echo "  mac dotfiles                  # Interactive menu"
+    echo "  mac dotfiles init             # First-time setup"
+    echo "  mac dotfiles backup           # Backup all dotfiles"
+    echo "  mac dotfiles add .bashrc      # Add specific file"
+    echo -e "  mac dotfiles restore          # Restore on new machine\n"
+    
+    echo -e "${YELLOW}How it works:${NC}"
+    echo "  1. Copies your dotfiles to iCloud Drive"
+    echo "  2. Replaces local files with symlinks"
+    echo "  3. Changes sync automatically via iCloud"
+    echo -e "  4. Simple, native, no external dependencies\n"
+    
+    echo -e "${YELLOW}Default tracked files:${NC}"
+    echo "  .bashrc, .zshrc, .gitconfig, .vimrc, .tmux.conf"
+    echo -e "  .ssh/config, .aws/config, and more\n"
 }
 
 # Main function
