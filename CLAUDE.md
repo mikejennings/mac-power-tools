@@ -102,46 +102,49 @@ mac-power-tools/
 - Validate user input to prevent injection attacks
 
 ### Version Management
-- **Current version: 1.6.4** ✅ LATEST (Released 2025-08-07)
+- **Current version: 2.0.1** ✅ LATEST
 - Version defined in main `mac` script
 - Update version when making significant changes
-- Releases automatically update Homebrew formula via GitHub Actions
-- **Status**: All systems operational, Homebrew formula updated successfully
+- **Status**: Local release management system active
 
 #### Creating Releases
 
-## 🚀 Automatic Release System
+## 🚀 Local Release Management System
 
 ### How it works:
-When you push to master and the VERSION in the `mac` script has changed, it will automatically:
-- Create a git tag
-- Create a GitHub release with changelog
-- Generate release assets (.tar.gz and SHA256)
-- Trigger the Homebrew formula update workflow
-- Update the Homebrew tap repository with the new version
-- **Complete automation**: From commit to Homebrew in ~1 minute!
+All releases are now managed locally without GitHub Actions to avoid costs:
+- Run tests locally with comprehensive test suite
+- Create release archives and tags manually
+- Update Homebrew formula from your local machine
+- **Complete control**: No external dependencies or costs!
 
-### Three ways to create releases:
+### Release Workflow:
 
-1. **Quick local version bump** (Recommended):
+1. **Version Bump**:
    ```bash
    ./bump-version.sh
    # Interactive menu to bump version
-   # Automatically commits and can push to trigger release
+   # Commits locally and optionally runs tests
    ```
 
-2. **GitHub Actions UI**:
-   - Go to Actions → Version Bump → Run workflow
-   - Select patch/minor/major
-   - Creates a PR with version changes
-
-3. **Manual tag**:
+2. **Run Tests**:
    ```bash
-   git tag v1.2.4
-   git push origin v1.2.4
+   ./local-test.sh        # Run all tests
+   ./local-test.sh quick  # Run quick tests only
    ```
 
-The auto-release workflow monitors the `mac` script, `scripts/` directory, and `README.md` for changes. When it detects a version change that doesn't have a corresponding tag, it automatically creates a release.
+3. **Create Release**:
+   ```bash
+   ./local-release.sh release  # Full release process
+   # Or use interactive menu:
+   ./local-release.sh
+   ```
+
+### Local Scripts:
+
+- **bump-version.sh**: Bump version and update files
+- **local-test.sh**: Comprehensive test suite
+- **local-release.sh**: Release management (replaces GitHub Actions)
 
 ### Common Tasks
 
@@ -174,46 +177,58 @@ The auto-release workflow monitors the `mac` script, `scripts/` directory, and `
 - Run manual tests before committing
 - Keep commits focused on single features/fixes
 
-## GitHub Actions Workflows
+## Local Development Workflow (No GitHub Actions)
 
-### Available Workflows
+### Available Local Scripts
 
-1. **auto-release.yml** - Automatic release on version change
-   - Triggers on push to master when VERSION changes
-   - Creates git tag and GitHub release
-   - Extracts changelog from README.md automatically
-   - Automatically triggers Homebrew formula update workflow
-   - Homebrew tap is updated within ~30 seconds
-
-2. **release.yml** - Manual release on tag push
-   - Triggers when pushing tags like `v1.2.3`
-   - Creates release assets (.tar.gz and SHA256)
-   - Opens issue in Homebrew tap for formula update
-
-3. **test.yml** - Runs tests on every push
+1. **local-test.sh** - Comprehensive test suite
+   ```bash
+   ./local-test.sh         # Run all tests
+   ./local-test.sh quick   # Quick tests only
+   ./local-test.sh syntax  # Syntax check only
+   ```
    - Validates bash scripts
-   - Runs shellcheck linting
-   - Executes test suite
+   - Runs shellcheck linting (if installed)
+   - Checks file permissions
+   - Validates version consistency
+   - Runs unit tests
 
-4. **version-bump.yml** - Interactive version bumping
-   - Manual workflow dispatch from GitHub Actions UI
-   - Creates PR with version changes
-   - Options for patch/minor/major bumps
+2. **local-release.sh** - Release management
+   ```bash
+   ./local-release.sh              # Interactive menu
+   ./local-release.sh release      # Full release
+   ./local-release.sh test         # Run tests only
+   ./local-release.sh archive      # Create release archive
+   ```
+   - Creates release archives (.tar.gz)
+   - Generates SHA256 checksums
+   - Creates and pushes git tags
+   - Updates Homebrew formula locally
 
-### Workflow Troubleshooting
+3. **bump-version.sh** - Version management
+   ```bash
+   ./bump-version.sh
+   ```
+   - Interactive version bumping
+   - Updates version in all files
+   - Commits changes locally
+   - Optionally runs tests and creates release
 
-If workflows fail with YAML syntax errors:
-- Avoid multi-line strings with quotes in YAML
-- Use echo commands or heredocs in bash scripts
-- Use file-based approach for complex strings (--body-file)
-- Validate with: `ruby -e "require 'yaml'; YAML.load_file('.github/workflows/file.yml')"`
+### Development Workflow
 
-### Common Workflow Issues and Fixes
+1. **Make changes** to the codebase
+2. **Run tests** with `./local-test.sh`
+3. **Bump version** with `./bump-version.sh`
+4. **Create release** with `./local-release.sh release`
+5. **Push to GitHub** when ready: `git push origin master`
 
-1. **Multi-line strings in YAML**: Use `|` or `>` for literal/folded strings, or move to bash script
-2. **Heredocs in YAML**: Better to use echo commands line by line
-3. **GitHub CLI in workflows**: Always use `--body-file` instead of inline `--body` for complex content
-4. **Permissions**: Add `issues: write` permission for creating issues
+### Why Local-Only?
+
+- **No costs**: GitHub Actions can incur charges for private repos
+- **Full control**: Everything runs on your machine
+- **Faster feedback**: No waiting for CI/CD pipelines
+- **Privacy**: Keep development local until ready to share
+- **Simplicity**: No YAML debugging or workflow issues
 
 ## Release History
 
