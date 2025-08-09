@@ -328,44 +328,20 @@ cleanup_backup() {
     fi
 }
 
-# Function to find cask for app using intelligent search
+# Function to find cask for app - DISABLED to prevent terrible suggestions
 find_cask_for_app() {
     local app_name=$1
-    local search_name=$(echo "$app_name" | tr '[:upper:]' '[:lower:]' | sed 's/ /-/g' | sed 's/[^a-z0-9-]//g')
     
-    # Try exact search first (most reliable)
-    local result=$(brew search --cask "^${search_name}$" 2>/dev/null | grep -v "==>" | head -1)
-    if [ -n "$result" ]; then
-        echo "$result"
-        return 0
-    fi
-    
-    # Try search with common app name patterns
-    local patterns=(
-        "${search_name}"
-        "${search_name}-app"
-        "${search_name}app"
-        "$(echo "$search_name" | sed 's/-//g')"
-    )
-    
-    for pattern in "${patterns[@]}"; do
-        result=$(brew search --cask "$pattern" 2>/dev/null | grep -v "==>" | head -1)
-        if [ -n "$result" ]; then
-            echo "$result"
-            return 0
-        fi
-    done
-    
-    # If no exact matches, try partial search (less reliable, so we're more careful)
-    local partial_results=$(brew search --cask "${search_name}" 2>/dev/null | grep -v "==>" | head -3)
-    if [ -n "$partial_results" ]; then
-        # Filter out obviously bad matches
-        local filtered_result=$(echo "$partial_results" | grep -v -E "(font-|color|theme|icon)" | head -1)
-        if [ -n "$filtered_result" ]; then
-            echo "$filtered_result"
-            return 0
-        fi
-    fi
+    # COMPLETELY DISABLE automatic cask discovery
+    # The suggestions were terrible and misleading:
+    # - Developer -> colorpicker-developer (wrong!)
+    # - Everton News -> evernote (ridiculous!)
+    # - Pages -> pages-data-merge (wrong app!)
+    # - RightMenuMaster -> rightfont (not even close!)
+    # - Wipr -> wire (totally different!)
+    # - WireGuard -> wirecast (unrelated!)
+    #
+    # Only use manually verified mappings in get_cask_for_app_name()
     
     echo ""
     return 1
@@ -484,14 +460,14 @@ analyze_migration() {
             elif [[ "$app_name" =~ (for Safari|Classic|Lite)$ ]] || [[ "$app_name" =~ ^(Dark Reader|LastPass for Safari|uBlock Origin Lite|Tampermonkey Classic|1Blocker|AdBlock)$ ]]; then
                 browser_extensions+=("$app_name")
             else
-                # Try to find a cask using intelligent search
+                # Try to find a cask using STRICT exact matching only
                 local possible_cask=$(find_cask_for_app "$app_name")
                 if [ -n "$possible_cask" ]; then
-                    # Check if this suggested cask is already installed
+                    # Check if this exact match cask is already installed
                     if is_cask_installed "$possible_cask"; then
                         already_migrated+=("$app_name (→ $possible_cask)")
                     else
-                        migratable+=("${app_name}|${possible_cask}|suggested")
+                        migratable+=("${app_name}|${possible_cask}")
                     fi
                 else
                     unknown+=("$app_name")
@@ -504,12 +480,8 @@ analyze_migration() {
     if [ ${#migratable[@]} -gt 0 ]; then
         print_color "$GREEN" "Apps that can be migrated to Homebrew:" >&2
         for item in "${migratable[@]}"; do
-            IFS='|' read -r name cask suggested <<< "$item"
-            if [ "$suggested" = "suggested" ]; then
-                echo "  • $name → $cask (suggested)" >&2
-            else
-                echo "  • $name → $cask" >&2
-            fi
+            IFS='|' read -r name cask <<< "$item"
+            echo "  • $name → $cask" >&2
         done
         echo >&2
     fi
@@ -557,16 +529,11 @@ perform_migration() {
     local failed=0
     
     for item in "${apps[@]}"; do
-        IFS='|' read -r name cask suggested <<< "$item"
+        IFS='|' read -r name cask <<< "$item"
         
         if [ "$INTERACTIVE" = true ]; then
             echo
-            if [ "$suggested" = "suggested" ]; then
-                print_color "$YELLOW" "Suggested migration: $name → $cask"
-                print_color "$CYAN" "This is an automatic suggestion and may not be exact"
-            else
-                print_color "$CYAN" "Migrate: $name → $cask"
-            fi
+            print_color "$CYAN" "Migrate: $name → $cask"
             
             read -p "Proceed? (y/n/s=skip): " -n 1 -r
             echo
