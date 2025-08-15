@@ -343,8 +343,14 @@ If you encounter any issues or have suggestions:
 
 ## Changelog
 
-### v2.1.0 (2025-08-15)
-- Add migrate-apps feature for manual app to Homebrew migration
+### v2.1.0 (2025-08-15) - LATEST
+- **NEW: Manual App Migration** (`mac migrate-apps`)
+  - Migrate manually downloaded apps to Homebrew Cask
+  - Smart detection using Info.plist bundle IDs
+  - Database of 200+ app-to-cask mappings  
+  - Automatic backup before migration
+  - Support for both /Applications and ~/Applications
+  - Interactive mode with safety features
 
 ### v1.6.4 (2025-08-07)
 - Fix dotfiles backup to be less noisy and remove y/n prompts
