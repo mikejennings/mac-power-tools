@@ -97,4 +97,4 @@ test "Execute mode requires explicit flag" \
     "'$MIGRATE_APPS_SCRIPT' --help | grep -q '\\-\\-execute'"
 
 # Show test results
-show_test_results
+# show_test_results (handled by test_helper.sh)
