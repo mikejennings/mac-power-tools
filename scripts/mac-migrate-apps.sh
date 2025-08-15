@@ -391,6 +391,11 @@ find_cask_for_app_smart() {
         return
     fi
     
+    # Skip brew search for now - it's too slow
+    # This can be re-enabled with a flag if needed
+    echo ""
+    return
+    
     # Try bundle ID based search if available
     if [ -n "$bundle_id" ] && command_exists brew; then
         # Extract domain from bundle ID (e.g., com.google.Chrome -> google-chrome)
@@ -462,8 +467,8 @@ migrate_app() {
 
 # Function to analyze migration opportunities
 analyze_migration() {
-    print_color "$BLUE" "Analyzing /Applications for migration opportunities..."
-    echo
+    print_color "$BLUE" "Analyzing /Applications for migration opportunities..." >&2
+    echo >&2
     
     local migratable=()
     local unknown=()
@@ -475,7 +480,9 @@ analyze_migration() {
     local apps_data
     if declare -f get_installed_apps_detailed >/dev/null; then
         [ "$VERBOSE" = true ] && echo "Using detailed scanning..." >&2
+        print_color "$CYAN" "Scanning installed applications..." >&2
         apps_data=$(get_installed_apps_detailed)
+        print_color "$CYAN" "Processing application data..." >&2
         while IFS='|' read -r app_name bundle_id version executable size is_mas path; do
             if [ -n "$app_name" ]; then
                 [ "$VERBOSE" = true ] && echo "Processing: $app_name (bundle: $bundle_id)" >&2
@@ -536,48 +543,48 @@ analyze_migration() {
     
     # Display results
     if [ ${#migratable[@]} -gt 0 ]; then
-        print_color "$GREEN" "Apps that can be migrated to Homebrew:"
+        print_color "$GREEN" "Apps that can be migrated to Homebrew:" >&2
         for item in "${migratable[@]}"; do
             IFS='|' read -r name cask suggested <<< "$item"
             if [ "$suggested" = "suggested" ]; then
-                echo "  • $name → $cask (suggested)"
+                echo "  • $name → $cask (suggested)" >&2
             else
-                echo "  • $name → $cask"
+                echo "  • $name → $cask" >&2
             fi
         done
-        echo
+        echo >&2
     fi
     
     if [ ${#already_migrated[@]} -gt 0 ]; then
-        print_color "$CYAN" "Apps already available via Homebrew:"
+        print_color "$CYAN" "Apps already available via Homebrew:" >&2
         for app in "${already_migrated[@]}"; do
-            echo "  • $app"
+            echo "  • $app" >&2
         done
-        echo
+        echo >&2
     fi
     
     if [ ${#mas_apps[@]} -gt 0 ]; then
-        print_color "$MAGENTA" "Mac App Store apps (use 'mac migrate-mas' instead):"
+        print_color "$MAGENTA" "Mac App Store apps (use 'mac migrate-mas' instead):" >&2
         for app in "${mas_apps[@]}"; do
-            echo "  • $app"
+            echo "  • $app" >&2
         done
-        echo
+        echo >&2
     fi
     
     if [ ${#system_apps[@]} -gt 0 ]; then
-        print_color "$MAGENTA" "System apps (cannot be migrated):"
+        print_color "$MAGENTA" "System apps (cannot be migrated):" >&2
         for app in "${system_apps[@]}"; do
-            echo "  • $app"
+            echo "  • $app" >&2
         done
-        echo
+        echo >&2
     fi
     
     if [ ${#unknown[@]} -gt 0 ]; then
-        print_color "$YELLOW" "Apps without known Homebrew equivalents:"
+        print_color "$YELLOW" "Apps without known Homebrew equivalents:" >&2
         for app in "${unknown[@]}"; do
-            echo "  • $app"
+            echo "  • $app" >&2
         done
-        echo
+        echo >&2
     fi
     
     # Return migratable apps for processing
