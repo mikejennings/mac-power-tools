@@ -117,4 +117,4 @@ test "Backup directory creation function works" \
     "source '$MIGRATE_APPS_SCRIPT' && type create_backup_dir >/dev/null 2>&1"
 
 # Show test results
-show_test_results
+# show_test_results (handled by test_helper.sh)
