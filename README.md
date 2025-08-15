@@ -42,12 +42,7 @@ A powerful and comprehensive macOS system management CLI tool. Modern replacemen
 - **Privacy Hardening**: Enable protective settings with one command
 - **Process Monitor**: Detect suspicious activities
 
-### 🎯 CleanMyMac Alternative Features (NEW!)
-- **App Uninstaller**: Completely remove applications and all associated files
-- **Duplicate Finder**: Find and remove duplicate files to free up space
-- **System Junk Cleaner**: Deep clean Xcode, package manager caches, iOS backups
-- **Memory Optimizer**: Monitor and optimize RAM usage in real-time
-- **MAS to Homebrew Migration**: Migrate Mac App Store apps to Homebrew for better management
+
 
 ### 💾 Power Management
 - **Keep Awake**: Prevent Mac from sleeping with screensaver option
