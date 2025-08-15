@@ -16,6 +16,8 @@ NC='\033[0m' # No Color
 DRY_RUN=true
 INTERACTIVE=true
 VERBOSE=false
+BACKUP_APPS=true
+BACKUP_DIR="$HOME/.mac-power-tools/app-backups"
 
 # Function to print colored output
 print_color() {
@@ -57,8 +59,8 @@ get_cask_for_app_name() {
     local app_name=$1
     case "$app_name" in
         # Productivity
-        "1Password 7 - Password Manager") echo "1password7" ;;
-        "1Password 8 - Password Manager"|"1Password") echo "1password" ;;
+        "1Password 7 - Password Manager") echo "1password-7" ;;
+        "1Password 8 - Password Manager") echo "1password" ;;
         "Affinity Photo") echo "affinity-photo" ;;
         "Affinity Photo 2") echo "affinity-photo" ;;
         "Affinity Designer") echo "affinity-designer" ;;
@@ -68,13 +70,21 @@ get_cask_for_app_name() {
         "Alfred") echo "alfred" ;;
         "Bear") echo "bear" ;;
         "Bitwarden") echo "bitwarden" ;;
+        "Claude") echo "claude" ;;
         "CleanMyMac X") echo "cleanmymac" ;;
+        "CleanMyMac_5") echo "cleanmymac" ;;
+        "CleanMyMac 5") echo "cleanmymac" ;;
         "Discord") echo "discord" ;;
         "Dropbox") echo "dropbox" ;;
         "Figma") echo "figma" ;;
         "Google Chrome") echo "google-chrome" ;;
         "Google Drive") echo "google-drive" ;;
+        "Google Docs") echo "google-docs" ;;
+        "Google Sheets") echo "google-sheets" ;;
+        "Google Slides") echo "google-slides" ;;
+        "Keynote") echo "keynote" ;;
         "Kindle") echo "kindle" ;;
+        "LastPass") echo "lastpass" ;;
         "Microsoft Excel") echo "microsoft-excel" ;;
         "Microsoft PowerPoint") echo "microsoft-powerpoint" ;;
         "Microsoft Word") echo "microsoft-word" ;;
@@ -90,10 +100,11 @@ get_cask_for_app_name() {
         "Twitter") echo "twitter" ;;
         "WhatsApp") echo "whatsapp" ;;
         "Zoom") echo "zoom" ;;
+        "zoom.us") echo "zoom" ;;
         
         # Development
         "Android Studio") echo "android-studio" ;;
-        "Docker Desktop"|"Docker") echo "docker" ;;
+        "Docker Desktop") echo "docker" ;;
         "GitHub Desktop") echo "github" ;;
         "GitKraken") echo "gitkraken" ;;
         "IntelliJ IDEA CE") echo "intellij-idea-ce" ;;
@@ -105,31 +116,11 @@ get_cask_for_app_name() {
         "Sublime Text") echo "sublime-text" ;;
         "TablePlus") echo "tableplus" ;;
         "Transmit 5") echo "transmit" ;;
-        "Visual Studio Code"|"VSCode") echo "visual-studio-code" ;;
+        "Visual Studio Code") echo "visual-studio-code" ;;
         "WebStorm") echo "webstorm" ;;
         "Xcode") echo "xcode" ;;
         "iTerm") echo "iterm2" ;;
-        "Warp") echo "warp" ;;
-        "Alacritty") echo "alacritty" ;;
-        "Tower") echo "tower" ;;
-        "SourceTree") echo "sourcetree" ;;
-        "Fork") echo "fork" ;;
-        "Insomnia") echo "insomnia" ;;
-        "Paw") echo "paw" ;;
-        "Dash") echo "dash" ;;
-        "CodeRunner") echo "coderunner" ;;
-        "Nova") echo "nova" ;;
-        "BBEdit") echo "bbedit" ;;
-        "TextMate") echo "textmate" ;;
-        "Zed") echo "zed" ;;
-        "Cursor") echo "cursor" ;;
-        "DataGrip") echo "datagrip" ;;
-        "RubyMine") echo "rubymine" ;;
-        "GoLand") echo "goland" ;;
-        "PhpStorm") echo "phpstorm" ;;
-        "CLion") echo "clion" ;;
-        "Rider") echo "rider" ;;
-        "AppCode") echo "appcode" ;;
+        "iTermAI") echo "iterm2" ;;  # Assuming this is iTerm with AI features
         
         # Media
         "Adobe Photoshop 2024") echo "adobe-photoshop" ;;
@@ -147,20 +138,7 @@ get_cask_for_app_name() {
         "OBS Studio") echo "obs" ;;
         "Pixelmator Pro") echo "pixelmator-pro" ;;
         "Sketch") echo "sketch" ;;
-        "VLC media player"|"VLC") echo "vlc" ;;
-        "Plex") echo "plex" ;;
-        "Kodi") echo "kodi" ;;
-        "MPV") echo "mpv" ;;
-        "QuickTime Player") echo "" ;;  # System app
-        "GarageBand") echo "garageband" ;;
-        "Compressor") echo "compressor" ;;
-        "Motion") echo "motion" ;;
-        "MainStage") echo "mainstage" ;;
-        "Screenflow") echo "screenflow" ;;
-        "Camtasia") echo "camtasia" ;;
-        "ScreenFloat") echo "screenfloat" ;;
-        "CleanShot X") echo "cleanshot" ;;
-        "Snagit") echo "snagit" ;;
+        "VLC media player") echo "vlc" ;;
         
         # Utilities
         "1Blocker- Ad Blocker & Privacy") echo "1blocker" ;;
@@ -174,33 +152,15 @@ get_cask_for_app_name() {
         "Raycast") echo "raycast" ;;
         "The Unarchiver") echo "the-unarchiver" ;;
         "TopNotch") echo "topnotch" ;;
-        "Bartender 4"|"Bartender") echo "bartender" ;;
-        "Amphetamine") echo "amphetamine" ;;
-        "Keka") echo "keka" ;;
-        "Path Finder") echo "path-finder" ;;
-        "Default Folder X") echo "default-folder-x" ;;
-        "Hazel") echo "hazel" ;;
-        "Keyboard Maestro") echo "keyboard-maestro" ;;
-        "TextExpander") echo "textexpander" ;;
-        "PopClip") echo "popclip" ;;
-        "Moom") echo "moom" ;;
-        "SizeUp") echo "sizeup" ;;
-        "Divvy") echo "divvy" ;;
-        "Mosaic") echo "mosaic" ;;
-        "Paste") echo "paste" ;;
-        "Pastebot") echo "pastebot" ;;
-        "Yoink") echo "yoink" ;;
-        "Dropzone") echo "dropzone" ;;
-        "HiddenBar") echo "hiddenbar" ;;
-        "Vanilla") echo "vanilla" ;;
-        "Dozer") echo "dozer" ;;
-        "Stats") echo "stats" ;;
-        "iStat Menus") echo "istat-menus" ;;
-        "MenubarX") echo "menubarx" ;;
-        "MonitorControl") echo "monitorcontrol" ;;
-        "AnyBar") echo "anybar" ;;
-        "BitBar") echo "bitbar" ;;
-        "SwiftBar") echo "swiftbar" ;;
+        "Little Snitch") echo "little-snitch" ;;
+        "Jellyfin") echo "jellyfin-media-player" ;;
+        "KeyClu") echo "keyclu" ;;
+        "Malwarebytes") echo "malwarebytes" ;;
+        "OrbStack") echo "orbstack" ;;
+        "Rectangle Pro") echo "rectangle-pro" ;;
+        "Signal") echo "signal" ;;
+        "Tailscale") echo "tailscale-app" ;;
+        "Wireshark") echo "wireshark-app" ;;
         
         # Browsers
         "Arc") echo "arc" ;;
@@ -208,13 +168,6 @@ get_cask_for_app_name() {
         "Firefox") echo "firefox" ;;
         "Microsoft Edge") echo "microsoft-edge" ;;
         "Opera") echo "opera" ;;
-        "Opera GX") echo "opera-gx" ;;
-        "Vivaldi") echo "vivaldi" ;;
-        "Tor Browser") echo "tor-browser" ;;
-        "Orion") echo "orion" ;;
-        "SigmaOS") echo "sigmaos" ;;
-        "Min") echo "min" ;;
-        "Waterfox") echo "waterfox" ;;
         "Safari") echo "" ;;  # System app, no cask
         
         # Communication
@@ -222,154 +175,26 @@ get_cask_for_app_name() {
         "Mail") echo "" ;;  # System app, no cask
         "Messages") echo "" ;;  # System app, no cask
         "Skype") echo "skype" ;;
-        "Signal") echo "signal" ;;
-        "Element") echo "element" ;;
-        "Mattermost") echo "mattermost" ;;
-        "Franz") echo "franz" ;;
-        "Ferdi") echo "ferdi" ;;
-        "Rocket.Chat") echo "rocket-chat" ;;
-        "Wire") echo "wire" ;;
-        "Keybase") echo "keybase" ;;
-        "Jitsi Meet") echo "jitsi-meet" ;;
-        "Around") echo "around" ;;
-        "Loom") echo "loom" ;;
-        "mmhmm") echo "mmhmm" ;;
-        "Whereby") echo "whereby" ;;
-        
-        # Security & Privacy
-        "Little Snitch") echo "little-snitch" ;;
-        "Micro Snitch") echo "micro-snitch" ;;
-        "Encrypto") echo "encrypto" ;;
-        "VeraCrypt") echo "veracrypt" ;;
-        "Cryptomator") echo "cryptomator" ;;
-        "KeePassXC") echo "keepassxc" ;;
-        "MacPass") echo "macpass" ;;
-        "Enpass") echo "enpass" ;;
-        "Dashlane") echo "dashlane" ;;
-        "LastPass") echo "lastpass" ;;
-        "NordVPN") echo "nordvpn" ;;
-        "ExpressVPN") echo "expressvpn" ;;
-        "Surfshark") echo "surfshark" ;;
-        "ProtonVPN") echo "protonvpn" ;;
-        "Mullvad VPN") echo "mullvadvpn" ;;
-        "Windscribe") echo "windscribe" ;;
-        "TunnelBear") echo "tunnelbear" ;;
-        "Private Internet Access") echo "private-internet-access" ;;
-        
-        # Cloud Storage
-        "OneDrive") echo "onedrive" ;;
-        "Box") echo "box-drive" ;;
-        "MEGA") echo "megasync" ;;
-        "pCloud Drive") echo "pcloud-drive" ;;
-        "Sync") echo "sync" ;;
-        "Tresorit") echo "tresorit" ;;
-        "Backblaze") echo "backblaze" ;;
-        "Arq") echo "arq" ;;
-        "Carbon Copy Cloner") echo "carbon-copy-cloner" ;;
-        "SuperDuper!") echo "superduper" ;;
-        "ChronoSync") echo "chronosync" ;;
-        
-        # Writing & Notes
-        "Scrivener 3"|"Scrivener") echo "scrivener" ;;
-        "Ulysses") echo "ulysses" ;;
-        "iA Writer") echo "ia-writer" ;;
-        "Typora") echo "typora" ;;
-        "MacDown") echo "macdown" ;;
-        "Marked 2") echo "marked" ;;
-        "Day One") echo "day-one" ;;
-        "Journey") echo "journey" ;;
-        "Agenda") echo "agenda" ;;
-        "Things"|"Things 3") echo "things" ;;
-        "OmniFocus 3"|"OmniFocus") echo "omnifocus" ;;
-        "Todoist") echo "todoist" ;;
-        "TickTick") echo "ticktick" ;;
-        "2Do") echo "2do" ;;
-        "GoodNotes 5"|"GoodNotes") echo "goodnotes" ;;
-        "Notability") echo "notability" ;;
-        "MarginNote 3"|"MarginNote") echo "marginnote" ;;
-        "DEVONthink 3"|"DEVONthink") echo "devonthink" ;;
-        "Keep It") echo "keep-it" ;;
-        "Notebooks") echo "notebooks" ;;
-        "Roam Research") echo "roam-research" ;;
-        "Logseq") echo "logseq" ;;
-        "RemNote") echo "remnote" ;;
-        "Craft - Docs and Notes Editor"|"Craft") echo "craft" ;;
-        
-        # Finance
-        "Money - Budget & Finance"|"Money") echo "money" ;;
-        "MoneyMoney") echo "moneymoney" ;;
-        "YNAB") echo "ynab" ;;
-        "Quicken") echo "quicken" ;;
-        "Banktivity") echo "banktivity" ;;
-        "Mint") echo "mint" ;;
-        "Coinbase") echo "coinbase" ;;
-        "Binance") echo "binance" ;;
-        "TradingView") echo "tradingview" ;;
-        
-        # Education
-        "Anki") echo "anki" ;;
-        "Studies") echo "studies" ;;
-        "Quizlet") echo "quizlet" ;;
-        "Flashcard Hero") echo "flashcard-hero" ;;
-        "Mental Case") echo "mental-case" ;;
-        
-        # Games (some examples)
-        "Steam") echo "steam" ;;
-        "Epic Games Launcher") echo "epic-games" ;;
-        "Battle.net") echo "battle-net" ;;
-        "GOG Galaxy") echo "gog-galaxy" ;;
-        "Origin") echo "origin" ;;
-        "Minecraft") echo "minecraft" ;;
-        "League of Legends") echo "league-of-legends" ;;
         
         *) echo "" ;;  # Return empty for unknown apps
     esac
 }
 
-# Function to get app info from Info.plist
-get_app_info() {
-    local app_path=$1
-    local plist_path="$app_path/Contents/Info.plist"
-    
-    if [ -f "$plist_path" ]; then
-        local bundle_id=$(defaults read "$plist_path" CFBundleIdentifier 2>/dev/null || echo "")
-        local version=$(defaults read "$plist_path" CFBundleShortVersionString 2>/dev/null || echo "")
-        local executable=$(defaults read "$plist_path" CFBundleExecutable 2>/dev/null || echo "")
-        echo "${bundle_id}|${version}|${executable}"
-    else
-        echo "||"
-    fi
-}
-
-# Function to get installed apps from /Applications
+# Function to get installed apps from /Applications and ~/Applications
 get_installed_apps() {
-    find /Applications -maxdepth 1 -name "*.app" -type d 2>/dev/null | while read -r app_path; do
-        local app_name=$(basename "$app_path" .app)
-        echo "$app_name"
-    done | sort
-}
-
-# Function to get installed apps with detailed info
-get_installed_apps_detailed() {
-    find /Applications -maxdepth 1 -name "*.app" -type d 2>/dev/null | while read -r app_path; do
-        local app_name=$(basename "$app_path" .app)
-        [ "$VERBOSE" = true ] && echo "Scanning: $app_name..." >&2
+    {
+        # Search system Applications directory
+        find /Applications -maxdepth 1 -name "*.app" -type d 2>/dev/null | while read -r app_path; do
+            local app_name=$(basename "$app_path" .app)
+            echo "$app_name"
+        done
         
-        local app_info=$(get_app_info "$app_path")
-        IFS='|' read -r bundle_id version executable <<< "$app_info"
-        
-        # Get app size (skip for speed)
-        local app_size="N/A"
-        # local app_size=$(du -sh "$app_path" 2>/dev/null | cut -f1)
-        
-        # Check if it's from Mac App Store
-        local is_mas="no"
-        if [ -f "$app_path/Contents/_MASReceipt/receipt" ]; then
-            is_mas="yes"
-        fi
-        
-        echo "${app_name}|${bundle_id}|${version}|${executable}|${app_size}|${is_mas}|${app_path}"
-    done | sort -t'|' -k1
+        # Search user Applications directory
+        find ~/Applications -maxdepth 1 -name "*.app" -type d 2>/dev/null | while read -r app_path; do
+            local app_name=$(basename "$app_path" .app)
+            echo "$app_name"
+        done
+    } | sort -u  # Remove duplicates and sort
 }
 
 # Function to check if cask is installed
@@ -378,72 +203,181 @@ is_cask_installed() {
     brew list --cask 2>/dev/null | grep -q "^${cask}$"
 }
 
-# Enhanced cask search using bundle ID and app name
-find_cask_for_app_smart() {
-    local app_name=$1
-    local bundle_id=$2
-    local executable=$3
-    
-    # First try known mappings
-    local known_cask=$(get_cask_for_app_name "$app_name")
-    if [ -n "$known_cask" ]; then
-        echo "$known_cask"
-        return
-    fi
-    
-    # Skip brew search for now - it's too slow
-    # This can be re-enabled with a flag if needed
-    echo ""
-    return
-    
-    # Try bundle ID based search if available
-    if [ -n "$bundle_id" ] && command_exists brew; then
-        # Extract domain from bundle ID (e.g., com.google.Chrome -> google-chrome)
-        local search_term=$(echo "$bundle_id" | sed 's/^com\.//' | sed 's/\./\-/g' | tr '[:upper:]' '[:lower:]')
-        local cask_result=$(brew search --cask "$search_term" 2>/dev/null | head -1)
-        if [ -n "$cask_result" ] && [ "$cask_result" != "No casks found" ]; then
-            echo "$cask_result"
-            return
+# Function to create backup directory
+create_backup_dir() {
+    if [ ! -d "$BACKUP_DIR" ]; then
+        mkdir -p "$BACKUP_DIR"
+        if [ $? -eq 0 ]; then
+            print_color "$CYAN" "Created backup directory: $BACKUP_DIR"
+        else
+            print_color "$RED" "Failed to create backup directory: $BACKUP_DIR"
+            return 1
         fi
     fi
-    
-    # Try executable name
-    if [ -n "$executable" ]; then
-        local search_term=$(echo "$executable" | tr '[:upper:]' '[:lower:]' | sed 's/ /-/g')
-        local cask_result=$(brew search --cask "$search_term" 2>/dev/null | head -1)
-        if [ -n "$cask_result" ] && [ "$cask_result" != "No casks found" ]; then
-            echo "$cask_result"
-            return
-        fi
-    fi
-    
-    # Finally try simplified app name
-    local search_name=$(echo "$app_name" | tr '[:upper:]' '[:lower:]' | sed 's/ /-/g' | sed 's/[^a-z0-9-]//g')
-    local cask_result=$(brew search --cask "$search_name" 2>/dev/null | head -1)
-    if [ -n "$cask_result" ] && [ "$cask_result" != "No casks found" ]; then
-        echo "$cask_result"
-        return
-    fi
-    
-    echo ""
+    return 0
 }
 
-# Function to find cask for app (simple version for backward compatibility)
+# Function to find actual app path in both /Applications and ~/Applications
+find_app_path() {
+    local app_name=$1
+    
+    # Search locations in order of preference
+    local search_paths=("/Applications" "$HOME/Applications")
+    
+    for base_path in "${search_paths[@]}"; do
+        local exact_path="${base_path}/${app_name}.app"
+        
+        # Try exact match first
+        if [ -d "$exact_path" ]; then
+            echo "$exact_path"
+            return 0
+        fi
+        
+        # Try case-insensitive search
+        local found_app=$(find "$base_path" -maxdepth 1 -iname "${app_name}.app" -type d 2>/dev/null | head -1)
+        if [ -n "$found_app" ]; then
+            echo "$found_app"
+            return 0
+        fi
+        
+        # Try partial match (for apps with version numbers or extra text)
+        local partial_match=$(find "$base_path" -maxdepth 1 -iname "*${app_name}*.app" -type d 2>/dev/null | head -1)
+        if [ -n "$partial_match" ]; then
+            echo "$partial_match"
+            return 0
+        fi
+    done
+    
+    return 1
+}
+
+# Function to backup app before migration
+backup_app() {
+    local app_name=$1
+    local app_path=$(find_app_path "$app_name")
+    local timestamp=$(date +"%Y%m%d_%H%M%S")
+    local safe_name=$(echo "$app_name" | sed 's/[^a-zA-Z0-9._-]/_/g')
+    local backup_path="${BACKUP_DIR}/${safe_name}_${timestamp}.app"
+    
+    if [ -z "$app_path" ] || [ ! -d "$app_path" ]; then
+        print_color "$YELLOW" "Warning: App '$app_name' not found in /Applications"
+        print_color "$CYAN" "Skipping backup for this app"
+        return 1
+    fi
+    
+    print_color "$CYAN" "Backing up $(basename "$app_path" .app)..."
+    if cp -R "$app_path" "$backup_path" 2>/dev/null; then
+        print_color "$GREEN" "✓ Backed up to: $backup_path"
+        echo "$backup_path" # Return backup path for cleanup later
+        return 0
+    else
+        print_color "$RED" "✗ Failed to backup $app_name"
+        return 1
+    fi
+}
+
+# Function to remove app after successful migration
+remove_app() {
+    local app_name=$1
+    local app_path=$(find_app_path "$app_name")
+    
+    if [ -n "$app_path" ] && [ -d "$app_path" ]; then
+        print_color "$YELLOW" "Removing original app: $(basename "$app_path" .app)"
+        if rm -rf "$app_path" 2>/dev/null; then
+            print_color "$GREEN" "✓ Removed $app_path"
+            return 0
+        else
+            print_color "$RED" "✗ Failed to remove $app_path"
+            print_color "$CYAN" "You may need to remove it manually"
+            return 1
+        fi
+    else
+        print_color "$YELLOW" "App not found or already removed: $app_name"
+        return 0
+    fi
+}
+
+# Function to restore app from backup
+restore_app() {
+    local backup_path=$1
+    local app_name=$(basename "$backup_path" | sed 's/_[0-9]*_[0-9]*\.app$//')
+    local app_path="/Applications/${app_name}.app"
+    
+    print_color "$YELLOW" "Restoring $app_name from backup..."
+    if cp -R "$backup_path" "$app_path" 2>/dev/null; then
+        print_color "$GREEN" "✓ Restored $app_name"
+        return 0
+    else
+        print_color "$RED" "✗ Failed to restore $app_name"
+        return 1
+    fi
+}
+
+# Function to cleanup backup after successful migration
+cleanup_backup() {
+    local backup_path=$1
+    local app_name=$(basename "$backup_path" | sed 's/_[0-9]*_[0-9]*\.app$//')
+    
+    if [ -d "$backup_path" ]; then
+        print_color "$CYAN" "Cleaning up backup for $app_name..."
+        if rm -rf "$backup_path" 2>/dev/null; then
+            print_color "$GREEN" "✓ Cleaned up backup"
+        else
+            print_color "$YELLOW" "Warning: Could not clean up backup at $backup_path"
+        fi
+    fi
+}
+
+# Function to find cask for app - DISABLED to prevent terrible suggestions
 find_cask_for_app() {
     local app_name=$1
-    find_cask_for_app_smart "$app_name" "" ""
+    
+    # COMPLETELY DISABLE automatic cask discovery
+    # The suggestions were terrible and misleading:
+    # - Developer -> colorpicker-developer (wrong!)
+    # - Everton News -> evernote (ridiculous!)
+    # - Pages -> pages-data-merge (wrong app!)
+    # - RightMenuMaster -> rightfont (not even close!)
+    # - Wipr -> wire (totally different!)
+    # - WireGuard -> wirecast (unrelated!)
+    #
+    # Only use manually verified mappings in get_cask_for_app_name()
+    
+    echo ""
+    return 1
 }
 
-# Function to migrate single app (DRY RUN ONLY - NO DELETION)
+# Function to migrate single app with backup support
 migrate_app() {
     local app_name=$1
     local cask_name=$2
+    local backup_path=""
     
     if [ "$DRY_RUN" = true ]; then
         print_color "$CYAN" "[DRY RUN] Would migrate: $app_name"
+        if [ "$BACKUP_APPS" = true ]; then
+            print_color "$CYAN" "  - Backup app to: $BACKUP_DIR/${app_name}_TIMESTAMP.app"
+        fi
         print_color "$CYAN" "  - Install Homebrew cask: $cask_name"
-        print_color "$CYAN" "  - Manual cleanup: Move /Applications/$app_name.app to Trash"
+        print_color "$CYAN" "  - Remove original app: /Applications/$app_name.app"
         return 0
+    fi
+    
+    # Create backup directory if needed
+    if [ "$BACKUP_APPS" = true ]; then
+        if ! create_backup_dir; then
+            print_color "$RED" "Cannot proceed without backup directory"
+            return 1
+        fi
+        
+        # Backup the app first
+        backup_path=$(backup_app "$app_name" 2>/dev/null)
+        backup_result=$?
+        if [ $backup_result -ne 0 ]; then
+            print_color "$YELLOW" "Could not backup $app_name - app may not exist or have different name"
+            print_color "$CYAN" "Continuing with migration (Homebrew version will be installed)"
+            backup_path=""
+        fi
     fi
     
     # Install cask version
@@ -451,106 +385,103 @@ migrate_app() {
     if brew install --cask "$cask_name"; then
         print_color "$GREEN" "✓ Installed $cask_name"
         
-        # IMPORTANT: We do NOT automatically delete the manual app
-        # User must manually clean up to avoid data loss
-        print_color "$YELLOW" "⚠️  Manual cleanup required:"
-        print_color "$CYAN" "  1. Quit $app_name if running"
-        print_color "$CYAN" "  2. Move /Applications/$app_name.app to Trash"
-        print_color "$CYAN" "  3. The Homebrew version is now available"
-        
-        return 0
+        # Remove the original app
+        if remove_app "$app_name"; then
+            print_color "$GREEN" "✓ Migration completed successfully"
+            
+            # Clean up backup if successful and user wants cleanup
+            if [ "$BACKUP_APPS" = true ] && [ -n "$backup_path" ]; then
+                if [ "$INTERACTIVE" = true ]; then
+                    echo
+                    read -p "Remove backup? Migration was successful (y/n): " -n 1 -r
+                    echo
+                    if [[ $REPLY =~ ^[Yy]$ ]]; then
+                        cleanup_backup "$backup_path"
+                    else
+                        print_color "$CYAN" "Backup preserved at: $backup_path"
+                    fi
+                else
+                    # In non-interactive mode, keep backup for safety
+                    print_color "$CYAN" "Backup preserved at: $backup_path"
+                fi
+            fi
+            
+            return 0
+        else
+            print_color "$YELLOW" "Homebrew version installed, but original app removal failed"
+            print_color "$CYAN" "You may need to manually remove /Applications/$app_name.app"
+            return 0
+        fi
     else
         print_color "$RED" "Failed to install $cask_name"
+        
+        # Restore from backup if installation failed
+        if [ "$BACKUP_APPS" = true ] && [ -n "$backup_path" ]; then
+            print_color "$YELLOW" "Installation failed - backup is preserved at: $backup_path"
+            print_color "$CYAN" "Your original app is safe and unchanged"
+        fi
+        
         return 1
     fi
 }
 
 # Function to analyze migration opportunities
 analyze_migration() {
-    print_color "$BLUE" "Analyzing /Applications for migration opportunities..." >&2
+    print_color "$BLUE" "Analyzing /Applications and ~/Applications for migration opportunities..." >&2
     echo >&2
     
     local migratable=()
     local unknown=()
     local already_migrated=()
     local system_apps=()
-    local mas_apps=()
+    local browser_extensions=()
     
-    # Use detailed scanning if available
-    local apps_data
-    if declare -f get_installed_apps_detailed >/dev/null; then
-        [ "$VERBOSE" = true ] && echo "Using detailed scanning..." >&2
-        print_color "$CYAN" "Scanning installed applications..." >&2
-        apps_data=$(get_installed_apps_detailed)
-        print_color "$CYAN" "Processing application data..." >&2
-        while IFS='|' read -r app_name bundle_id version executable size is_mas path; do
-            if [ -n "$app_name" ]; then
-                [ "$VERBOSE" = true ] && echo "Processing: $app_name (bundle: $bundle_id)" >&2
-                
-                # Skip Mac App Store apps
-                if [ "$is_mas" = "yes" ]; then
-                    mas_apps+=("$app_name")
-                    continue
+    # Get all installed apps from both locations
+    local app_list=$(get_installed_apps)
+    
+    while IFS= read -r app_name; do
+        if [ -n "$app_name" ]; then
+            [ "$VERBOSE" = true ] && echo "Processing: $app_name" >&2
+            # Check custom mappings first, then known mappings
+            local cask=$(get_custom_mapping "$app_name")
+            if [ -z "$cask" ]; then
+                cask=$(get_cask_for_app_name "$app_name")
+            fi
+            
+            if [ -n "$cask" ]; then
+                # Check if cask is already installed
+                if is_cask_installed "$cask"; then
+                    already_migrated+=("$app_name (→ $cask)")
+                else
+                    migratable+=("${app_name}|${cask}")
                 fi
-                
-                # Check custom mappings first, then smart detection
-                local cask=$(get_custom_mapping "$app_name")
-                if [ -z "$cask" ]; then
-                    cask=$(find_cask_for_app_smart "$app_name" "$bundle_id" "$executable")
-                fi
-                
-                if [ -n "$cask" ]; then
-                    # Check if cask is already installed
-                    if is_cask_installed "$cask"; then
-                        already_migrated+=("$app_name (→ $cask)")
+            elif [ "$cask" = "" ] && [[ "$app_name" =~ ^(Finder|Safari|Mail|Messages|FaceTime|Calendar|Contacts|Maps|Photos|Music|TV|Podcasts|News|Stocks|Weather|Clock|Calculator|Chess|Dictionary|DVD Player|Font Book|Grapher|Image Capture|Keychain Access|Migration Assistant|Photo Theater|Preview|QuickTime Player|Stickies|System Preferences|TextEdit|Time Machine|VoiceOver Utility)$ ]]; then
+                system_apps+=("$app_name")
+            elif [[ "$app_name" =~ (for Safari|Classic|Lite)$ ]] || [[ "$app_name" =~ ^(Dark Reader|LastPass for Safari|uBlock Origin Lite|Tampermonkey Classic|1Blocker|AdBlock)$ ]]; then
+                browser_extensions+=("$app_name")
+            else
+                # Try to find a cask using STRICT exact matching only
+                local possible_cask=$(find_cask_for_app "$app_name")
+                if [ -n "$possible_cask" ]; then
+                    # Check if this exact match cask is already installed
+                    if is_cask_installed "$possible_cask"; then
+                        already_migrated+=("$app_name (→ $possible_cask)")
                     else
-                        migratable+=("${app_name}|${cask}")
+                        migratable+=("${app_name}|${possible_cask}")
                     fi
-                elif [ "$cask" = "" ] && [[ "$app_name" =~ ^(Finder|Safari|Mail|Messages|FaceTime|Calendar|Contacts|Maps|Photos|Music|TV|Podcasts|News|Stocks|Weather|Clock|Calculator|Chess|Dictionary|DVD Player|Font Book|Grapher|Image Capture|Keychain Access|Migration Assistant|Photo Theater|Preview|QuickTime Player|Stickies|System Preferences|System Settings|TextEdit|Time Machine|VoiceOver Utility|Console|Activity Monitor|Disk Utility)$ ]]; then
-                    system_apps+=("$app_name")
                 else
                     unknown+=("$app_name")
                 fi
             fi
-        done <<< "$apps_data"
-    else
-        # Fallback to simple scanning
-        local app_list=$(get_installed_apps)
-        while IFS= read -r app_name; do
-            if [ -n "$app_name" ]; then
-                [ "$VERBOSE" = true ] && echo "Processing: $app_name" >&2
-                # Check custom mappings first, then known mappings
-                local cask=$(get_custom_mapping "$app_name")
-                if [ -z "$cask" ]; then
-                    cask=$(get_cask_for_app_name "$app_name")
-                fi
-                
-                if [ -n "$cask" ]; then
-                    # Check if cask is already installed
-                    if is_cask_installed "$cask"; then
-                        already_migrated+=("$app_name (→ $cask)")
-                    else
-                        migratable+=("${app_name}|${cask}")
-                    fi
-                elif [ "$cask" = "" ] && [[ "$app_name" =~ ^(Finder|Safari|Mail|Messages|FaceTime|Calendar|Contacts|Maps|Photos|Music|TV|Podcasts|News|Stocks|Weather|Clock|Calculator|Chess|Dictionary|DVD Player|Font Book|Grapher|Image Capture|Keychain Access|Migration Assistant|Photo Theater|Preview|QuickTime Player|Stickies|System Preferences|System Settings|TextEdit|Time Machine|VoiceOver Utility|Console|Activity Monitor|Disk Utility)$ ]]; then
-                    system_apps+=("$app_name")
-                else
-                    unknown+=("$app_name")
-                fi
-            fi
-        done <<< "$app_list"
-    fi
+        fi
+    done <<< "$app_list"
     
-    # Display results
+    # Display results to stderr so they don't interfere with return data
     if [ ${#migratable[@]} -gt 0 ]; then
         print_color "$GREEN" "Apps that can be migrated to Homebrew:" >&2
         for item in "${migratable[@]}"; do
-            IFS='|' read -r name cask suggested <<< "$item"
-            if [ "$suggested" = "suggested" ]; then
-                echo "  • $name → $cask (suggested)" >&2
-            else
-                echo "  • $name → $cask" >&2
-            fi
+            IFS='|' read -r name cask <<< "$item"
+            echo "  • $name → $cask" >&2
         done
         echo >&2
     fi
@@ -558,14 +489,6 @@ analyze_migration() {
     if [ ${#already_migrated[@]} -gt 0 ]; then
         print_color "$CYAN" "Apps already available via Homebrew:" >&2
         for app in "${already_migrated[@]}"; do
-            echo "  • $app" >&2
-        done
-        echo >&2
-    fi
-    
-    if [ ${#mas_apps[@]} -gt 0 ]; then
-        print_color "$MAGENTA" "Mac App Store apps (use 'mac migrate-mas' instead):" >&2
-        for app in "${mas_apps[@]}"; do
             echo "  • $app" >&2
         done
         echo >&2
@@ -579,6 +502,14 @@ analyze_migration() {
         echo >&2
     fi
     
+    if [ ${#browser_extensions[@]} -gt 0 ]; then
+        print_color "$MAGENTA" "Browser extensions and plugins (not migratable):" >&2
+        for app in "${browser_extensions[@]}"; do
+            echo "  • $app" >&2
+        done
+        echo >&2
+    fi
+    
     if [ ${#unknown[@]} -gt 0 ]; then
         print_color "$YELLOW" "Apps without known Homebrew equivalents:" >&2
         for app in "${unknown[@]}"; do
@@ -587,7 +518,7 @@ analyze_migration() {
         echo >&2
     fi
     
-    # Return migratable apps for processing
+    # Return migratable apps for processing (to stdout)
     printf '%s\n' "${migratable[@]}"
 }
 
@@ -598,16 +529,11 @@ perform_migration() {
     local failed=0
     
     for item in "${apps[@]}"; do
-        IFS='|' read -r name cask suggested <<< "$item"
+        IFS='|' read -r name cask <<< "$item"
         
         if [ "$INTERACTIVE" = true ]; then
             echo
-            if [ "$suggested" = "suggested" ]; then
-                print_color "$YELLOW" "Suggested migration: $name → $cask"
-                print_color "$CYAN" "This is an automatic suggestion and may not be exact"
-            else
-                print_color "$CYAN" "Migrate: $name → $cask"
-            fi
+            print_color "$CYAN" "Migrate: $name → $cask"
             
             read -p "Proceed? (y/n/s=skip): " -n 1 -r
             echo
@@ -637,11 +563,16 @@ perform_migration() {
         echo
         print_color "$YELLOW" "This was a dry run - no changes were made"
         print_color "$CYAN" "Run with --execute to perform actual migration"
+        if [ "$BACKUP_APPS" = true ]; then
+            print_color "$CYAN" "Apps will be backed up to: $BACKUP_DIR"
+        fi
     else
         echo
-        print_color "$YELLOW" "⚠️  Important: Manual cleanup required"
-        print_color "$CYAN" "You must manually remove the old apps from /Applications"
-        print_color "$CYAN" "The Homebrew versions are now installed and ready to use"
+        if [ "$BACKUP_APPS" = true ]; then
+            print_color "$CYAN" "App backups are stored in: $BACKUP_DIR"
+            print_color "$CYAN" "You can safely remove backups after testing migrated apps"
+        fi
+        print_color "$GREEN" "Migration complete! Homebrew versions are now active"
     fi
 }
 
@@ -683,13 +614,21 @@ Productivity:
   Alfred → alfred
   Bear → bear
   Bitwarden → bitwarden
+  Claude → claude
   CleanMyMac X → cleanmymac
   Discord → discord
   Dropbox → dropbox
   Figma → figma
   Google Chrome → google-chrome
   Google Drive → google-drive
+  Google Docs → google-docs
+  Google Sheets → google-sheets
+  Google Slides → google-slides
+  Jellyfin → jellyfin-media-player
+  KeyClu → keyclu
+  Keynote → keynote
   Kindle → kindle
+  LastPass → lastpass
   Microsoft Excel → microsoft-excel
   Microsoft PowerPoint → microsoft-powerpoint
   Microsoft Word → microsoft-word
@@ -713,6 +652,8 @@ Development:
   GitKraken → gitkraken
   IntelliJ IDEA CE → intellij-idea-ce
   IntelliJ IDEA → intellij-idea
+  iTerm → iterm2
+  iTermAI → iterm2
   JetBrains Toolbox → jetbrains-toolbox
   Postman → postman
   PyCharm CE → pycharm-ce
@@ -747,12 +688,21 @@ Utilities:
   AppCleaner → appcleaner
   BetterTouchTool → bettertouchtool
   CleanMaster- Remove Junk Files → cleanmaster
+  CleanMyMac X → cleanmymac
+  CleanMyMac 5 → cleanmymac
   Hammerspoon → hammerspoon
   Karabiner-Elements → karabiner-elements
+  Little Snitch → little-snitch
   Magnet → magnet
+  Malwarebytes → malwarebytes
+  OrbStack → orbstack
   Raycast → raycast
+  Rectangle Pro → rectangle-pro
+  Signal → signal
+  Tailscale → tailscale-app
   The Unarchiver → the-unarchiver
   TopNotch → topnotch
+  Wireshark → wireshark-app
 
 Browsers:
   Arc → arc
@@ -772,64 +722,38 @@ EOF
     fi
 }
 
-# Interactive FZF selection for apps
-select_apps_with_fzf() {
-    if ! command_exists fzf; then
-        return 1
+# Function to show available backups
+show_backups() {
+    print_color "$BLUE" "Available App Backups"
+    print_color "$BLUE" "═══════════════════════════════════════════"
+    
+    if [ ! -d "$BACKUP_DIR" ]; then
+        print_color "$YELLOW" "No backup directory found at: $BACKUP_DIR"
+        return 0
     fi
     
-    print_color "$CYAN" "Analyzing applications for migration..."
+    local backups=($(find "$BACKUP_DIR" -name "*.app" -type d 2>/dev/null))
     
-    local apps_data=$(get_installed_apps_detailed)
-    local selectable_apps=()
-    
-    while IFS='|' read -r name bundle_id version executable size is_mas path; do
-        if [ "$is_mas" = "yes" ]; then
-            continue  # Skip Mac App Store apps
-        fi
-        
-        # Check if it's a system app
-        if [[ "$name" =~ ^(Finder|Safari|Mail|Messages|FaceTime|Calendar|Contacts|Maps|Photos|Music|TV|Podcasts|News|Stocks|Weather|Clock|Calculator|Chess|Dictionary|DVD Player|Font Book|Grapher|Image Capture|Keychain Access|Migration Assistant|Photo Theater|Preview|QuickTime Player|Stickies|System Preferences|System Settings|TextEdit|Time Machine|VoiceOver Utility|Console|Activity Monitor|Disk Utility)$ ]]; then
-            continue
-        fi
-        
-        # Find potential cask
-        local cask=$(find_cask_for_app_smart "$name" "$bundle_id" "$executable")
-        
-        if [ -n "$cask" ]; then
-            if is_cask_installed "$cask"; then
-                continue  # Already migrated
-            fi
-            selectable_apps+=("$name [$size] → $cask|${name}|${cask}")
-        else
-            selectable_apps+=("$name [$size] (no cask found)|${name}|")
-        fi
-    done <<< "$apps_data"
-    
-    if [ ${#selectable_apps[@]} -eq 0 ]; then
-        print_color "$YELLOW" "No apps available for migration"
-        return 1
+    if [ ${#backups[@]} -eq 0 ]; then
+        print_color "$YELLOW" "No app backups found in: $BACKUP_DIR"
+        return 0
     fi
     
-    # Use fzf for selection
-    local selected=$(printf '%s\n' "${selectable_apps[@]}" | cut -d'|' -f1 | \
-        fzf --multi --height=80% --layout=reverse \
-            --header="Select apps to migrate (TAB for multi-select, Enter to confirm, Esc to cancel)" \
-            --preview-window=hidden)
-    
-    if [ -z "$selected" ]; then
-        return 1
-    fi
-    
-    # Return selected apps
-    echo "$selected" | while read -r selection; do
-        for app_entry in "${selectable_apps[@]}"; do
-            if [[ "$app_entry" == "$selection|"* ]]; then
-                echo "$app_entry" | cut -d'|' -f2,3
-                break
-            fi
-        done
+    echo
+    print_color "$GREEN" "Found ${#backups[@]} app backup(s):"
+    for backup in "${backups[@]}"; do
+        local backup_name=$(basename "$backup")
+        local app_name=$(echo "$backup_name" | sed 's/_[0-9]*_[0-9]*\.app$//')
+        local timestamp=$(echo "$backup_name" | sed 's/.*_\([0-9]*_[0-9]*\)\.app$/\1/')
+        local formatted_time=$(echo "$timestamp" | sed 's/_/ /')
+        echo "  • $app_name (backed up: $formatted_time)"
     done
+    
+    echo
+    print_color "$CYAN" "To restore a backup:"
+    print_color "$CYAN" "1. Uninstall the Homebrew version: brew uninstall --cask <cask-name>"
+    print_color "$CYAN" "2. Copy backup to /Applications manually"
+    print_color "$CYAN" "3. Or contact support for automated restore"
 }
 
 # Show help
@@ -837,8 +761,8 @@ show_help() {
     cat << EOF
 Mac Power Tools - Manual Apps to Homebrew Migration
 
-Helps migrate manually downloaded apps from /Applications to Homebrew Cask 
-versions for better management, updates, and automation.
+Helps migrate manually downloaded apps from /Applications and ~/Applications to 
+Homebrew Cask versions for better management, updates, and automation.
 
 USAGE:
     mac migrate-apps [OPTIONS]
@@ -846,21 +770,17 @@ USAGE:
 OPTIONS:
     -h, --help          Show this help message
     -a, --analyze       Analyze apps and show migration opportunities
-    -f, --fzf           Use fzf for interactive multi-select
     -e, --execute       Execute migration (default is dry-run)
     -y, --yes           Non-interactive mode (migrate all)
     -l, --list          List known App to Cask mappings
     -m, --map APP CASK  Add custom App name to Cask mapping
     -v, --verbose       Show detailed output
+    --no-backup         Skip app backup (not recommended)
+    --backup-dir DIR    Custom backup directory (default: ~/.mac-power-tools/app-backups)
+    --restore           Show available backups and restore options
 
 EXAMPLES:
-    # Interactive multi-select with fzf (recommended)
-    mac migrate-apps --fzf
-    
-    # Execute migration with fzf selection
-    mac migrate-apps --fzf --execute
-    
-    # Analyze what can be migrated (safe, read-only)
+    # Analyze what can be migrated from both /Applications and ~/Applications (safe, read-only)
     mac migrate-apps --analyze
     
     # Perform dry-run migration (default)
@@ -874,14 +794,12 @@ EXAMPLES:
     
     # Add custom mapping and migrate
     mac migrate-apps --map "My App" my-app --execute
-
-ENHANCED FEATURES:
-    • Smart detection using bundle IDs from Info.plist
-    • Fuzzy cask search with multiple strategies
-    • FZF multi-select for batch operations
-    • Expanded database of 200+ app mappings
-    • Automatic Mac App Store app filtering
-    • Size information for each app
+    
+    # Migrate without backup (not recommended)
+    mac migrate-apps --execute --no-backup
+    
+    # Show available backups
+    mac migrate-apps --restore
 
 BENEFITS OF MIGRATION:
     • Homebrew casks update automatically with 'brew upgrade'
@@ -893,17 +811,19 @@ BENEFITS OF MIGRATION:
 
 SAFETY FEATURES:
     • Dry-run mode by default (no changes made)
-    • Manual cleanup required (no automatic app deletion)
+    • Automatic app backup before migration (in ~/.mac-power-tools/app-backups)
     • Interactive confirmation for each app
     • System apps are automatically excluded
     • Preserves app data and settings
+    • Rollback capability if migration fails
 
 NOTES:
-    • This tool does NOT delete apps automatically
-    • You must manually remove old apps after migration
+    • Apps are automatically backed up before migration
+    • Original apps are removed after successful Homebrew installation
     • App settings and data are typically preserved
     • Some apps may require re-authentication
-    • Always test migrated apps before removing originals
+    • Backups can be found in ~/.mac-power-tools/app-backups
+    • Use --no-backup to skip backup (not recommended)
 
 EOF
 }
@@ -912,7 +832,6 @@ EOF
 main() {
     local analyze_only=false
     local execute=false
-    local use_fzf=false
     
     # Parse arguments
     while [[ $# -gt 0 ]]; do
@@ -923,10 +842,6 @@ main() {
                 ;;
             -a|--analyze)
                 analyze_only=true
-                shift
-                ;;
-            -f|--fzf)
-                use_fzf=true
                 shift
                 ;;
             -e|--execute)
@@ -941,6 +856,10 @@ main() {
                 list_mappings
                 exit 0
                 ;;
+            --restore)
+                show_backups
+                exit 0
+                ;;
             -m|--map)
                 if [ -n "$2" ] && [ -n "$3" ]; then
                     add_custom_mapping "$2" "$3"
@@ -953,6 +872,19 @@ main() {
             -v|--verbose)
                 VERBOSE=true
                 shift
+                ;;
+            --no-backup)
+                BACKUP_APPS=false
+                shift
+                ;;
+            --backup-dir)
+                if [ -n "$2" ]; then
+                    BACKUP_DIR="$2"
+                    shift 2
+                else
+                    print_color "$RED" "Error: --backup-dir requires a directory path"
+                    exit 1
+                fi
                 ;;
             *)
                 print_color "$RED" "Unknown option: $1"
@@ -972,66 +904,7 @@ main() {
     print_color "$BLUE" "═══════════════════════════════════════════"
     echo
     
-    # Use FZF selection if requested
-    if [ "$use_fzf" = true ]; then
-        if ! command_exists fzf; then
-            print_color "$YELLOW" "fzf not found. Install with: brew install fzf"
-            print_color "$CYAN" "Falling back to standard mode..."
-            echo
-            use_fzf=false
-        else
-            selected_apps=$(select_apps_with_fzf)
-            if [ -z "$selected_apps" ]; then
-                print_color "$YELLOW" "No apps selected"
-                exit 0
-            fi
-            
-            # Process selected apps
-            local migrated=0
-            local failed=0
-            
-            echo "$selected_apps" | while IFS='|' read -r app_name cask_name; do
-                if [ -z "$cask_name" ]; then
-                    print_color "$YELLOW" "Skipping $app_name (no cask available)"
-                    continue
-                fi
-                
-                if [ "$INTERACTIVE" = true ] && [ "$DRY_RUN" = false ]; then
-                    echo
-                    print_color "$CYAN" "Migrate: $app_name → $cask_name"
-                    read -p "Proceed? (y/n/s=skip): " -n 1 -r
-                    echo
-                    
-                    if [[ ! $REPLY =~ ^[Yy]$ ]]; then
-                        print_color "$YELLOW" "Skipped $app_name"
-                        continue
-                    fi
-                fi
-                
-                if migrate_app "$app_name" "$cask_name"; then
-                    ((migrated++))
-                else
-                    ((failed++))
-                fi
-            done
-            
-            # Summary
-            echo
-            print_color "$BLUE" "Migration Summary"
-            print_color "$GREEN" "Successfully migrated: $migrated"
-            [ $failed -gt 0 ] && print_color "$RED" "Failed: $failed"
-            
-            if [ "$DRY_RUN" = true ]; then
-                echo
-                print_color "$YELLOW" "This was a dry run - no changes were made"
-                print_color "$CYAN" "Run with --execute to perform actual migration"
-            fi
-            
-            exit 0
-        fi
-    fi
-    
-    # Get migratable apps (standard mode)
+    # Get migratable apps
     migratable_apps=()
     local migration_output=$(analyze_migration)
     while IFS= read -r line; do

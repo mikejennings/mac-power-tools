@@ -1,7 +1,7 @@
 #!/bin/bash
 
-# Mac Power Tools - Version Bump Script
-# This script helps bump the version and create a release
+# Mac Power Tools - Version Bump Script (Local Edition)
+# This script helps bump the version locally without GitHub Actions
 
 set -e
 
@@ -11,6 +11,7 @@ GREEN='\033[0;32m'
 YELLOW='\033[1;33m'
 BLUE='\033[0;34m'
 CYAN='\033[0;36m'
+MAGENTA='\033[0;35m'
 NC='\033[0m' # No Color
 
 # Function to print colored output
@@ -127,19 +128,27 @@ if [[ $REPLY =~ ^[Yy]$ ]]; then
 - ${CHANGELOG}"
     
     git commit -m "$COMMIT_MSG"
-    print_color "$GREEN" "✓ Changes committed"
+    print_color "$GREEN" "✓ Changes committed locally"
     
-    # Ask if should push
+    # Ask about next steps
     echo
-    read -p "Push to GitHub? This will trigger auto-release (y/n): " -n 1 -r
+    print_color "$CYAN" "Version bumped successfully!"
+    print_color "$YELLOW" "Next steps:"
+    echo "  1. Run tests: ./local-test.sh"
+    echo "  2. Create release: ./local-release.sh release"
+    echo "  3. Push to GitHub: git push origin master"
+    echo
+    
+    read -p "Run tests now? (y/n): " -n 1 -r
     echo
     if [[ $REPLY =~ ^[Yy]$ ]]; then
-        git push origin master
-        print_color "$GREEN" "✓ Pushed to GitHub"
-        print_color "$CYAN" "Auto-release workflow will create release for v${NEW_VERSION}"
-    else
-        print_color "$YELLOW" "Changes committed locally but not pushed"
-        print_color "$CYAN" "Run 'git push origin master' when ready to release"
+        ./local-test.sh quick
+        echo
+        read -p "Create release? (y/n): " -n 1 -r
+        echo
+        if [[ $REPLY =~ ^[Yy]$ ]]; then
+            ./local-release.sh release
+        fi
     fi
 else
     print_color "$YELLOW" "Changes made but not committed"
