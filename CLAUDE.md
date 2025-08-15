@@ -102,7 +102,7 @@ mac-power-tools/
 - Validate user input to prevent injection attacks
 
 ### Version Management
-- **Current version: 2.0.1** ✅ LATEST
+- **Current version: 2.1.0** ✅ LATEST
 - Version defined in main `mac` script
 - Update version when making significant changes
 - **Status**: Local release management system active
@@ -280,11 +280,6 @@ All releases are now managed locally without GitHub Actions to avoid costs:
 - Fixed GitHub Actions workflow YAML syntax issues
 - Improved release automation
 
-### Future Enhancement: Manual App Migration
-- **Planned Feature**: `mac migrate-apps` - Migrate manually downloaded apps to Homebrew Cask
-- **Scope**: Scan /Applications for manually installed apps and suggest Homebrew Cask alternatives
-- **Benefits**: Complete migration from manual app management to Homebrew ecosystem
-- **Implementation**: Similar to mas migration but scans Applications folder instead of mas list
 
 ### v1.2.3 (2025-08-06)
 - Enhanced awake status with time remaining display

@@ -143,10 +143,14 @@ mac duplicates -i    # Interactive duplicate removal
 mac memory          # Show memory status and top consumers
 mac memory --optimize # Optimize memory usage
 
-# App Store Migration
+# App Migration
 mac migrate-mas      # Analyze and migrate Mac App Store apps to Homebrew
 mac migrate-mas -a   # Analyze only (show migration opportunities)
 mac migrate-mas -e   # Execute migration (default is dry-run)
+
+mac migrate-apps     # Migrate manually downloaded apps to Homebrew
+mac migrate-apps -a  # Analyze what can be migrated
+mac migrate-apps -e  # Execute migration (with app backup)
 
 # Dotfiles Management
 mac dotfiles            # Interactive menu (requires fzf)
@@ -209,9 +213,10 @@ mac uninstall --list   # See all installed apps
 mac awake --screensaver  # Stay awake with screensaver
 mac awake -t 1h30m       # Stay awake for 1.5 hours
 
-# Migrate from Mac App Store to Homebrew
-mac migrate-mas -a       # See what can be migrated
-mac migrate-mas -e       # Perform migration
+# Migrate apps to Homebrew for better management
+mac migrate-mas -a       # Migrate Mac App Store apps
+mac migrate-apps -a      # Migrate manually downloaded apps
+mac migrate-apps -e      # Execute migration with backup
 
 # Quick system maintenance
 mac maintenance
@@ -243,6 +248,7 @@ mac-power-tools/
 │   ├── mac-memory.sh      # Memory optimizer (NEW)
 │   ├── mac-awake.sh       # Keep awake/caffeinate (NEW)
 │   ├── mac-migrate-mas.sh # MAS to Homebrew migration (NEW)
+│   ├── mac-migrate-apps.sh # Manual apps to Homebrew migration (NEW)
 │   ├── mac-downloads.sh   # Downloads management (NEW)
 │   ├── mac-privacy.sh     # Privacy & security suite (NEW)
 │   ├── mac-dotfiles.sh    # Dotfiles & backup sync (NEW)
@@ -336,6 +342,9 @@ If you encounter any issues or have suggestions:
 - Provide system information when reporting bugs
 
 ## Changelog
+
+### v2.1.0 (2025-08-15)
+- Add migrate-apps feature for manual app to Homebrew migration
 
 ### v1.6.4 (2025-08-07)
 - Fix dotfiles backup to be less noisy and remove y/n prompts
