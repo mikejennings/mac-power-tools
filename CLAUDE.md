@@ -484,3 +484,4 @@ mac dotfiles backup --only-apps
   - NEVER ask if documentation should be updated - just do it automatically
   - Include feature descriptions, usage examples, and version history
 - memorize
+- memorize
