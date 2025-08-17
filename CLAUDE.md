@@ -478,4 +478,9 @@ mac dotfiles backup --only-apps
 - **IMPORTANT: Always bump version and push to master** when making changes to this project
 - **Automatic Homebrew Updates**: Version bumps trigger automatic Homebrew formula updates within ~1 minute
 - **Dotfiles Expansion**: When implementing new app support, check Mackup's implementation for reference
+- **MANDATORY DOCUMENTATION**: When adding ANY new feature or making changes:
+  - ALWAYS update README.md with user-facing documentation and examples
+  - ALWAYS update CLAUDE.md with release notes and technical details
+  - NEVER ask if documentation should be updated - just do it automatically
+  - Include feature descriptions, usage examples, and version history
 - memorize
