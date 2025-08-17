@@ -343,6 +343,9 @@ If you encounter any issues or have suggestions:
 
 ## Changelog
 
+### v2.3.0 (2025-08-16)
+- Add GNU/Linux environment support with linuxify command
+
 ### v2.2.0 (2025-08-16)
 - Add expanded dotfiles application support for 25+ apps
 

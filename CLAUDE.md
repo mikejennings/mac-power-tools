@@ -31,6 +31,15 @@ mac-power-tools/
 - `mac migrate-mas` - Migrate Mac App Store apps to Homebrew Cask (v1.2.4+)
 - `mac migrate-apps` - Migrate manually downloaded apps to Homebrew Cask
 
+### GNU/Linux Environment (v2.3.0+)
+- `mac linuxify` - Install GNU tools and configure Linux-like environment
+- `mac linuxify status` - Show installed GNU tools and configuration
+- `mac linuxify shell` - Change default shell to Homebrew bash
+- `mac linuxify uninstall` - Remove linuxify configuration
+- **Features**: Installs GNU coreutils, sed, grep, make, and more via Homebrew
+- **PATH Configuration**: Prioritizes GNU tools over BSD defaults
+- **Modern Tools**: Optionally installs bat, ripgrep, eza, fd, etc.
+
 ### Interactive fzf Integration (v1.5.0+)
 - `mac menu` - Interactive command browser with fuzzy finder search
 - `mac update` (no args) - Interactive update target selection
@@ -102,7 +111,7 @@ mac-power-tools/
 - Validate user input to prevent injection attacks
 
 ### Version Management
-- **Current version: 2.2.0** ✅ LATEST
+- **Current version: 2.3.0** ✅ LATEST
 - Version defined in main `mac` script
 - Update version when making significant changes
 - **Status**: Local release management system active
@@ -232,7 +241,25 @@ All releases are now managed locally without GitHub Actions to avoid costs:
 
 ## Release History
 
-### v1.5.2 (2025-08-07) - CURRENT RELEASE ✅
+### v2.3.0 (2025-08-17) - CURRENT RELEASE ✅
+- **NEW FEATURE**: GNU/Linux environment support via `mac linuxify` command
+- **Installs GNU Tools**: coreutils, sed, grep, make, tar, which, and more
+- **PATH Configuration**: Automatically configures PATH to prioritize GNU tools
+- **Shell Integration**: Updates shell config files with aliases and environment
+- **Modern CLI Tools**: Optional installation of bat, ripgrep, eza, fd, etc.
+- **Homebrew Integration**: Uses Homebrew for all package management
+- **Status Tracking**: Check installed tools and configuration with `mac linuxify status`
+- **Reversible**: Full uninstall support to revert to macOS defaults
+
+### v2.2.0 (2025-08-17)
+- **MAJOR FEATURE**: Expanded dotfiles application support for 25+ apps
+- **Application Registry**: Support for developer tools, productivity apps, services
+- **Smart Detection**: Automatically detects installed applications
+- **Safety Features**: Excludes sensitive files (keys, tokens, credentials)
+- **Interactive Selection**: fzf integration for batch operations
+- **Categories**: Developer Tools, Productivity, Services, Security tools
+
+### v1.5.2 (2025-08-07)
 - **CRITICAL FIX**: Fixed infinite loop bug in fzf integration where selecting "all" in update menu would keep showing the menu instead of executing updates
 - **Technical Details**: Changed fzf functions to call underlying scripts directly (`mac-update.sh`) instead of recursing through main `mac` command
 - **UX Improvements**: Added "Esc to exit" instructions to all fzf menu headers for better user experience

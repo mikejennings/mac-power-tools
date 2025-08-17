@@ -16,7 +16,7 @@ MAGENTA='\033[0;35m'
 NC='\033[0m' # No Color
 
 # Version
-VERSION="2.2.0"
+VERSION="2.3.0"
 
 # Function to show help
 show_help() {
@@ -75,6 +75,11 @@ show_help() {
     printf "    ${CYAN}Backup & Sync:${NC}\n"
     printf "        dotfiles          Sync dotfiles to iCloud\n"
     printf "        backup            Alias for dotfiles backup\n\n"
+    
+    printf "    ${CYAN}GNU/Linux Environment:${NC}\n"
+    printf "        linuxify          Install GNU tools and configure Linux-like environment\n"
+    printf "        linuxify status   Show installed GNU tools and configuration\n"
+    printf "        linuxify shell    Change default shell to Homebrew bash\n\n"
     
     printf "    ${CYAN}Application Management:${NC}\n"
     printf "        uninstall <app>   Completely uninstall an application\n"
@@ -280,6 +285,12 @@ main() {
         backup)
             shift
             "$SCRIPT_DIR/scripts/mac-dotfiles.sh" "$@"
+            ;;
+            
+        # GNU/Linux environment
+        linuxify)
+            shift
+            "$SCRIPT_DIR/scripts/mac-linuxify.sh" "$@"
             ;;
             
         # Application management
