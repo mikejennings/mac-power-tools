@@ -102,7 +102,7 @@ mac-power-tools/
 - Validate user input to prevent injection attacks
 
 ### Version Management
-- **Current version: 2.1.0** ✅ LATEST
+- **Current version: 2.2.0** ✅ LATEST
 - Version defined in main `mac` script
 - Update version when making significant changes
 - **Status**: Local release management system active
@@ -358,60 +358,75 @@ esac
 - Test "all" or default selections thoroughly
 - Use `$(dirname "${BASH_SOURCE[0]}")` for script directory resolution
 
-## TODO: Expanded Application Support for Dotfiles
+## ✅ Expanded Application Support for Dotfiles (v2.2.0)
 
-### Priority 1 - Developer Tools
-- [ ] **Neovim** - ~/.config/nvim/ directory
-- [ ] **Sublime Text** - ~/Library/Application Support/Sublime Text/
-- [ ] **JetBrains IDEs** - ~/Library/Application Support/JetBrains/
-- [ ] **Zed Editor** - ~/.config/zed/settings.json
-- [ ] **Cursor** - Similar to VS Code settings
-- [ ] **Warp Terminal** - ~/.warp/
-- [ ] **Alacritty** - ~/.config/alacritty/
-- [ ] **Oh My Zsh** - ~/.oh-my-zsh/custom/
-- [ ] **tmux** - ~/.tmux.conf and ~/.tmux/
-- [ ] **Homebrew Bundle** - ~/Brewfile
+**COMPLETED**: The dotfiles system now supports 25+ applications across 4 categories!
 
-### Priority 2 - Productivity Tools
-- [ ] **Alfred** - ~/Library/Application Support/Alfred/
-- [ ] **Rectangle/Spectacle** - Window management prefs
-- [ ] **Raycast** - ~/Library/Application Support/com.raycast.macos/
-- [ ] **Karabiner-Elements** - ~/.config/karabiner/
-- [ ] **BetterTouchTool** - ~/Library/Application Support/BetterTouchTool/
-- [ ] **Hammerspoon** - ~/.hammerspoon/
-- [ ] **Keyboard Maestro** - ~/Library/Application Support/Keyboard Maestro/
+### Supported Applications
 
-### Priority 3 - Development Services
-- [ ] **Docker Desktop** - ~/.docker/config.json
-- [ ] **Kubernetes** - ~/.kube/ (beyond just config)
-- [ ] **Postgres/MySQL** - Config files
-- [ ] **Redis** - Config files
-- [ ] **npm/yarn/pnpm** - RC files and global configs
-- [ ] **Ruby/rbenv** - ~/.rbenv/ and .ruby-version
-- [ ] **Python/pyenv** - ~/.pyenv/ and .python-version
-- [ ] **Rust/cargo** - ~/.cargo/config.toml
+#### Developer Tools (Priority 1) - ✅ Implemented
+- **Neovim** - ~/.config/nvim/ directory
+- **Visual Studio Code** - Settings, keybindings, snippets
+- **Sublime Text** - Packages/User directory
+- **Cursor** - VS Code-like settings
+- **iTerm2** - Preferences plist
+- **Warp Terminal** - ~/.warp/
+- **Alacritty** - ~/.config/alacritty/
+- **Oh My Zsh** - ~/.oh-my-zsh/custom/
+- **tmux** - ~/.tmux.conf and ~/.tmux/
+- **Homebrew Bundle** - ~/Brewfile
 
-### Priority 4 - Security & Privacy Tools
-- [ ] **1Password CLI** - ~/.config/op/
-- [ ] **GPG** - ~/.gnupg/ (careful with private keys!)
-- [ ] **SSH** - Full ~/.ssh/ directory support
-- [ ] **AWS CLI v2** - Additional config files
-- [ ] **GitHub CLI** - ~/.config/gh/
+#### Productivity Tools (Priority 2) - ✅ Implemented
+- **Alfred** - Workflows and preferences
+- **Rectangle/Rectangle Pro** - Window management prefs
+- **Raycast** - Extensions and settings
+- **Karabiner-Elements** - ~/.config/karabiner/
+- **Hammerspoon** - ~/.hammerspoon/
 
-### Implementation Approach
-1. Add an `--apps` flag to `mac dotfiles backup` for application configs
-2. Create app-specific backup functions in mac-dotfiles.sh
-3. Add interactive selection for which apps to sync
-4. Implement smart detection of installed applications
-5. Add `mac dotfiles apps` subcommand to manage app preferences
-6. Create restoration testing for each app config
+#### Development Services (Priority 3) - ✅ Implemented
+- **Docker Desktop** - config.json (excludes credentials)
+- **Kubernetes** - ~/.kube/config
+- **npm** - .npmrc (excludes auth tokens)
+- **Yarn** - .yarnrc and config
 
-### Safety Considerations
-- Never sync sensitive credentials or private keys
-- Add .gitignore patterns for each app's sensitive files
-- Implement confirmation prompts for large directories
-- Create app-specific exclude lists
-- Add dry-run mode for testing
+#### Security & Privacy Tools (Priority 4) - ✅ Implemented
+- **1Password CLI** - ~/.config/op/ (excludes sessions)
+- **GitHub CLI** - ~/.config/gh/ (excludes auth)
+- **SSH** - config and known_hosts only (never private keys)
+- **AWS CLI** - config only (excludes credentials)
+- **GPG** - config files only (excludes keys)
+
+### Usage
+
+```bash
+# List all available apps and their installation status
+mac dotfiles apps list
+
+# Show installed apps with config sizes
+mac dotfiles apps status
+
+# Backup specific app
+mac dotfiles apps backup vscode
+
+# Interactive backup (with fzf)
+mac dotfiles apps backup
+
+# Restore specific app
+mac dotfiles apps restore vscode
+
+# Backup all dotfiles AND app configs
+mac dotfiles backup --apps
+
+# Backup only app configs
+mac dotfiles backup --only-apps
+```
+
+### Safety Features Implemented
+- ✅ Automatic exclusion of sensitive files (keys, tokens, credentials)
+- ✅ Smart detection of installed applications
+- ✅ Size calculation before backup
+- ✅ Confirmation prompts for overwrites
+- ✅ Compatible with bash 3.2 (macOS default)
 
 ## Notes for AI Assistants
 - This is a system administration tool - focus on safety and reliability
@@ -428,3 +443,4 @@ esac
 - **IMPORTANT: Always bump version and push to master** when making changes to this project
 - **Automatic Homebrew Updates**: Version bumps trigger automatic Homebrew formula updates within ~1 minute
 - **Dotfiles Expansion**: When implementing new app support, check Mackup's implementation for reference
+- memorize

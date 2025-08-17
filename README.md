@@ -343,6 +343,9 @@ If you encounter any issues or have suggestions:
 
 ## Changelog
 
+### v2.2.0 (2025-08-16)
+- Add expanded dotfiles application support for 25+ apps
+
 ### v2.1.0 (2025-08-15) - LATEST
 - **NEW: Manual App Migration** (`mac migrate-apps`)
   - Migrate manually downloaded apps to Homebrew Cask

@@ -389,6 +389,226 @@ remove_dotfile() {
     fi
 }
 
+# Source the apps registry
+source_apps_registry() {
+    local apps_script="$SCRIPT_DIR/mac-dotfiles-apps.sh"
+    if [[ -f "$apps_script" ]]; then
+        source "$apps_script"
+        init_app_registry
+        return 0
+    else
+        printf "${YELLOW}Warning: Apps registry not found${NC}\n"
+        return 1
+    fi
+}
+
+# Backup application configs
+backup_app_configs() {
+    local app_id="$1"
+    
+    if ! source_apps_registry; then
+        return 1
+    fi
+    
+    if ! is_app_installed "$app_id"; then
+        printf "${YELLOW}$app_id is not installed${NC}\n"
+        return 1
+    fi
+    
+    local app_name=$(get_app_name "$app_id")
+    local app_backup_dir="$DOTFILES_DIR/apps/$app_id"
+    mkdir -p "$app_backup_dir"
+    
+    printf "${CYAN}Backing up $app_name...${NC}\n"
+    
+    local backed_up=0
+    local excludes=$(get_app_excludes "$app_id")
+    
+    while IFS= read -r path; do
+        local source="$HOME/$path"
+        local backup="$app_backup_dir/$path"
+        
+        # Expand tilde and check if source exists
+        if eval "[[ -e \"$source\" ]]"; then
+            # Create parent directory
+            local backup_parent=$(dirname "$backup")
+            mkdir -p "$backup_parent"
+            
+            # Handle excludes with rsync for directories
+            if [[ -d "$source" ]]; then
+                local rsync_excludes=""
+                if [[ -n "$excludes" ]]; then
+                    IFS=',' read -ra exclude_patterns <<< "$excludes"
+                    for pattern in "${exclude_patterns[@]}"; do
+                        rsync_excludes="$rsync_excludes --exclude='$pattern'"
+                    done
+                fi
+                eval "rsync -a $rsync_excludes \"$source/\" \"$backup/\""
+                printf "  ${GREEN}✓ Backed up directory: $path${NC}\n"
+            else
+                # Simple copy for files
+                cp -a "$source" "$backup"
+                printf "  ${GREEN}✓ Backed up file: $path${NC}\n"
+            fi
+            ((backed_up++))
+        fi
+    done < <(get_app_paths "$app_id")
+    
+    if [[ $backed_up -gt 0 ]]; then
+        printf "${GREEN}✓ Backed up $app_name ($backed_up items)${NC}\n"
+    else
+        printf "${YELLOW}No configs found for $app_name${NC}\n"
+    fi
+}
+
+# Restore application configs
+restore_app_configs() {
+    local app_id="$1"
+    
+    if ! source_apps_registry; then
+        return 1
+    fi
+    
+    local app_name=$(get_app_name "$app_id")
+    local app_backup_dir="$DOTFILES_DIR/apps/$app_id"
+    
+    if [[ ! -d "$app_backup_dir" ]]; then
+        printf "${YELLOW}No backup found for $app_name${NC}\n"
+        return 1
+    fi
+    
+    printf "${CYAN}Restoring $app_name...${NC}\n"
+    
+    local restored=0
+    while IFS= read -r path; do
+        local backup="$app_backup_dir/$path"
+        local target="$HOME/$path"
+        
+        if eval "[[ -e \"$backup\" ]]"; then
+            # Create parent directory
+            local target_parent=$(dirname "$target")
+            eval "mkdir -p \"$target_parent\""
+            
+            # Handle existing files
+            if eval "[[ -e \"$target\" ]]"; then
+                printf "${YELLOW}$path exists. Overwrite? (y/n)${NC} "
+                read -r response
+                if [[ ! "$response" =~ ^[Yy]$ ]]; then
+                    continue
+                fi
+                eval "rm -rf \"$target\""
+            fi
+            
+            # Restore the backup
+            eval "cp -a \"$backup\" \"$target\""
+            printf "  ${GREEN}✓ Restored: $path${NC}\n"
+            ((restored++))
+        fi
+    done < <(get_app_paths "$app_id")
+    
+    if [[ $restored -gt 0 ]]; then
+        printf "${GREEN}✓ Restored $app_name ($restored items)${NC}\n"
+    else
+        printf "${YELLOW}No items restored for $app_name${NC}\n"
+    fi
+}
+
+# Backup all app configs
+backup_all_apps() {
+    if ! source_apps_registry; then
+        return 1
+    fi
+    
+    printf "${CYAN}=== Backing Up Application Configs ===${NC}\n\n"
+    
+    # Get selected apps or use all installed
+    local apps_to_backup=()
+    if [[ "${1:-}" == "--interactive" ]] && command -v fzf &> /dev/null; then
+        mapfile -t apps_to_backup < <(select_apps_interactive)
+        if [[ ${#apps_to_backup[@]} -eq 0 ]]; then
+            printf "${YELLOW}No apps selected${NC}\n"
+            return 0
+        fi
+    else
+        mapfile -t apps_to_backup < <(get_installed_apps)
+    fi
+    
+    local total=0
+    for app_id in "${apps_to_backup[@]}"; do
+        backup_app_configs "$app_id"
+        ((total++))
+        echo
+    done
+    
+    printf "${GREEN}✓ Backed up $total applications${NC}\n"
+}
+
+# Manage applications
+manage_apps() {
+    local subcmd="${1:-}"
+    
+    if ! source_apps_registry; then
+        return 1
+    fi
+    
+    case "$subcmd" in
+        list)
+            list_available_apps
+            ;;
+        status)
+            list_installed_apps_status
+            ;;
+        backup)
+            shift
+            if [[ -n "${1:-}" ]]; then
+                backup_app_configs "$1"
+            else
+                backup_all_apps --interactive
+            fi
+            ;;
+        restore)
+            shift
+            if [[ -n "${1:-}" ]]; then
+                restore_app_configs "$1"
+            else
+                printf "${YELLOW}Please specify an app to restore${NC}\n"
+                printf "Usage: mac dotfiles apps restore <app_id>\n"
+            fi
+            ;;
+        "")
+            # Interactive menu
+            if command -v fzf &> /dev/null; then
+                local options=(
+                    "list:List all available apps"
+                    "status:Show installed apps status"
+                    "backup:Backup app configs"
+                    "restore:Restore app configs"
+                )
+                
+                local choice=$(printf '%s\n' "${options[@]}" | \
+                    fzf --height=40% \
+                        --border \
+                        --prompt="Select apps operation > " \
+                        --header="Application Config Manager (Esc to exit)")
+                
+                [[ -z "$choice" ]] && return
+                
+                local action="${choice%%:*}"
+                manage_apps "$action"
+            else
+                printf "${YELLOW}Available commands:${NC}\n"
+                printf "  mac dotfiles apps list     - List all available apps\n"
+                printf "  mac dotfiles apps status   - Show installed apps\n"
+                printf "  mac dotfiles apps backup   - Backup app configs\n"
+                printf "  mac dotfiles apps restore  - Restore app configs\n"
+            fi
+            ;;
+        *)
+            printf "${RED}Unknown apps command: $subcmd${NC}\n"
+            ;;
+    esac
+}
+
 # Interactive menu
 interactive_menu() {
     if command -v fzf &> /dev/null; then
@@ -399,6 +619,7 @@ interactive_menu() {
             "remove:Stop syncing a dotfile"
             "list:List tracked dotfiles"
             "prefs:Backup application preferences"
+            "apps:Manage application configs"
             "init:Initialize dotfiles directories"
         )
         
@@ -420,6 +641,7 @@ interactive_menu() {
             remove) remove_dotfile ;;
             list) list_tracked ;;
             prefs) backup_preferences ;;
+            apps) manage_apps ;;
             init) init_dotfiles ;;
         esac
     else
@@ -444,6 +666,11 @@ show_help() {
     echo "  list                          List tracked dotfiles"
     echo "  prefs                         Backup application preferences"
     echo "  dev                           Backup developer tool configs"
+    echo "  apps                          Manage application configs"
+    echo "  apps list                     List available applications"
+    echo "  apps status                   Show installed app status"
+    echo "  apps backup [app]             Backup app configs"
+    echo "  apps restore <app>            Restore app configs"
     echo -e "  help                          Show this help message\n"
     
     echo -e "${YELLOW}Examples:${NC}"
@@ -476,10 +703,26 @@ main() {
             init_dotfiles
             ;;
         backup)
-            backup_all
+            # Check for --apps flag
+            if [[ "${2:-}" == "--apps" ]]; then
+                backup_all
+                echo
+                backup_all_apps
+            elif [[ "${2:-}" == "--only-apps" ]]; then
+                backup_all_apps
+            else
+                backup_all
+            fi
             ;;
         restore)
-            restore_all
+            # Check for --apps flag
+            if [[ "${2:-}" == "--apps" ]]; then
+                restore_all
+                echo
+                printf "${CYAN}To restore app configs, use: mac dotfiles apps restore <app>${NC}\n"
+            else
+                restore_all
+            fi
             ;;
         add)
             add_dotfile "$2"
@@ -495,6 +738,10 @@ main() {
             ;;
         dev|developer)
             backup_dev_configs
+            ;;
+        apps)
+            shift
+            manage_apps "$@"
             ;;
         help|--help|-h)
             show_help

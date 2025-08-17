@@ -152,12 +152,30 @@ update_pip() {
     print_status "Updating Python packages..."
     
     if command -v pip3 &> /dev/null; then
+        # Check if we're in an externally-managed environment (PEP 668)
+        local pip_flags=""
+        if pip3 --version 2>&1 | grep -q "python3" && \
+           python3 -c "import sys; sys.exit(0 if sys.prefix.startswith('/opt/homebrew') or sys.prefix.startswith('/usr/local') else 1)" 2>/dev/null; then
+            # This is likely a Homebrew Python, use --user flag for safety
+            pip_flags="--user"
+            print_status "Using --user flag for Homebrew-managed Python"
+        fi
+        
         print_status "Updating pip..."
-        pip3 install --upgrade pip
-        print_success "pip updated"
+        # First check if pip needs updating
+        if pip3 install --upgrade $pip_flags pip 2>&1 | grep -q "Requirement already satisfied"; then
+            print_success "pip is already up to date"
+        elif pip3 install --upgrade $pip_flags pip 2>/dev/null; then
+            print_success "pip updated"
+        else
+            # Try with --break-system-packages as last resort
+            pip3 install --upgrade --break-system-packages pip 2>&1 | grep -q "Requirement already satisfied" && \
+                print_success "pip is already up to date" || \
+                print_warning "Failed to update pip"
+        fi
         
         print_status "Listing outdated packages..."
-        outdated=$(pip3 list --outdated --format=json 2>/dev/null | python3 -c "import sys, json; packages = json.load(sys.stdin); print(' '.join([p['name'] for p in packages]))" 2>/dev/null || echo "")
+        outdated=$(pip3 list --outdated $pip_flags --format=json 2>/dev/null | python3 -c "import sys, json; packages = json.load(sys.stdin); print(' '.join([p['name'] for p in packages]))" 2>/dev/null || echo "")
         
         if [ -n "$outdated" ]; then
             print_status "Outdated packages: $outdated"
@@ -165,7 +183,10 @@ update_pip() {
             echo
             if [[ $REPLY =~ ^[Yy]$ ]]; then
                 for package in $outdated; do
-                    pip3 install --upgrade "$package" 2>/dev/null || print_warning "Failed to update $package"
+                    if ! pip3 install --upgrade $pip_flags "$package" 2>/dev/null; then
+                        # Try with --break-system-packages as fallback
+                        pip3 install --upgrade --break-system-packages "$package" 2>/dev/null || print_warning "Failed to update $package"
+                    fi
                 done
                 print_success "Python packages updated"
             else
