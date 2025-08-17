@@ -59,6 +59,12 @@ A powerful and comprehensive macOS system management CLI tool. Modern replacemen
   - Support for nested configs (.ssh/config, .aws/credentials)
   - Application preferences backup (VS Code, iTerm2, Terminal)
   - Interactive fzf menu for easy management
+- **Application Config Support** (NEW v2.2.0!): Backup/restore 25+ app configs
+  - Developer tools: Neovim, VSCode, Sublime, Cursor, iTerm2, Warp, tmux
+  - Productivity apps: Raycast, Rectangle, Alfred, Karabiner, Hammerspoon
+  - Development services: Docker, Kubernetes, npm, yarn, Homebrew Bundle
+  - Security tools: 1Password CLI, GitHub CLI, SSH, AWS CLI, GPG
+  - `mac dotfiles apps` - Manage application configurations
 
 ### 🎯 Interactive Interface (NEW!)
 - **fzf Integration**: Fuzzy finder for lightning-fast command selection
@@ -66,6 +72,17 @@ A powerful and comprehensive macOS system management CLI tool. Modern replacemen
   - Smart auto-detection when no arguments provided
   - Multi-select for batch operations (like app uninstall)
   - Real-time preview and filtering
+
+### 🐧 GNU/Linux Environment (NEW v2.3.0!)
+- **Complete Linux Compatibility**: Transform macOS to use GNU tools instead of BSD
+  - `mac linuxify` - Install and configure GNU utilities
+  - **Core Tools**: coreutils, sed, grep, make, tar, findutils, gawk
+  - **Extended Utils** (v2.3.1): util-linux (100+ tools), inetutils (network tools)
+  - **Modern CLI**: Optional bat, ripgrep, fd, eza, htop, and more
+  - **PATH Configuration**: Automatically prioritizes GNU tools over BSD
+  - **Shell Integration**: Configures aliases and environment variables
+  - **Status Tracking**: Check installed tools with `mac linuxify status`
+  - **Reversible**: Full uninstall support to revert to macOS defaults
 
 ## Installation
 
@@ -159,6 +176,15 @@ mac dotfiles backup     # Backup all dotfiles
 mac dotfiles restore    # Restore from iCloud
 mac dotfiles add .vimrc # Add specific file
 mac dotfiles list       # Show tracked files
+mac dotfiles apps      # Manage application configs
+mac dotfiles apps backup neovim  # Backup Neovim config
+mac dotfiles apps restore vscode # Restore VSCode settings
+
+# GNU/Linux Environment (NEW v2.3.0!)
+mac linuxify            # Install GNU tools interactively
+mac linuxify status     # Check installed GNU tools
+mac linuxify shell      # Change default shell to GNU bash
+mac linuxify uninstall  # Remove GNU configurations
 
 # Downloads Management (NEW v1.3.0!)
 mac downloads setup     # Set up automatic sorting

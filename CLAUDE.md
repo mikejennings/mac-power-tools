@@ -241,7 +241,15 @@ All releases are now managed locally without GitHub Actions to avoid costs:
 
 ## Release History
 
-### v2.3.0 (2025-08-17) - CURRENT RELEASE ✅
+### v2.3.1 (2025-08-17) - CURRENT RELEASE ✅
+- **ENHANCED**: Linuxify feature with extended GNU utilities support
+- **Added util-linux**: Provides 100+ utilities (cal, column, hexdump, rename, etc.)
+- **Added inetutils**: Network tools (ftp, telnet, traceroute, whois, etc.)
+- **Fixed**: Bash 3.2 compatibility issues with arithmetic operations
+- **Improved**: Status display now shows core, extended, and optional packages
+- **Better UX**: Interactive prompts for different levels of GNU tool installation
+
+### v2.3.0 (2025-08-17)
 - **NEW FEATURE**: GNU/Linux environment support via `mac linuxify` command
 - **Installs GNU Tools**: coreutils, sed, grep, make, tar, which, and more
 - **PATH Configuration**: Automatically configures PATH to prioritize GNU tools
