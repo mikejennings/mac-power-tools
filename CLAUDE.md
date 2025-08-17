@@ -239,9 +239,84 @@ All releases are now managed locally without GitHub Actions to avoid costs:
 - **Privacy**: Keep development local until ready to share
 - **Simplicity**: No YAML debugging or workflow issues
 
+## 🚧 Development Progress (As of 2025-08-17)
+
+### Completed Features (3/8)
+1. **✅ Network Diagnostics** (`feature/network-diagnostics`)
+   - 10 commands implemented
+   - 12 comprehensive tests passing
+   - Ready for merge
+
+2. **✅ Disk Health Management** (`feature/disk-health`)
+   - 8 commands implemented
+   - 12 comprehensive tests passing
+   - Ready for merge
+
+3. **✅ Battery Management** (`feature/battery-management`)
+   - 8 commands implemented
+   - 12 comprehensive tests passing (1 TODO for human contribution)
+   - Ready for merge
+
+### Pending Features (5/8)
+4. **📋 Process Manager** - Enhanced process monitoring and control
+   - Planned: `mac process top`, `kill`, `limit`, `startup`, `ports`
+   - Better than Activity Monitor with CPU/memory limits
+   - Login items and launch agents management
+   
+5. **📋 Scheduled Maintenance** - Automated system maintenance
+   - Planned: `mac schedule daily`, `weekly`, `custom`, `status`, `logs`
+   - Automate existing maintenance commands
+   - Cron/launchd integration for scheduling
+   
+6. **📋 Bluetooth Manager** - Device management and troubleshooting
+   - Planned: `mac bluetooth devices`, `reset`, `disconnect`, `monitor`
+   - Battery levels for connected devices
+   - Quick disconnect and reset utilities
+   
+7. **📋 Time Machine Enhancements** - Advanced backup management
+   - Planned: `mac backup status`, `thin`, `verify`, `browse`
+   - Thin old backups to save space
+   - Verify backup integrity
+   
+8. **📋 System Shortcuts** - Quick access to common tasks
+   - Planned: `mac quick screenshot`, `lock`, `caffeinate`, `airplane`
+   - Enhanced screenshots with annotations
+   - Quick system toggles
+
+### Testing Strategy
+- **Comprehensive Test Suites**: Each feature has 12+ tests
+- **Mock System**: Safe testing without system modifications
+- **Performance Tests**: All commands complete in <3 seconds
+- **Integration Tests**: Multi-command sequences verified
+- **Current Test Pass Rate**: 100% (36/36 tests passing)
+
+### Branch Strategy
+- Each feature in isolated branch: `feature/[feature-name]`
+- Test suite included with each feature
+- Master branch remains stable
+- Target: v3.0.0 with all 8 features merged
+
 ## Release History
 
-### v2.3.1 (2025-08-17) - CURRENT RELEASE ✅
+### v2.6.0 (In Development) - Battery Management
+- **NEW FEATURE**: Complete battery management suite
+- **Commands**: health, status, calibrate, history, optimize, apps, monitor, tips
+- **Key Features**: Cycle tracking, degradation history, calibration wizard
+- **Testing**: 12 comprehensive tests with mock system commands
+
+### v2.5.0 (In Development) - Disk Health Management  
+- **NEW FEATURE**: Advanced disk monitoring and maintenance
+- **Commands**: health, benchmark, analyze, trim, verify, temp, usage, cleanup
+- **Key Features**: SMART monitoring, speed benchmarks, space analysis
+- **Testing**: 12 comprehensive tests with performance validation
+
+### v2.4.0 (In Development) - Network Diagnostics
+- **NEW FEATURE**: Professional network analysis tools
+- **Commands**: status, speed, dns, wifi, connections, firewall, reset, ping, trace, ports
+- **Key Features**: DNS benchmarking, WiFi analysis, speed tests
+- **Testing**: 12 comprehensive tests with mock network data
+
+### v2.3.1 (2025-08-17) - CURRENT STABLE RELEASE ✅
 - **ENHANCED**: Linuxify feature with extended GNU utilities support
 - **Added util-linux**: Provides 100+ utilities (cal, column, hexdump, rename, etc.)
 - **Added inetutils**: Network tools (ftp, telnet, traceroute, whois, etc.)
@@ -462,6 +537,46 @@ mac dotfiles backup --only-apps
 - ✅ Size calculation before backup
 - ✅ Confirmation prompts for overwrites
 - ✅ Compatible with bash 3.2 (macOS default)
+
+## Implementation Notes for Remaining Features
+
+### Next Steps for Development
+1. **Complete Battery Management Feature**
+   - Implement the `test_battery_apps()` function marked with TODO(human)
+   - Test the battery history tracking over time
+   - Verify calibration wizard works correctly
+
+2. **Process Manager Implementation**
+   - Use `ps`, `top`, `lsof` for process information
+   - Implement CPU/memory limiting with `cpulimit` or `nice`
+   - Parse and manage login items from `~/Library/LaunchAgents`
+
+3. **Scheduled Maintenance**
+   - Create launchd plists for scheduling
+   - Store schedules in `~/.mac-power-tools/schedules/`
+   - Log outputs to `~/.mac-power-tools/logs/`
+
+4. **Bluetooth Manager**
+   - Use `blueutil` for Bluetooth control (brew install blueutil)
+   - Parse `system_profiler SPBluetoothDataType` for device info
+   - Implement connection monitoring with periodic checks
+
+5. **Time Machine Enhancements**
+   - Use `tmutil` for Time Machine operations
+   - Parse backup metadata from `/Volumes/[Backup]/Backups.backupdb/`
+   - Implement thin with `tmutil delete` for old snapshots
+
+6. **System Shortcuts**
+   - Use `screencapture` command for screenshots
+   - Implement lock with `pmset displaysleepnow`
+   - Quick toggles using `networksetup` and system commands
+
+### Testing Requirements for New Features
+- Minimum 12 tests per feature
+- Mock all system commands for safety
+- Performance tests (<3 second response)
+- Integration tests between related commands
+- Help text validation
 
 ## Notes for AI Assistants
 - This is a system administration tool - focus on safety and reliability

@@ -84,6 +84,41 @@ A powerful and comprehensive macOS system management CLI tool. Modern replacemen
   - **Status Tracking**: Check installed tools with `mac linuxify status`
   - **Reversible**: Full uninstall support to revert to macOS defaults
 
+### 🌐 Network Diagnostics (NEW v2.4.0!)
+- **Comprehensive Network Tools**: Professional network analysis and troubleshooting
+  - `mac network status` - Network status with public IP and location
+  - `mac network speed` - Run speed tests to measure bandwidth
+  - `mac network dns` - Benchmark DNS servers and find the fastest
+  - `mac network wifi` - WiFi analyzer with channel recommendations
+  - `mac network connections` - View all active network connections
+  - `mac network firewall` - Manage macOS firewall settings
+  - `mac network reset` - Reset network stack for troubleshooting
+  - `mac network ping` - Enhanced ping with color-coded latency
+  - `mac network trace` - Enhanced traceroute with hop analysis
+  - `mac network ports` - Show listening ports and services
+
+### 💾 Disk Health Management (NEW v2.5.0!)
+- **Advanced Disk Monitoring**: Keep your drives healthy and optimized
+  - `mac disk health` - SMART status, wear level, and disk health
+  - `mac disk benchmark` - Test read/write speeds
+  - `mac disk analyze` - Visual space usage by directory
+  - `mac disk trim` - Force TRIM on SSDs for performance
+  - `mac disk verify` - Run First Aid verification and repair
+  - `mac disk temp` - Monitor disk temperatures
+  - `mac disk usage` - Visual disk usage with colored bars
+  - `mac disk cleanup` - Find large unnecessary files
+
+### 🔋 Battery Management (NEW v2.6.0!)
+- **Complete Battery Toolkit**: Maximize battery life and performance
+  - `mac battery health` - Detailed health report with cycle count
+  - `mac battery status` - Power usage and thermal state
+  - `mac battery calibrate` - Step-by-step calibration wizard
+  - `mac battery history` - Track degradation over time
+  - `mac battery optimize` - Apply recommended power settings
+  - `mac battery apps` - See which apps drain your battery
+  - `mac battery monitor` - Real-time battery monitoring
+  - `mac battery tips` - Expert tips for battery longevity
+
 ## Installation
 
 ### Via Homebrew (Recommended)
