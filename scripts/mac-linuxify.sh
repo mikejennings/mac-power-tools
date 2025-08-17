@@ -19,18 +19,30 @@ NC='\033[0m' # No Color
 
 # GNU packages to install
 GNU_CORE_PACKAGES=(
-    "coreutils"      # GNU core utilities (ls, cat, etc.)
-    "binutils"       # GNU binary utilities
-    "diffutils"      # GNU diff, cmp, etc.
-    "findutils"      # GNU find, locate, xargs
+    "coreutils"      # GNU core utilities (ls, cat, echo, mkdir, rm, etc.)
+    "binutils"       # GNU binary utilities (ar, nm, objdump, etc.)
+    "diffutils"      # GNU diff, cmp, diff3, sdiff
+    "findutils"      # GNU find, locate, xargs, updatedb
     "gawk"           # GNU awk
     "gnu-indent"     # GNU indent
     "gnu-sed"        # GNU sed
     "gnu-tar"        # GNU tar
     "gnu-which"      # GNU which
-    "grep"           # GNU grep
-    "gzip"           # GNU gzip
+    "grep"           # GNU grep, egrep, fgrep
+    "gzip"           # GNU gzip, gunzip, zcat
     "make"           # GNU make
+)
+
+# Extended GNU utilities for more complete coverage
+GNU_EXTENDED_PACKAGES=(
+    "util-linux"     # Large collection of utilities (cal, col, column, hexdump, look, rename, etc.)
+    "inetutils"      # Network utilities (ftp, telnet, traceroute, whois, etc.)
+    "gnu-getopt"     # GNU getopt
+    "gnu-units"      # GNU units
+    "gnu-time"       # GNU time
+    "moreutils"      # Additional Unix utilities (parallel, pee, sponge, ts, etc.)
+    "proctools"      # Process tools (pgrep, pkill, etc.)
+    "psutils"        # PostScript utilities
 )
 
 GNU_EXTRA_PACKAGES=(
@@ -49,6 +61,10 @@ GNU_EXTRA_PACKAGES=(
     "watch"          # GNU watch
     "wdiff"          # GNU wdiff
     "wget"           # GNU wget
+    "curl"           # Better curl
+    "htop"           # Better top
+    "ncdu"           # NCurses disk usage
+    "tree"           # Directory tree
 )
 
 # Development tools
@@ -227,18 +243,41 @@ install_gnu_packages() {
     for package in "${GNU_CORE_PACKAGES[@]}"; do
         if brew list --formula "$package" &> /dev/null; then
             printf "${BLUE}✓ $package already installed${NC}\n"
-            ((skipped++))
+            skipped=$((skipped + 1))
         else
             printf "${YELLOW}Installing $package...${NC} "
             if brew install "$package" &> /dev/null; then
                 printf "${GREEN}✓${NC}\n"
-                ((installed++))
+                installed=$((installed + 1))
             else
                 printf "${RED}✗${NC}\n"
                 failed+=("$package")
             fi
         fi
     done
+    
+    # Ask about extended GNU utilities
+    printf "\n${YELLOW}Install extended GNU utilities for complete Linux compatibility? (y/n)${NC} "
+    read -r response
+    if [[ "$response" =~ ^[Yy]$ ]]; then
+        printf "\n${CYAN}Installing extended GNU utilities...${NC}\n"
+        printf "${YELLOW}Note: This includes util-linux and inetutils for comprehensive coverage${NC}\n\n"
+        for package in "${GNU_EXTENDED_PACKAGES[@]}"; do
+            if brew list --formula "$package" &> /dev/null; then
+                printf "${BLUE}✓ $package already installed${NC}\n"
+                skipped=$((skipped + 1))
+            else
+                printf "${YELLOW}Installing $package...${NC} "
+                if brew install "$package" &> /dev/null; then
+                    printf "${GREEN}✓${NC}\n"
+                    installed=$((installed + 1))
+                else
+                    # Some packages might not exist, that's ok
+                    printf "${YELLOW}⚠ Not available${NC}\n"
+                fi
+            fi
+        done
+    fi
     
     # Ask about extra packages
     printf "\n${YELLOW}Install additional GNU tools? (y/n)${NC} "
@@ -248,12 +287,12 @@ install_gnu_packages() {
         for package in "${GNU_EXTRA_PACKAGES[@]}"; do
             if brew list --formula "$package" &> /dev/null; then
                 printf "${BLUE}✓ $package already installed${NC}\n"
-                ((skipped++))
+                skipped=$((skipped + 1))
             else
                 printf "${YELLOW}Installing $package...${NC} "
                 if brew install "$package" &> /dev/null; then
                     printf "${GREEN}✓${NC}\n"
-                    ((installed++))
+                    installed=$((installed + 1))
                 else
                     printf "${RED}✗${NC}\n"
                     failed+=("$package")
@@ -275,12 +314,12 @@ install_gnu_packages() {
             
             if brew list --formula "$package" &> /dev/null; then
                 printf "${BLUE}✓ $package already installed${NC}\n"
-                ((skipped++))
+                skipped=$((skipped + 1))
             else
                 printf "${YELLOW}Installing $package...${NC} "
                 if brew install "$package" &> /dev/null; then
                     printf "${GREEN}✓${NC}\n"
-                    ((installed++))
+                    installed=$((installed + 1))
                 else
                     printf "${RED}✗${NC}\n"
                     failed+=("$package")
@@ -297,12 +336,12 @@ install_gnu_packages() {
         for package in "${MODERN_TOOLS[@]}"; do
             if brew list --formula "$package" &> /dev/null; then
                 printf "${BLUE}✓ $package already installed${NC}\n"
-                ((skipped++))
+                skipped=$((skipped + 1))
             else
                 printf "${YELLOW}Installing $package...${NC} "
                 if brew install "$package" &> /dev/null; then
                     printf "${GREEN}✓${NC}\n"
-                    ((installed++))
+                    installed=$((installed + 1))
                 else
                     printf "${RED}✗${NC}\n"
                     failed+=("$package")
@@ -420,10 +459,21 @@ show_status() {
     for package in "${GNU_CORE_PACKAGES[@]}"; do
         if brew list --formula "$package" &> /dev/null 2>&1; then
             printf "  ${GREEN}✓${NC} $package\n"
-            ((installed++))
+            installed=$((installed + 1))
         else
             printf "  ${RED}✗${NC} $package\n"
-            ((not_installed++))
+            not_installed=$((not_installed + 1))
+        fi
+    done
+    
+    # Check extended packages
+    printf "\n${BLUE}Extended Packages:${NC}\n"
+    for package in "${GNU_EXTENDED_PACKAGES[@]}"; do
+        if brew list --formula "$package" &> /dev/null 2>&1; then
+            printf "  ${GREEN}✓${NC} $package\n"
+            installed=$((installed + 1))
+        else
+            printf "  ${YELLOW}○${NC} $package (optional)\n"
         fi
     done
     
@@ -499,9 +549,17 @@ show_help() {
     
     echo -e "${YELLOW}What it does:${NC}"
     echo "  1. Installs GNU coreutils, sed, grep, make, etc."
-    echo "  2. Configures PATH to use GNU tools by default"
-    echo "  3. Sets up useful aliases and environment variables"
-    echo -e "  4. Optionally installs modern CLI tools (bat, ripgrep, etc.)\n"
+    echo "  2. Optionally installs util-linux and inetutils for complete coverage"
+    echo "  3. Configures PATH to use GNU tools by default"
+    echo "  4. Sets up useful aliases and environment variables"
+    echo -e "  5. Optionally installs modern CLI tools (bat, ripgrep, etc.)\n"
+    
+    echo -e "${YELLOW}Tool Coverage:${NC}"
+    echo "  - Core utilities: ls, cat, echo, mkdir, rm, cp, mv, etc."
+    echo "  - Text processing: sed, awk, grep, diff, etc."
+    echo "  - File utilities: find, tar, gzip, which, etc."
+    echo "  - Extended utils: cal, column, hexdump, rename (util-linux)"
+    echo -e "  - Network tools: ftp, telnet, traceroute, whois (inetutils)\n"
     
     echo -e "${YELLOW}After installation:${NC}"
     echo "  - Restart your terminal or run: source ~/.mac_linuxify"
