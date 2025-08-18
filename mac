@@ -53,7 +53,8 @@ show_help() {
     printf "        permissions       Repair disk permissions\n\n"
     
     printf "    ${CYAN}Performance:${NC}\n"
-    printf "        memory [options]  Monitor and optimize memory\n\n"
+    printf "        memory [options]  Monitor and optimize memory\n"
+    printf "        battery [command] Advanced battery management and monitoring\n\n"
     
     printf "    ${CYAN}Security & Privacy:${NC}\n"
     printf "        privacy           Privacy protection and cleaning\n"
@@ -206,6 +207,10 @@ main() {
         memory)
             shift
             "$SCRIPT_DIR/scripts/mac-memory.sh" "$@"
+            ;;
+        battery)
+            shift
+            "$SCRIPT_DIR/scripts/mac-battery.sh" "$@"
             ;;
             
         # Security & Privacy
