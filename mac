@@ -65,7 +65,8 @@ show_help() {
     printf "        sleep             Put Mac to sleep\n"
     printf "        restart           Restart Mac\n"
     printf "        shutdown          Shutdown Mac\n"
-    printf "        kill-apps         Close all applications\n\n"
+    printf "        kill-apps         Close all applications\n"
+    printf "        shortcuts         Quick system shortcuts and controls\n\n"
     
     printf "    ${CYAN}Downloads Management:${NC}\n"
     printf "        downloads         Smart downloads folder management\n"
@@ -257,6 +258,10 @@ main() {
             ;;
         kill-apps)
             "$SCRIPT_DIR/scripts/mac-maintenance.sh" kill-apps
+            ;;
+        shortcuts)
+            shift
+            "$SCRIPT_DIR/scripts/mac-shortcuts.sh" "$@"
             ;;
             
         # Downloads management
