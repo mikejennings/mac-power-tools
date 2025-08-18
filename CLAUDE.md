@@ -111,7 +111,7 @@ mac-power-tools/
 - Validate user input to prevent injection attacks
 
 ### Version Management
-- **Current version: 2.3.1** ✅ LATEST
+- **Current version: 2.4.0** ✅ LATEST
 - Version defined in main `mac` script
 - Update version when making significant changes
 - **Status**: Local release management system active

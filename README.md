@@ -404,6 +404,12 @@ If you encounter any issues or have suggestions:
 
 ## Changelog
 
+### v2.4.0 (2025-08-17)
+- Add complete battery management suite with 8 commands
+- Battery health monitoring, optimization, and app energy usage tracking
+- Calibration wizard and battery history tracking
+- Comprehensive test suite with real system integration
+
 ### v2.3.0 (2025-08-16)
 - Add GNU/Linux environment support with linuxify command
 
