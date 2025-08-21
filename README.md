@@ -593,6 +593,9 @@ If you encounter any issues or have suggestions:
 
 ## Changelog
 
+### v4.0.1 (2025-08-21)
+- Migrate test suite to plugin architecture - Fix test compatibility with v4.0 pure plugin system
+
 ### v2.4.0 (2025-08-17)
 - Add complete battery management suite with 8 commands
 - Battery health monitoring, optimization, and app energy usage tracking
