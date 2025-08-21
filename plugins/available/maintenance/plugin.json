@@ -1,0 +1,27 @@
+{
+  "name": "maintenance",
+  "version": "2.0.0",
+  "description": "System maintenance utilities - interactive menu and command-line tools for system cleaning and optimization",
+  "author": "Mac Power Tools",
+  "category": "system",
+  "commands": ["maintenance"],
+  "native": true,
+  "migrated": true,
+  "options": [
+    "trash - Empty trash",
+    "cache|caches - Clear system caches",
+    "downloads - Clean Downloads folder",
+    "large-files - Find large files (>100MB)",
+    "large-dirs|large-directories - Find large directories",
+    "logs - Clean old log files",
+    "dns - Flush DNS cache",
+    "spotlight - Rebuild Spotlight index",
+    "hidden - Toggle hidden files visibility",
+    "permissions - Repair disk permissions",
+    "kill-apps - Close all applications",
+    "sleep - Put system to sleep",
+    "restart - Restart system",
+    "shutdown - Shutdown system",
+    "all - Run all maintenance tasks"
+  ]
+}

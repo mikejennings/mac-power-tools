@@ -1,0 +1,11 @@
+{
+  "name": "downloads",
+  "version": "1.0.0",
+  "description": "Downloads management",
+  "author": "Mac Power Tools",
+  "category": "organization",
+  "commands": [
+    "downloads"
+  ],
+  "migrated": true
+}

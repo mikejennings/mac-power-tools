@@ -1,22 +1,55 @@
 # Mac Power Tools - Claude AI Assistant Instructions
 
 ## Project Overview
-Mac Power Tools is a comprehensive macOS system management CLI tool that provides system updates, monitoring, and maintenance utilities. It's a modern replacement for the deprecated mac-cli project.
+Mac Power Tools is a comprehensive macOS system management CLI tool with a modular plugin architecture. It provides system updates, monitoring, and maintenance utilities through a flexible plugin system. It's a modern replacement for the deprecated mac-cli project.
+
+### Plugin Architecture (v3.0.1-alpha)
+The project now features a complete plugin system allowing users to:
+- Enable/disable features as needed
+- Install custom plugins from GitHub
+- Create their own plugins using the SDK
+- Maintain backward compatibility with all existing commands
+
+**Plugin Requirements** (see PLUGIN_SPECIFICATION.md):
+- Every plugin MUST have: plugin.json, main.sh, and README.md
+- Security validation before loading (pattern scanning, permissions)
+- Automatic updates from GitHub repositories
+- Metadata caching for O(1) command lookup performance
 
 ## Project Structure
 ```
 mac-power-tools/
-├── mac                     # Main wrapper script (Bash)
-├── scripts/
+├── mac                     # Main wrapper script (plugin-enabled)
+├── mac-plugin             # New plugin-based architecture script
+├── lib/                   # Plugin system libraries
+│   ├── plugin-api.sh      # Plugin API functions
+│   ├── plugin-loader.sh   # Plugin discovery and loading
+│   └── plugin-manager.sh  # Plugin management commands
+├── plugins/
+│   ├── core/              # Essential plugins (always enabled)
+│   ├── available/         # All installed plugins
+│   └── enabled/           # Symlinks to active plugins
+├── scripts/               # Legacy scripts (wrapped by plugins)
 │   ├── mac-update.sh      # System update utilities
 │   ├── mac-info.sh        # System information tools
 │   └── mac-maintenance.sh # Maintenance utilities
+├── create-plugin.sh       # Plugin development SDK
+├── migrate-to-plugins.sh  # Migration tool for plugin conversion
 ├── install.sh             # Installation script
 ├── README.md              # User documentation
 └── LICENSE                # MIT License
 ```
 
 ## Key Commands
+
+### Plugin Management (NEW)
+- `mac plugin list` - List all available and enabled plugins
+- `mac plugin enable <name>` - Enable a plugin
+- `mac plugin disable <name>` - Disable a plugin
+- `mac plugin install <url|path>` - Install a plugin from GitHub or local path
+- `mac plugin remove <name>` - Remove an installed plugin
+- `mac plugin info <name>` - Show detailed plugin information
+- `./create-plugin.sh <name>` - Create a new plugin with SDK
 
 ### System Management
 - `mac update` - Update system packages (Homebrew, npm, Ruby gems, Python packages, Mac App Store)
@@ -297,6 +330,61 @@ All releases are now managed locally without GitHub Actions to avoid costs:
 - Target: v3.0.0 with all 8 features merged
 
 ## Release History
+
+### v4.0.0 (2025-08-20) - Pure Plugin Architecture 🚀
+- **BREAKING CHANGE**: Complete migration to pure plugin system
+- **Removed**: Legacy scripts directory (archived in legacy-archive/)
+- **Converted**: All 16 commands now run as native plugins
+- **Architecture**: Single unified entry point with plugin-first routing
+- **Performance**: Eliminated wrapper overhead, improved load times
+- **Benefits**:
+  - 100% modular architecture
+  - Every feature is a self-contained plugin
+  - Consistent API usage across all commands
+  - Easier maintenance and testing
+  - Ready for community plugin development
+- **Migration**: Seamless for users - all commands work identically
+- **Technical**: 
+  - 16 native plugin implementations
+  - 0 legacy script dependencies
+  - Unified plugin API usage
+  - Complete test coverage maintained
+
+### v3.0.1-alpha (2025-08-20) - Enhanced Plugin Security & Updates 🔒
+- **SECURITY UPDATE**: Added comprehensive plugin validation system
+- **Plugin Updates**: New `mac plugin update` command for GitHub plugins
+- **Security Features**:
+  - Validation before loading any plugin
+  - Dangerous pattern scanning (rm -rf, fork bombs, etc.)
+  - Plugin signature verification with checksums
+  - Permission checking (no world-writable files)
+  - Trusted source verification for installations
+- **Performance**: Added metadata caching for O(1) command lookup
+- **Error Handling**: Proper error boundaries around plugin execution
+- **Update System**:
+  - Check for updates: `mac plugin check-updates`
+  - Update single plugin: `mac plugin update [name]`
+  - Update all plugins: `mac plugin update`
+  - Automatic backup before updates with rollback on failure
+- **Version Comparison**: Semantic versioning support for updates
+
+### v3.0.0-alpha (2025-08-20) - Plugin Architecture 🎉
+- **MAJOR UPDATE**: Complete plugin architecture implementation
+- **Plugin System**: Modular design allowing users to enable/disable features
+- **Plugin Manager**: Install, remove, enable, disable plugins with simple commands
+- **Plugin SDK**: Create custom plugins with `./create-plugin.sh`
+- **Plugin API**: Rich API for plugin developers (colors, utilities, configuration)
+- **Backward Compatible**: All existing commands work through plugin wrappers
+- **Migration Tool**: Automatic conversion of existing scripts to plugins
+- **16 Default Plugins**: All existing features converted to modular plugins
+- **GitHub Integration**: Install plugins directly from GitHub repositories
+- **Documentation**: Complete plugin development guide and API reference
+- **Benefits**:
+  - Users can disable features they don't need (e.g., battery management on desktops)
+  - Easier maintenance with isolated plugin code
+  - Community can create and share custom plugins
+  - Better performance by loading only needed features
+  - Cleaner codebase with standardized plugin structure
 
 ### v2.6.0 (In Development) - Battery Management
 - **NEW FEATURE**: Complete battery management suite

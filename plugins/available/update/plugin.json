@@ -1,0 +1,9 @@
+{
+  "name": "update",
+  "version": "1.0.0",
+  "description": "System update utilities",
+  "author": "Mac Power Tools",
+  "category": "system",
+  "commands": ["update"],
+  "migrated": true
+}

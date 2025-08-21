@@ -1,0 +1,11 @@
+{
+  "name": "awake",
+  "version": "1.0.0",
+  "description": "Power management",
+  "author": "Mac Power Tools",
+  "category": "power",
+  "commands": [
+    "awake"
+  ],
+  "migrated": true
+}

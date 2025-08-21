@@ -1,0 +1,11 @@
+{
+  "name": "shortcuts",
+  "version": "1.0.0",
+  "description": "System shortcuts",
+  "author": "Mac Power Tools",
+  "category": "productivity",
+  "commands": [
+    "shortcuts"
+  ],
+  "migrated": true
+}

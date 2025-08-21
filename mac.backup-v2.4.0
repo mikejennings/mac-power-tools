@@ -1,0 +1,341 @@
+#!/bin/bash
+
+# Mac CLI - Main wrapper script
+# Replacement for mac-cli with custom functionality
+
+# Get the directory where this script is located
+SCRIPT_DIR="$( cd "$( dirname "${BASH_SOURCE[0]}" )" && pwd )"
+
+# Colors for output
+RED='\033[0;31m'
+GREEN='\033[0;32m'
+YELLOW='\033[1;33m'
+BLUE='\033[0;34m'
+CYAN='\033[0;36m'
+MAGENTA='\033[0;35m'
+NC='\033[0m' # No Color
+
+# Version
+VERSION="2.4.0"
+
+# Function to show help
+show_help() {
+    printf "${BLUE}Mac CLI v${VERSION}${NC}\n"
+    printf "A comprehensive macOS management tool\n\n"
+    
+    printf "${YELLOW}USAGE:${NC}\n"
+    printf "    mac <command> [options]\n\n"
+    
+    printf "${YELLOW}COMMANDS:${NC}\n"
+    printf "    ${CYAN}System Updates:${NC}\n"
+    printf "        update [target]     Update system, packages, and apps\n"
+    printf "                           Targets: macos, brew, mas, npm, ruby, pip\n"
+    printf "                           No target updates everything\n\n"
+    
+    printf "    ${CYAN}System Information:${NC}\n"
+    printf "        info [type]        Show system information\n"
+    printf "                          Types: system, memory, disk, network, battery, temp, cpu\n"
+    printf "                          No type shows all information\n\n"
+    
+    printf "    ${CYAN}Maintenance:${NC}\n"
+    printf "        maintenance        Interactive maintenance menu\n"
+    printf "        clean [options]   Deep clean system junk\n"
+    printf "        trash             Empty trash\n"
+    printf "        cache             Clear caches\n"
+    printf "        downloads         Clean/organize downloads folder\n"
+    printf "        duplicates [path] Find duplicate files\n"
+    printf "        large-files       Find large files (>100MB)\n"
+    printf "        large-dirs        Find large directories\n"
+    printf "        logs              Clean old log files\n"
+    printf "        dns               Flush DNS cache\n"
+    printf "        spotlight         Rebuild Spotlight index\n"
+    printf "        hidden            Toggle hidden files visibility\n"
+    printf "        permissions       Repair disk permissions\n\n"
+    
+    printf "    ${CYAN}Performance:${NC}\n"
+    printf "        memory [options]  Monitor and optimize memory\n"
+    printf "        battery [command] Advanced battery management and monitoring\n\n"
+    
+    printf "    ${CYAN}Security & Privacy:${NC}\n"
+    printf "        privacy           Privacy protection and cleaning\n"
+    printf "        security          Security audit and hardening\n\n"
+    
+    printf "    ${CYAN}Power Management:${NC}\n"
+    printf "        awake [options]   Keep Mac awake (with screensaver option)\n"
+    printf "        sleep             Put Mac to sleep\n"
+    printf "        restart           Restart Mac\n"
+    printf "        shutdown          Shutdown Mac\n"
+    printf "        kill-apps         Close all applications\n"
+    printf "        shortcuts         Quick system shortcuts and controls\n\n"
+    
+    printf "    ${CYAN}Downloads Management:${NC}\n"
+    printf "        downloads         Smart downloads folder management\n"
+    printf "        sort-downloads    Sort downloads by date and type\n"
+    printf "        watch-downloads   Monitor downloads folder activity\n"
+    printf "        downloads-status  Show downloads organization status\n\n"
+    
+    printf "    ${CYAN}Backup & Sync:${NC}\n"
+    printf "        dotfiles          Sync dotfiles to iCloud\n"
+    printf "        backup            Alias for dotfiles backup\n\n"
+    
+    printf "    ${CYAN}GNU/Linux Environment:${NC}\n"
+    printf "        linuxify          Install GNU tools and configure Linux-like environment\n"
+    printf "        linuxify status   Show installed GNU tools and configuration\n"
+    printf "        linuxify shell    Change default shell to Homebrew bash\n\n"
+    
+    printf "    ${CYAN}Application Management:${NC}\n"
+    printf "        uninstall <app>   Completely uninstall an application\n"
+    printf "        uninstall --list  List all installed applications\n"
+    printf "        migrate-mas       Migrate Mac App Store apps to Homebrew
+        migrate-apps      Migrate manually downloaded apps to Homebrew\n\n"
+    
+    printf "    ${CYAN}Interactive:${NC}\n"
+    printf "        menu              Interactive command selection with fzf\n\n"
+    
+    printf "    ${CYAN}Other:${NC}\n"
+    printf "        help              Show this help message\n"
+    printf "        version           Show version information\n\n"
+    
+    printf "${YELLOW}EXAMPLES:${NC}\n"
+    printf "    mac menu                  # Interactive command selection (fzf)\n"
+    printf "    mac update                # Update everything (or fzf menu if no args)\n"
+    printf "    mac update brew           # Update only Homebrew\n"
+    printf "    mac info                  # Show all system info (or fzf menu if no args)\n"
+    printf "    mac uninstall             # Interactive app selection with fzf\n"
+    printf "    mac maintenance           # Open maintenance menu\n"
+    printf "    mac trash                 # Empty trash\n\n"
+}
+
+# Function to show version
+show_version() {
+    echo "Mac CLI v${VERSION}"
+    echo "Location: $SCRIPT_DIR"
+    echo "macOS: $(sw_vers -productVersion)"
+}
+
+# Main command router
+main() {
+    if [ $# -eq 0 ]; then
+        show_help
+        exit 0
+    fi
+    
+    case $1 in
+        # Help and version
+        help|-h|--help)
+            show_help
+            ;;
+        menu|fzf)
+            if command -v fzf &> /dev/null; then
+                "$SCRIPT_DIR/scripts/mac-fzf.sh" menu
+            else
+                printf "${YELLOW}fzf not found. Install with: brew install fzf${NC}\n"
+                echo "Or use 'mac help' for command reference"
+            fi
+            ;;
+        version|-v|--version)
+            show_version
+            ;;
+            
+        # System updates
+        update)
+            shift
+            if [[ $# -eq 0 ]] && command -v fzf &> /dev/null; then
+                "$SCRIPT_DIR/scripts/mac-fzf.sh" update
+            else
+                "$SCRIPT_DIR/scripts/mac-update.sh" "$@"
+            fi
+            ;;
+            
+        # System information
+        info|system)
+            shift
+            if [[ $# -eq 0 ]] && command -v fzf &> /dev/null; then
+                "$SCRIPT_DIR/scripts/mac-fzf.sh" info
+            else
+                "$SCRIPT_DIR/scripts/mac-info.sh" "$@"
+            fi
+            ;;
+            
+        # Maintenance commands
+        maintenance)
+            "$SCRIPT_DIR/scripts/mac-maintenance.sh"
+            ;;
+        clean)
+            shift
+            "$SCRIPT_DIR/scripts/mac-clean.sh" "$@"
+            ;;
+        trash)
+            "$SCRIPT_DIR/scripts/mac-maintenance.sh" trash
+            ;;
+        cache|caches)
+            "$SCRIPT_DIR/scripts/mac-maintenance.sh" cache
+            ;;
+        downloads)
+            "$SCRIPT_DIR/scripts/mac-maintenance.sh" downloads
+            ;;
+        duplicates)
+            shift
+            if [[ $# -eq 0 ]] && command -v fzf &> /dev/null; then
+                "$SCRIPT_DIR/scripts/mac-fzf.sh" duplicates
+            else
+                "$SCRIPT_DIR/scripts/mac-duplicates.sh" "$@"
+            fi
+            ;;
+        large-files)
+            "$SCRIPT_DIR/scripts/mac-maintenance.sh" large-files
+            ;;
+        large-dirs|large-directories)
+            "$SCRIPT_DIR/scripts/mac-maintenance.sh" large-dirs
+            ;;
+        logs)
+            "$SCRIPT_DIR/scripts/mac-maintenance.sh" logs
+            ;;
+        dns)
+            "$SCRIPT_DIR/scripts/mac-maintenance.sh" dns
+            ;;
+        spotlight)
+            "$SCRIPT_DIR/scripts/mac-maintenance.sh" spotlight
+            ;;
+        hidden)
+            "$SCRIPT_DIR/scripts/mac-maintenance.sh" hidden
+            ;;
+        permissions)
+            "$SCRIPT_DIR/scripts/mac-maintenance.sh" permissions
+            ;;
+            
+        # Performance
+        memory)
+            shift
+            "$SCRIPT_DIR/scripts/mac-memory.sh" "$@"
+            ;;
+        battery)
+            shift
+            "$SCRIPT_DIR/scripts/mac-battery.sh" "$@"
+            ;;
+            
+        # Security & Privacy
+        privacy)
+            shift
+            if [[ $# -eq 0 ]] && command -v fzf &> /dev/null; then
+                "$SCRIPT_DIR/scripts/mac-fzf.sh" privacy
+            else
+                "$SCRIPT_DIR/scripts/mac-privacy.sh" "$@"
+            fi
+            ;;
+        security)
+            shift
+            case "${1:-audit}" in
+                audit)
+                    "$SCRIPT_DIR/scripts/mac-privacy.sh" audit
+                    ;;
+                scan)
+                    shift
+                    "$SCRIPT_DIR/scripts/mac-privacy.sh" scan "$@"
+                    ;;
+                protect)
+                    "$SCRIPT_DIR/scripts/mac-privacy.sh" protect
+                    ;;
+                *)
+                    "$SCRIPT_DIR/scripts/mac-privacy.sh" audit
+                    ;;
+            esac
+            ;;
+            
+        # Power management
+        awake)
+            shift
+            "$SCRIPT_DIR/scripts/mac-awake.sh" "$@"
+            ;;
+        sleep)
+            "$SCRIPT_DIR/scripts/mac-maintenance.sh" sleep
+            ;;
+        restart)
+            "$SCRIPT_DIR/scripts/mac-maintenance.sh" restart
+            ;;
+        shutdown)
+            "$SCRIPT_DIR/scripts/mac-maintenance.sh" shutdown
+            ;;
+        kill-apps)
+            "$SCRIPT_DIR/scripts/mac-maintenance.sh" kill-apps
+            ;;
+        shortcuts)
+            shift
+            "$SCRIPT_DIR/scripts/mac-shortcuts.sh" "$@"
+            ;;
+            
+        # Downloads management
+        downloads)
+            shift
+            if [[ $# -eq 0 ]] && command -v fzf &> /dev/null; then
+                "$SCRIPT_DIR/scripts/mac-fzf.sh" downloads
+            else
+                "$SCRIPT_DIR/scripts/mac-downloads.sh" "$@"
+            fi
+            ;;
+        sort-downloads)
+            "$SCRIPT_DIR/scripts/mac-downloads.sh" sort
+            ;;
+        watch-downloads)
+            "$SCRIPT_DIR/scripts/mac-downloads.sh" watch
+            ;;
+        downloads-status)
+            "$SCRIPT_DIR/scripts/mac-downloads.sh" status
+            ;;
+            
+        # Dotfiles & Backup
+        dotfiles)
+            shift
+            if [[ $# -eq 0 ]] && command -v fzf &> /dev/null; then
+                "$SCRIPT_DIR/scripts/mac-fzf.sh" dotfiles
+            else
+                "$SCRIPT_DIR/scripts/mac-dotfiles.sh" "$@"
+            fi
+            ;;
+        backup)
+            shift
+            "$SCRIPT_DIR/scripts/mac-dotfiles.sh" "$@"
+            ;;
+            
+        # GNU/Linux environment
+        linuxify)
+            shift
+            "$SCRIPT_DIR/scripts/mac-linuxify.sh" "$@"
+            ;;
+            
+        # Application management
+        uninstall)
+            shift
+            if [[ $# -eq 0 ]] && command -v fzf &> /dev/null; then
+                "$SCRIPT_DIR/scripts/mac-fzf.sh" uninstall
+            else
+                "$SCRIPT_DIR/scripts/mac-uninstall.sh" "$@"
+            fi
+            ;;
+        migrate-mas|mas-migrate)
+            shift
+            "$SCRIPT_DIR/scripts/mac-migrate-mas.sh" "$@"
+            ;;
+        migrate-apps|apps-migrate)
+            shift
+            "$SCRIPT_DIR/scripts/mac-migrate-apps.sh" "$@"
+            ;;
+            
+        # Unknown command
+        *)
+            printf "${RED}Unknown command: $1${NC}\n"
+            echo "Run 'mac help' for usage information"
+            exit 1
+            ;;
+    esac
+}
+
+# Check if scripts directory exists
+if [ ! -d "$SCRIPT_DIR/scripts" ]; then
+    printf "${RED}Error: scripts directory not found${NC}\n"
+    echo "Expected location: $SCRIPT_DIR/scripts"
+    exit 1
+fi
+
+# Run main function with all arguments
+main "$@"

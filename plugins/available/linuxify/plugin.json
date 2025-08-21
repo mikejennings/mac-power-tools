@@ -1,0 +1,11 @@
+{
+  "name": "linuxify",
+  "version": "1.0.0",
+  "description": "GNU/Linux environment",
+  "author": "Mac Power Tools",
+  "category": "system",
+  "commands": [
+    "linuxify"
+  ],
+  "migrated": true
+}

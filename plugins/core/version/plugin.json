@@ -1,0 +1,9 @@
+{
+  "name": "version",
+  "version": "1.0.0",
+  "description": "Show version information",
+  "author": "Mac Power Tools",
+  "category": "core",
+  "commands": ["version"],
+  "core": true
+}

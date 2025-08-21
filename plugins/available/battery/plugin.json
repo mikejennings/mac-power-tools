@@ -1,0 +1,11 @@
+{
+  "name": "battery",
+  "version": "1.0.0",
+  "description": "Battery management",
+  "author": "Mac Power Tools",
+  "category": "performance",
+  "commands": [
+    "battery"
+  ],
+  "migrated": true
+}

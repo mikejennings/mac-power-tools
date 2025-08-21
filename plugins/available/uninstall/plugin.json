@@ -1,0 +1,11 @@
+{
+  "name": "uninstall",
+  "version": "1.0.0",
+  "description": "Application uninstaller",
+  "author": "Mac Power Tools",
+  "category": "apps",
+  "commands": [
+    "uninstall"
+  ],
+  "migrated": true
+}

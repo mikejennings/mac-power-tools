@@ -1,0 +1,770 @@
+#!/bin/bash
+
+# Native plugin implementation
+# Migrated from legacy script to use plugin API
+
+# Source the plugin API
+source "${MAC_POWER_TOOLS_HOME}/lib/plugin-api.sh"
+
+
+
+set -euo pipefail
+
+# Get the directory of this script
+SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
+# Don't source the main script to avoid conflicts
+
+# Colors for output
+
+# iCloud Drive path
+ICLOUD_PATH="$HOME/Library/Mobile Documents/com~apple~CloudDocs"
+DOTFILES_DIR="$ICLOUD_PATH/Dotfiles"
+PREFS_DIR="$ICLOUD_PATH/AppPreferences"
+
+# Common dotfiles to track - only the most essential ones
+DEFAULT_DOTFILES=(
+    ".bashrc"
+    ".bash_profile"
+    ".zshrc"
+    ".zprofile"
+    ".gitconfig"
+    ".gitignore_global"
+    ".vimrc"
+    ".tmux.conf"
+)
+
+# Extended dotfiles for developer tools (opt-in via 'mac dotfiles dev')
+DEVELOPER_CONFIGS=(
+    ".ssh/config"
+    ".aws/config"
+    ".aws/credentials"
+    ".config/nvim"
+    ".config/gh"
+    ".config/raycast"
+    ".config/zed"
+    ".config/fish"
+    ".hammerspoon"
+    ".docker/config.json"
+    ".kube/config"
+    ".npmrc"
+    ".yarnrc"
+)
+
+# Common application preferences
+APP_PREFS=(
+    "com.apple.Terminal.plist"
+    "com.googlecode.iterm2.plist"
+    "com.microsoft.VSCode.plist"
+    "com.sublimetext.4.plist"
+    "com.github.atom.plist"
+    "com.knollsoft.Rectangle.plist"
+    "net.matthewpalmer.Rectangle-Pro.plist"
+    "com.raycast.macos.plist"
+)
+
+# Check if iCloud is available
+check_icloud() {
+    if [[ ! -d "$ICLOUD_PATH" ]]; then
+        printf "${RED}Error: iCloud Drive not found${NC}\n"
+        printf "Please ensure iCloud Drive is enabled in System Preferences\n"
+        return 1
+    fi
+    return 0
+}
+
+# Initialize dotfiles directory
+init_dotfiles() {
+    check_icloud || return 1
+    
+    local show_header=true
+    # Don't show header if called from backup_all or other functions
+    if [[ "${1:-}" == "--quiet" ]]; then
+        show_header=false
+    fi
+    
+    if $show_header; then
+        printf "${CYAN}=== Initializing Dotfiles Sync ===${NC}\n\n"
+    fi
+    
+    # Create directories if they don't exist
+    local created_new=false
+    if [[ ! -d "$DOTFILES_DIR" ]]; then
+        mkdir -p "$DOTFILES_DIR"
+        if $show_header; then
+            printf "${GREEN}✓ Created dotfiles directory in iCloud${NC}\n"
+        fi
+        created_new=true
+    fi
+    
+    if [[ ! -d "$PREFS_DIR" ]]; then
+        mkdir -p "$PREFS_DIR"
+        if $show_header; then
+            printf "${GREEN}✓ Created preferences directory in iCloud${NC}\n"
+        fi
+        created_new=true
+    fi
+    
+    # Create subdirectories for nested configs
+    mkdir -p "$DOTFILES_DIR/.ssh"
+    mkdir -p "$DOTFILES_DIR/.aws"
+    mkdir -p "$DOTFILES_DIR/.config"
+    
+    if $show_header && $created_new; then
+        printf "${GREEN}✓ Dotfiles sync initialized${NC}\n"
+        printf "  Dotfiles: $DOTFILES_DIR\n"
+        printf "  Preferences: $PREFS_DIR\n"
+    fi
+}
+
+# Backup a single dotfile
+backup_dotfile() {
+    local file="$1"
+    local source="$HOME/$file"
+    local backup="$DOTFILES_DIR/$file"
+    
+    # Skip if source doesn't exist
+    if [[ ! -e "$source" ]]; then
+        return 1
+    fi
+    
+    # Create parent directory if needed
+    local backup_dir=$(dirname "$backup")
+    mkdir -p "$backup_dir"
+    
+    # If it's already a symlink pointing to our backup, skip
+    if [[ -L "$source" ]] && [[ "$(readlink "$source")" == "$backup" ]]; then
+        printf "${BLUE}✓ $file (already linked)${NC}\n"
+        return 0
+    fi
+    
+    # If backup exists and is not the same, prompt
+    if [[ -e "$backup" ]] && [[ ! -L "$source" ]]; then
+        if ! diff -q "$source" "$backup" > /dev/null 2>&1; then
+            printf "${YELLOW}Conflict for $file. Keep (l)ocal, (i)Cloud, or (s)kip?${NC} "
+            read -r choice
+            case "$choice" in
+                l|L)
+                    cp -f "$source" "$backup"
+                    ;;
+                i|I)
+                    # Will be handled below
+                    ;;
+                s|S)
+                    return 0
+                    ;;
+                *)
+                    return 0
+                    ;;
+            esac
+        fi
+    fi
+    
+    # Move file to iCloud if it's not there yet
+    if [[ ! -L "$source" ]]; then
+        if [[ -e "$source" ]]; then
+            cp -a "$source" "$backup"
+            rm -rf "$source"
+        fi
+    fi
+    
+    # Create symlink
+    ln -sf "$backup" "$source"
+    printf "${GREEN}✓ $file${NC}\n"
+    return 0
+}
+
+# Backup all dotfiles
+backup_all() {
+    check_icloud || return 1
+    init_dotfiles --quiet
+    
+    printf "${CYAN}=== Backing Up Dotfiles ===${NC}\n\n"
+    
+    local backed_up=0
+    local skipped=0
+    
+    # Backup default dotfiles
+    printf "${YELLOW}Backing up common dotfiles...${NC}\n"
+    for file in "${DEFAULT_DOTFILES[@]}"; do
+        if [[ -e "$HOME/$file" ]]; then
+            if backup_dotfile "$file"; then
+                ((backed_up++))
+            fi
+        else
+            ((skipped++))
+        fi
+    done
+    
+    printf "\n${GREEN}✓ Backed up $backed_up dotfiles${NC}\n"
+    [[ $skipped -gt 0 ]] && printf "${BLUE}Skipped $skipped files (not found)${NC}\n"
+    printf "${BLUE}Location: $DOTFILES_DIR${NC}\n"
+    printf "\n${YELLOW}Tip:${NC} To add more files, use: mac dotfiles add <filename>\n"
+    printf "${YELLOW}Tip:${NC} For SSH/AWS configs, use: mac dotfiles dev\n"
+}
+
+# Restore dotfiles
+restore_all() {
+    check_icloud || return 1
+    
+    if [[ ! -d "$DOTFILES_DIR" ]]; then
+        printf "${RED}Error: No dotfiles backup found in iCloud${NC}\n"
+        return 1
+    fi
+    
+    printf "${CYAN}=== Restoring Dotfiles ===${NC}\n\n"
+    
+    local restored=0
+    
+    # Find all files in the backup directory
+    while IFS= read -r backup_file; do
+        local relative_path="${backup_file#$DOTFILES_DIR/}"
+        local target="$HOME/$relative_path"
+        
+        # Skip if it's already a correct symlink
+        if [[ -L "$target" ]] && [[ "$(readlink "$target")" == "$backup_file" ]]; then
+            printf "${BLUE}✓ $relative_path (already linked)${NC}\n"
+            ((restored++))
+            continue
+        fi
+        
+        # Handle existing files
+        if [[ -e "$target" ]] && [[ ! -L "$target" ]]; then
+            printf "${YELLOW}$relative_path exists. Overwrite? (y/n)${NC} "
+            read -r response
+            if [[ ! "$response" =~ ^[Yy]$ ]]; then
+                continue
+            fi
+            rm -rf "$target"
+        fi
+        
+        # Create parent directory if needed
+        local target_dir=$(dirname "$target")
+        mkdir -p "$target_dir"
+        
+        # Create symlink
+        ln -sf "$backup_file" "$target"
+        printf "${GREEN}✓ $relative_path${NC}\n"
+        ((restored++))
+    done < <(find "$DOTFILES_DIR" -type f 2>/dev/null)
+    
+    printf "\n${GREEN}✓ Restored $restored dotfiles from iCloud${NC}\n"
+}
+
+# Backup application preferences
+backup_preferences() {
+    check_icloud || return 1
+    init_dotfiles --quiet
+    
+    printf "${CYAN}=== Backing Up Application Preferences ===${NC}\n\n"
+    
+    local prefs_source="$HOME/Library/Preferences"
+    local backed_up=0
+    
+    for pref in "${APP_PREFS[@]}"; do
+        local source="$prefs_source/$pref"
+        local backup="$PREFS_DIR/$pref"
+        
+        if [[ -f "$source" ]]; then
+            cp -a "$source" "$backup"
+            printf "${GREEN}✓ $pref${NC}\n"
+            ((backed_up++))
+        fi
+    done
+    
+    # VS Code settings
+    local vscode_dir="$HOME/Library/Application Support/Code/User"
+    if [[ -d "$vscode_dir" ]]; then
+        local vscode_backup="$PREFS_DIR/VSCode"
+        mkdir -p "$vscode_backup"
+        
+        for file in settings.json keybindings.json snippets; do
+            if [[ -e "$vscode_dir/$file" ]]; then
+                cp -a "$vscode_dir/$file" "$vscode_backup/"
+                printf "${GREEN}✓ VS Code $file${NC}\n"
+                ((backed_up++))
+            fi
+        done
+    fi
+    
+    printf "\n${GREEN}✓ Backed up $backed_up preference files${NC}\n"
+    printf "${BLUE}Location: $PREFS_DIR${NC}\n"
+}
+
+# List tracked files
+list_tracked() {
+    check_icloud || return 1
+    
+    printf "${CYAN}=== Tracked Dotfiles ===${NC}\n\n"
+    
+    if [[ -d "$DOTFILES_DIR" ]]; then
+        printf "${YELLOW}Dotfiles in iCloud:${NC}\n"
+        find "$DOTFILES_DIR" -type f -exec basename {} \; | sort | sed 's/^/  /'
+    else
+        printf "${YELLOW}No dotfiles backed up yet${NC}\n"
+    fi
+    
+    printf "\n${YELLOW}Symlinked files:${NC}\n"
+    local count=0
+    while IFS= read -r link; do
+        if [[ "$(readlink "$link" 2>/dev/null)" =~ $DOTFILES_DIR ]]; then
+            printf "  ${link#$HOME/}\n"
+            ((count++))
+        fi
+    done < <(find "$HOME" -maxdepth 3 -type l 2>/dev/null)
+    
+    [[ $count -eq 0 ]] && printf "  None\n"
+}
+
+# Backup developer configs
+backup_dev_configs() {
+    check_icloud || return 1
+    init_dotfiles --quiet
+    
+    printf "${CYAN}=== Backing Up Developer Configs ===${NC}\n\n"
+    
+    local backed_up=0
+    
+    for config in "${DEVELOPER_CONFIGS[@]}"; do
+        local source="$HOME/$config"
+        
+        # Check if the config exists
+        if [[ -e "$source" ]]; then
+            printf "${YELLOW}Found $config - Back up? (y/n)${NC} "
+            read -r response
+            if [[ "$response" =~ ^[Yy]$ ]]; then
+                if backup_dotfile "$config"; then
+                    ((backed_up++))
+                fi
+            fi
+        fi
+    done
+    
+    printf "\n${GREEN}✓ Backed up $backed_up developer configs${NC}\n"
+}
+
+# Add a new dotfile to track
+add_dotfile() {
+    local file="${1:-}"
+    
+    if [[ -z "$file" ]]; then
+        printf "${YELLOW}Enter path to dotfile (relative to home):${NC} "
+        read -r file
+    fi
+    
+    # Remove leading slash or ~/
+    file="${file#/}"
+    file="${file#~/}"
+    
+    if backup_dotfile "$file"; then
+        printf "${GREEN}✓ Added $file to dotfiles sync${NC}\n"
+    else
+        printf "${RED}Failed to add $file${NC}\n"
+    fi
+}
+
+# Remove a dotfile from tracking
+remove_dotfile() {
+    local file="${1:-}"
+    
+    if [[ -z "$file" ]]; then
+        printf "${YELLOW}Enter dotfile to remove (relative to home):${NC} "
+        read -r file
+    fi
+    
+    file="${file#/}"
+    file="${file#~/}"
+    
+    local source="$HOME/$file"
+    local backup="$DOTFILES_DIR/$file"
+    
+    if [[ -L "$source" ]] && [[ "$(readlink "$source")" == "$backup" ]]; then
+        # Copy the file back
+        rm "$source"
+        cp -a "$backup" "$source"
+        printf "${GREEN}✓ Removed $file from sync (file kept locally)${NC}\n"
+    else
+        printf "${YELLOW}$file is not currently synced${NC}\n"
+    fi
+}
+
+# Source the apps registry
+source_apps_registry() {
+    local apps_script="$SCRIPT_DIR/mac-dotfiles-apps.sh"
+    if [[ -f "$apps_script" ]]; then
+        source "$apps_script"
+        init_app_registry
+        return 0
+    else
+        printf "${YELLOW}Warning: Apps registry not found${NC}\n"
+        return 1
+    fi
+}
+
+# Backup application configs
+backup_app_configs() {
+    local app_id="$1"
+    
+    if ! source_apps_registry; then
+        return 1
+    fi
+    
+    if ! is_app_installed "$app_id"; then
+        printf "${YELLOW}$app_id is not installed${NC}\n"
+        return 1
+    fi
+    
+    local app_name=$(get_app_name "$app_id")
+    local app_backup_dir="$DOTFILES_DIR/apps/$app_id"
+    mkdir -p "$app_backup_dir"
+    
+    printf "${CYAN}Backing up $app_name...${NC}\n"
+    
+    local backed_up=0
+    local excludes=$(get_app_excludes "$app_id")
+    
+    while IFS= read -r path; do
+        local source="$HOME/$path"
+        local backup="$app_backup_dir/$path"
+        
+        # Expand tilde and check if source exists
+        if eval "[[ -e \"$source\" ]]"; then
+            # Create parent directory
+            local backup_parent=$(dirname "$backup")
+            mkdir -p "$backup_parent"
+            
+            # Handle excludes with rsync for directories
+            if [[ -d "$source" ]]; then
+                local rsync_excludes=""
+                if [[ -n "$excludes" ]]; then
+                    IFS=',' read -ra exclude_patterns <<< "$excludes"
+                    for pattern in "${exclude_patterns[@]}"; do
+                        rsync_excludes="$rsync_excludes --exclude='$pattern'"
+                    done
+                fi
+                eval "rsync -a $rsync_excludes \"$source/\" \"$backup/\""
+                printf "  ${GREEN}✓ Backed up directory: $path${NC}\n"
+            else
+                # Simple copy for files
+                cp -a "$source" "$backup"
+                printf "  ${GREEN}✓ Backed up file: $path${NC}\n"
+            fi
+            ((backed_up++))
+        fi
+    done < <(get_app_paths "$app_id")
+    
+    if [[ $backed_up -gt 0 ]]; then
+        printf "${GREEN}✓ Backed up $app_name ($backed_up items)${NC}\n"
+    else
+        printf "${YELLOW}No configs found for $app_name${NC}\n"
+    fi
+}
+
+# Restore application configs
+restore_app_configs() {
+    local app_id="$1"
+    
+    if ! source_apps_registry; then
+        return 1
+    fi
+    
+    local app_name=$(get_app_name "$app_id")
+    local app_backup_dir="$DOTFILES_DIR/apps/$app_id"
+    
+    if [[ ! -d "$app_backup_dir" ]]; then
+        printf "${YELLOW}No backup found for $app_name${NC}\n"
+        return 1
+    fi
+    
+    printf "${CYAN}Restoring $app_name...${NC}\n"
+    
+    local restored=0
+    while IFS= read -r path; do
+        local backup="$app_backup_dir/$path"
+        local target="$HOME/$path"
+        
+        if eval "[[ -e \"$backup\" ]]"; then
+            # Create parent directory
+            local target_parent=$(dirname "$target")
+            eval "mkdir -p \"$target_parent\""
+            
+            # Handle existing files
+            if eval "[[ -e \"$target\" ]]"; then
+                printf "${YELLOW}$path exists. Overwrite? (y/n)${NC} "
+                read -r response
+                if [[ ! "$response" =~ ^[Yy]$ ]]; then
+                    continue
+                fi
+                eval "rm -rf \"$target\""
+            fi
+            
+            # Restore the backup
+            eval "cp -a \"$backup\" \"$target\""
+            printf "  ${GREEN}✓ Restored: $path${NC}\n"
+            ((restored++))
+        fi
+    done < <(get_app_paths "$app_id")
+    
+    if [[ $restored -gt 0 ]]; then
+        printf "${GREEN}✓ Restored $app_name ($restored items)${NC}\n"
+    else
+        printf "${YELLOW}No items restored for $app_name${NC}\n"
+    fi
+}
+
+# Backup all app configs
+backup_all_apps() {
+    if ! source_apps_registry; then
+        return 1
+    fi
+    
+    printf "${CYAN}=== Backing Up Application Configs ===${NC}\n\n"
+    
+    # Get selected apps or use all installed
+    local apps_to_backup=()
+    if [[ "${1:-}" == "--interactive" ]] && command -v fzf &> /dev/null; then
+        mapfile -t apps_to_backup < <(select_apps_interactive)
+        if [[ ${#apps_to_backup[@]} -eq 0 ]]; then
+            printf "${YELLOW}No apps selected${NC}\n"
+            return 0
+        fi
+    else
+        mapfile -t apps_to_backup < <(get_installed_apps)
+    fi
+    
+    local total=0
+    for app_id in "${apps_to_backup[@]}"; do
+        backup_app_configs "$app_id"
+        ((total++))
+        echo
+    done
+    
+    printf "${GREEN}✓ Backed up $total applications${NC}\n"
+}
+
+# Manage applications
+manage_apps() {
+    local subcmd="${1:-}"
+    
+    if ! source_apps_registry; then
+        return 1
+    fi
+    
+    case "$subcmd" in
+        list)
+            list_available_apps
+            ;;
+        status)
+            list_installed_apps_status
+            ;;
+        backup)
+            shift
+            if [[ -n "${1:-}" ]]; then
+                backup_app_configs "$1"
+            else
+                backup_all_apps --interactive
+            fi
+            ;;
+        restore)
+            shift
+            if [[ -n "${1:-}" ]]; then
+                restore_app_configs "$1"
+            else
+                printf "${YELLOW}Please specify an app to restore${NC}\n"
+                printf "Usage: mac dotfiles apps restore <app_id>\n"
+            fi
+            ;;
+        "")
+            # Interactive menu
+            if command -v fzf &> /dev/null; then
+                local options=(
+                    "list:List all available apps"
+                    "status:Show installed apps status"
+                    "backup:Backup app configs"
+                    "restore:Restore app configs"
+                )
+                
+                local choice=$(printf '%s\n' "${options[@]}" | \
+                    fzf --height=40% \
+                        --border \
+                        --prompt="Select apps operation > " \
+                        --header="Application Config Manager (Esc to exit)")
+                
+                [[ -z "$choice" ]] && return
+                
+                local action="${choice%%:*}"
+                manage_apps "$action"
+            else
+                printf "${YELLOW}Available commands:${NC}\n"
+                printf "  mac dotfiles apps list     - List all available apps\n"
+                printf "  mac dotfiles apps status   - Show installed apps\n"
+                printf "  mac dotfiles apps backup   - Backup app configs\n"
+                printf "  mac dotfiles apps restore  - Restore app configs\n"
+            fi
+            ;;
+        *)
+            printf "${RED}Unknown apps command: $subcmd${NC}\n"
+            ;;
+    esac
+}
+
+# Interactive menu
+interactive_menu() {
+    if command -v fzf &> /dev/null; then
+        local options=(
+            "backup:Backup all dotfiles to iCloud"
+            "restore:Restore dotfiles from iCloud"
+            "add:Add a specific dotfile"
+            "remove:Stop syncing a dotfile"
+            "list:List tracked dotfiles"
+            "prefs:Backup application preferences"
+            "apps:Manage application configs"
+            "init:Initialize dotfiles directories"
+        )
+        
+        local choice=$(printf '%s\n' "${options[@]}" | \
+            fzf --height=40% \
+                --border \
+                --prompt="Select dotfiles operation > " \
+                --header="Dotfiles Manager (Esc to exit)" \
+                --preview='echo {}' \
+                --preview-window=right:50%:wrap)
+        
+        [[ -z "$choice" ]] && return
+        
+        local action="${choice%%:*}"
+        case "$action" in
+            backup) backup_all ;;
+            restore) restore_all ;;
+            add) add_dotfile ;;
+            remove) remove_dotfile ;;
+            list) list_tracked ;;
+            prefs) backup_preferences ;;
+            apps) manage_apps ;;
+            init) init_dotfiles ;;
+        esac
+    else
+        show_help
+    fi
+}
+
+# Show help
+show_help() {
+    print_info "Mac Dotfiles - Simple iCloud Sync${NC}\n"
+    
+    print_warning "Usage:"
+    echo "  mac dotfiles                  Interactive menu (requires fzf)"
+    echo -e "  mac dotfiles <command>        Run specific command\n"
+    
+    print_warning "Commands:"
+    echo "  init                          Initialize dotfiles directories"
+    echo "  backup                        Backup all dotfiles to iCloud"
+    echo "  restore                       Restore dotfiles from iCloud"
+    echo "  add <file>                    Add a specific dotfile"
+    echo "  remove <file>                 Stop syncing a dotfile"
+    echo "  list                          List tracked dotfiles"
+    echo "  prefs                         Backup application preferences"
+    echo "  dev                           Backup developer tool configs"
+    echo "  apps                          Manage application configs"
+    echo "  apps list                     List available applications"
+    echo "  apps status                   Show installed app status"
+    echo "  apps backup [app]             Backup app configs"
+    echo "  apps restore <app>            Restore app configs"
+    echo -e "  help                          Show this help message\n"
+    
+    print_warning "Examples:"
+    echo "  mac dotfiles                  # Interactive menu"
+    echo "  mac dotfiles init             # First-time setup"
+    echo "  mac dotfiles backup           # Backup all dotfiles"
+    echo "  mac dotfiles add .bashrc      # Add specific file"
+    echo -e "  mac dotfiles restore          # Restore on new machine\n"
+    
+    print_warning "How it works:"
+    echo "  1. Copies your dotfiles to iCloud Drive"
+    echo "  2. Replaces local files with symlinks"
+    echo "  3. Changes sync automatically via iCloud"
+    echo -e "  4. Simple, native, no external dependencies\n"
+    
+    print_warning "Default tracked files:"
+    echo "  .bashrc, .zshrc, .gitconfig, .vimrc, .tmux.conf"
+    echo -e "  .ssh/config, .aws/config, and more\n"
+}
+
+# Main function
+main() {
+    local command="${1:-}"
+    
+    case "$command" in
+        "")
+            interactive_menu
+            ;;
+        init)
+            init_dotfiles
+            ;;
+        backup)
+            # Check for --apps flag
+            if [[ "${2:-}" == "--apps" ]]; then
+                backup_all
+                echo
+                backup_all_apps
+            elif [[ "${2:-}" == "--only-apps" ]]; then
+                backup_all_apps
+            else
+                backup_all
+            fi
+            ;;
+        restore)
+            # Check for --apps flag
+            if [[ "${2:-}" == "--apps" ]]; then
+                restore_all
+                echo
+                printf "${CYAN}To restore app configs, use: mac dotfiles apps restore <app>${NC}\n"
+            else
+                restore_all
+            fi
+            ;;
+        add)
+            add_dotfile "$2"
+            ;;
+        remove)
+            remove_dotfile "$2"
+            ;;
+        list)
+            list_tracked
+            ;;
+        prefs|preferences)
+            backup_preferences
+            ;;
+        dev|developer)
+            backup_dev_configs
+            ;;
+        apps)
+            shift
+            manage_apps "$@"
+            ;;
+        help|--help|-h)
+            show_help
+            ;;
+        *)
+            printf "${RED}Unknown command: $command${NC}\n"
+            show_help
+            exit 1
+            ;;
+    esac
+}
+
+# Run main function
+main "$@"
+
+# Plugin main entry point
+plugin_main() {
+    # Call the main function with all arguments
+    main "$@"
+}
+
+# Initialize the plugin
+plugin_init
+
+# Call the main function if not sourced
+if [ "${BASH_SOURCE[0]}" = "$0" ]; then
+    plugin_main "$@"
+fi

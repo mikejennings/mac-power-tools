@@ -1,8 +1,71 @@
 # Mac Power Tools
 
-A powerful and comprehensive macOS system management CLI tool. Modern replacement for the deprecated mac-cli with enhanced functionality for system updates, monitoring, and maintenance. **Now includes free, open-source alternatives to CleanMyMac features!**
+[![Version](https://img.shields.io/badge/version-4.0.0-blue)](https://github.com/mac-power-tools/mac-power-tools)
+[![License](https://img.shields.io/badge/license-MIT-green)](LICENSE)
+[![macOS](https://img.shields.io/badge/macOS-10.15%2B-orange)](https://www.apple.com/macos/)
 
-## Features
+A powerful, modular macOS system management CLI tool with plugin architecture. Modern replacement for the deprecated mac-cli with enhanced functionality for system updates, monitoring, and maintenance. **Now includes free, open-source alternatives to CleanMyMac features!**
+
+## 🎉 NEW: Pure Plugin Architecture (v4.0.0)
+
+Mac Power Tools now runs on a **100% pure plugin architecture**! Every feature is a modular plugin:
+
+- **Modular Design**: Enable/disable features as plugins
+- **Easy Installation**: Install plugins from GitHub or local directories  
+- **Plugin Development**: Create custom plugins with our SDK
+- **Native Plugins**: All 16 core features are now native plugins (no legacy scripts!)
+- **Backward Compatible**: All existing commands work identically
+
+### Quick Start with Plugins
+
+```bash
+# List all available plugins
+mac plugin list
+
+# Enable a plugin (e.g., battery management)
+mac plugin enable battery
+
+# Disable plugins you don't need
+mac plugin disable shortcuts
+
+# Install a plugin from GitHub
+mac plugin install https://github.com/user/mac-plugin-example
+
+# Check for plugin updates
+mac plugin check-updates
+
+# Update all plugins
+mac plugin update
+
+# Update specific plugin
+mac plugin update battery
+
+# Create your own plugin
+./create-plugin.sh my-custom-tool
+```
+
+## Core Features
+
+All features are now available as modular plugins that can be enabled/disabled:
+
+| Plugin | Description | Category | Status |
+|--------|-------------|----------|--------|
+| `update` | System update utilities | system | ✅ Enabled by default |
+| `info` | System information tools | system | ✅ Enabled by default |
+| `maintenance` | System maintenance utilities | system | ✅ Enabled by default |
+| `battery` | Battery management | performance | ✅ Enabled by default |
+| `memory` | Memory optimization | performance | ✅ Enabled by default |
+| `clean` | Deep system cleaning | maintenance | ⚪ Optional |
+| `uninstall` | Application uninstaller | apps | ⚪ Optional |
+| `duplicates` | Duplicate file finder | storage | ⚪ Optional |
+| `privacy` | Privacy and security tools | security | ⚪ Optional |
+| `downloads` | Downloads management | organization | ⚪ Optional |
+| `dotfiles` | Dotfiles backup and sync | backup | ⚪ Optional |
+| `linuxify` | GNU/Linux environment | system | ⚪ Optional |
+| `awake` | Power management | power | ⚪ Optional |
+| `shortcuts` | System shortcuts | productivity | ⚪ Optional |
+
+## Feature Details
 
 ### 🚀 System Updates
 - **Comprehensive Updates**: Update macOS, Homebrew, Mac App Store, npm, Ruby gems, and Python packages
@@ -118,6 +181,132 @@ A powerful and comprehensive macOS system management CLI tool. Modern replacemen
   - `mac battery apps` - See which apps drain your battery
   - `mac battery monitor` - Real-time battery monitoring
   - `mac battery tips` - Expert tips for battery longevity
+
+## Plugin Security
+
+Mac Power Tools includes comprehensive security features to protect your system:
+
+### **Security Validation**
+- All plugins are validated before loading
+- Scans for dangerous patterns (rm -rf, fork bombs, etc.)
+- Checks file permissions (no world-writable files)
+- Verifies plugin structure and metadata
+
+### **Plugin Signatures**
+Plugins can be signed for additional security:
+```bash
+# Sign a plugin (for developers)
+source lib/plugin-security.sh
+sign_plugin plugins/available/my-plugin
+
+# Verification happens automatically on load
+```
+
+### **Trusted Sources**
+By default, plugins from these sources are trusted:
+- `https://github.com/mac-power-tools/`
+- `https://github.com/mikejennings/`
+
+### **Security Configuration**
+Control security settings via environment variables:
+```bash
+# Disable security checks (not recommended)
+export PLUGIN_SECURITY_ENABLED=false
+
+# Allow unsigned plugins
+export PLUGIN_ALLOW_UNSIGNED=true
+```
+
+## Plugin Development
+
+### Creating a Plugin
+
+Mac Power Tools makes it easy to create custom plugins:
+
+```bash
+# Use the plugin creator tool
+./create-plugin.sh my-plugin-name
+
+# Follow the interactive prompts to configure your plugin
+# This creates a complete plugin structure with:
+# - plugin.json (metadata)
+# - main.sh (plugin logic)
+# - tests/ (test directory)
+# - README.md (documentation)
+```
+
+### Plugin Structure
+
+```
+plugins/available/my-plugin/
+├── plugin.json         # Plugin metadata and configuration (REQUIRED)
+├── main.sh            # Main plugin script (REQUIRED)
+├── README.md          # Plugin documentation (REQUIRED)
+├── tests/             # Plugin tests (recommended)
+│   └── test_my-plugin.sh
+└── config.json        # User configuration (optional)
+```
+
+### Plugin Requirements
+
+Every plugin **MUST** include these files:
+
+1. **plugin.json** - Metadata describing the plugin
+2. **main.sh** - The main executable script
+3. **README.md** - Documentation explaining what the plugin does
+
+Without these files, the plugin will fail security validation and won't load.
+
+### Plugin API
+
+Plugins have access to a rich API for common operations:
+
+```bash
+# Color output functions
+print_info "Information message"
+print_success "Success message"
+print_warning "Warning message"  
+print_error "Error message"
+
+# Utility functions
+command_exists "git"              # Check if command exists
+confirm "Continue?"               # Get user confirmation
+show_progress 50 100             # Show progress bar (50/100)
+
+# Configuration
+load_plugin_config               # Load plugin settings
+save_plugin_config "key" "value" # Save plugin settings
+```
+
+### Publishing Plugins
+
+Share your plugins with the community:
+
+1. Create a GitHub repository for your plugin
+2. Include all plugin files (plugin.json, main.sh, etc.)
+3. Add installation instructions to your README
+4. Users can install with: `mac plugin install https://github.com/you/your-plugin`
+
+### Example Plugin
+
+Here's a simple plugin example:
+
+```bash
+#!/bin/bash
+# Plugin: disk-usage
+# Shows disk usage statistics
+
+source "${MAC_POWER_TOOLS_HOME}/lib/plugin-api.sh"
+
+plugin_main() {
+    print_info "Disk Usage Statistics"
+    df -h | grep -E "^/dev/"
+    print_success "Analysis complete"
+}
+
+plugin_init
+register_command "disk-usage" "Show disk usage statistics"
+```
 
 ## Installation
 

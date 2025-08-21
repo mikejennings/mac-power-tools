@@ -1,0 +1,11 @@
+{
+  "name": "dotfiles",
+  "version": "1.0.0",
+  "description": "Dotfiles backup and sync",
+  "author": "Mac Power Tools",
+  "category": "backup",
+  "commands": [
+    "dotfiles"
+  ],
+  "migrated": true
+}

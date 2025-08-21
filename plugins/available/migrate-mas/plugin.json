@@ -1,0 +1,11 @@
+{
+  "name": "migrate-mas",
+  "version": "1.0.0",
+  "description": "App Store migration",
+  "author": "Mac Power Tools",
+  "category": "apps",
+  "commands": [
+    "migrate-mas"
+  ],
+  "migrated": true
+}

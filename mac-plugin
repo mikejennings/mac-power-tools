@@ -1,0 +1,144 @@
+#!/bin/bash
+
+# Mac Power Tools - Plugin-based Architecture
+# A modular macOS management tool
+
+# Get the directory where this script is located
+export MAC_POWER_TOOLS_HOME="$( cd "$( dirname "${BASH_SOURCE[0]}" )" && pwd )"
+
+# Version
+VERSION="3.0.0-alpha"
+
+# Source the plugin system
+source "${MAC_POWER_TOOLS_HOME}/lib/plugin-loader.sh"
+source "${MAC_POWER_TOOLS_HOME}/lib/plugin-manager.sh"
+
+# Initialize plugin system
+init_plugin_dirs
+
+# Main entry point
+main() {
+    local command=$1
+    shift
+    
+    case "$command" in
+        # Plugin management commands
+        plugin|plugins)
+            plugin_manager_main "$@"
+            ;;
+        
+        # Help and version
+        help|--help|-h)
+            show_help
+            ;;
+        
+        version|--version|-v)
+            show_version
+            ;;
+        
+        # List available commands
+        commands)
+            list_commands
+            ;;
+        
+        # Empty command - show help
+        "")
+            show_help
+            ;;
+        
+        # Try to execute as plugin command
+        *)
+            if ! execute_plugin_command "$command" "$@"; then
+                print_error "Unknown command: $command"
+                printf "Run 'mac help' for available commands\n"
+                exit 1
+            fi
+            ;;
+    esac
+}
+
+# Show help
+show_help() {
+    printf "${BLUE}Mac Power Tools v${VERSION}${NC}\n"
+    printf "A modular macOS management tool with plugin support\n\n"
+    
+    printf "${YELLOW}USAGE:${NC}\n"
+    printf "    mac <command> [options]\n\n"
+    
+    printf "${YELLOW}CORE COMMANDS:${NC}\n"
+    printf "    help              Show this help message\n"
+    printf "    version           Show version information\n"
+    printf "    commands          List all available commands\n"
+    printf "    plugin <action>   Manage plugins\n\n"
+    
+    printf "${YELLOW}PLUGIN COMMANDS:${NC}\n"
+    local commands=($(get_plugin_commands))
+    if [ ${#commands[@]} -gt 0 ]; then
+        for cmd in "${commands[@]}"; do
+            # Get description from plugin metadata or environment
+            local cmd_upper=$(echo "$cmd" | tr '[:lower:]' '[:upper:]')
+            local desc_var="MAC_COMMAND_${cmd_upper}_DESC"
+            local desc="${!desc_var:-No description available}"
+            printf "    %-18s%s\n" "$cmd" "$desc"
+        done
+    else
+        printf "    No plugins enabled\n"
+    fi
+    
+    printf "\n${YELLOW}PLUGIN MANAGEMENT:${NC}\n"
+    printf "    mac plugin list       List all plugins\n"
+    printf "    mac plugin install    Install a plugin\n"
+    printf "    mac plugin enable     Enable a plugin\n"
+    printf "    mac plugin disable    Disable a plugin\n"
+    printf "    mac plugin remove     Remove a plugin\n"
+    
+    printf "\n${YELLOW}EXAMPLES:${NC}\n"
+    printf "    mac plugin list                    # See all available plugins\n"
+    printf "    mac plugin enable battery          # Enable battery plugin\n"
+    printf "    mac battery status                 # Use battery plugin\n"
+    printf "    mac plugin install <github-url>    # Install from GitHub\n"
+}
+
+# Show version
+show_version() {
+    printf "${BLUE}Mac Power Tools${NC}\n"
+    printf "Version: ${VERSION}\n"
+    printf "Plugin Architecture: 1.0\n"
+    
+    # Count plugins
+    local enabled_count=0
+    local available_count=0
+    
+    for plugin in "$AVAILABLE_DIR"/*; do
+        if [ -d "$plugin" ]; then
+            ((available_count++))
+            local plugin_name=$(basename "$plugin")
+            is_plugin_enabled "$plugin_name" && ((enabled_count++))
+        fi
+    done
+    
+    printf "Plugins: %d enabled, %d available\n" "$enabled_count" "$available_count"
+}
+
+# List all available commands
+list_commands() {
+    printf "${BLUE}Available Commands:${NC}\n\n"
+    
+    printf "${CYAN}Core Commands:${NC}\n"
+    printf "  help, version, commands, plugin\n\n"
+    
+    printf "${CYAN}Plugin Commands:${NC}\n"
+    local commands=($(get_plugin_commands))
+    if [ ${#commands[@]} -gt 0 ]; then
+        printf "  "
+        printf "%s, " "${commands[@]}" | sed 's/, $/\n/'
+    else
+        printf "  No plugins enabled\n"
+    fi
+}
+
+# Load all plugins at startup
+load_all_plugins > /dev/null 2>&1
+
+# Run main function
+main "$@"

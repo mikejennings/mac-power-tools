@@ -1,0 +1,19 @@
+{
+  "name": "info",
+  "version": "2.0.0",
+  "description": "System information tools - displays comprehensive system status including CPU, memory, disk, network, and battery information",
+  "author": "Mac Power Tools",
+  "category": "system",
+  "commands": ["info", "system"],
+  "native": true,
+  "migrated": true,
+  "options": [
+    "system - Show system information",
+    "memory|mem - Show memory and top memory processes",
+    "disk - Show disk usage information", 
+    "network|net - Show network configuration and status",
+    "battery|power - Show battery information (laptops only)",
+    "temp|temperature - Show temperature sensors (requires osx-cpu-temp or istats)",
+    "cpu - Show top CPU processes"
+  ]
+}

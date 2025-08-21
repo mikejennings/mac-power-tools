@@ -1,0 +1,11 @@
+{
+  "name": "privacy",
+  "version": "1.0.0",
+  "description": "Privacy and security tools",
+  "author": "Mac Power Tools",
+  "category": "security",
+  "commands": [
+    "privacy"
+  ],
+  "migrated": true
+}

@@ -1,0 +1,11 @@
+{
+  "name": "clean",
+  "version": "1.0.0",
+  "description": "Deep system cleaning",
+  "author": "Mac Power Tools",
+  "category": "maintenance",
+  "commands": [
+    "clean"
+  ],
+  "migrated": true
+}

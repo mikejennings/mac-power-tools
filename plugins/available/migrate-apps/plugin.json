@@ -1,0 +1,11 @@
+{
+  "name": "migrate-apps",
+  "version": "1.0.0",
+  "description": "App migration tools",
+  "author": "Mac Power Tools",
+  "category": "apps",
+  "commands": [
+    "migrate-apps"
+  ],
+  "migrated": true
+}

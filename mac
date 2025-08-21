@@ -1,10 +1,18 @@
 #!/bin/bash
 
-# Mac CLI - Main wrapper script
-# Replacement for mac-cli with custom functionality
+# Mac Power Tools - Unified Architecture
+# Combines legacy compatibility with modern plugin system
 
 # Get the directory where this script is located
-SCRIPT_DIR="$( cd "$( dirname "${BASH_SOURCE[0]}" )" && pwd )"
+# Store the original location before any sourcing
+ORIGINAL_SCRIPT_PATH="${BASH_SOURCE[0]}"
+MAC_HOME_DIR="$( cd "$( dirname "$ORIGINAL_SCRIPT_PATH" )" && pwd )"
+export MAC_POWER_TOOLS_HOME="$MAC_HOME_DIR"
+# Keep SCRIPT_DIR for compatibility but protect it
+SCRIPT_DIR="$MAC_HOME_DIR"
+
+# Version - incrementing to 3.0.0 for unified architecture
+VERSION="4.0.0"
 
 # Colors for output
 RED='\033[0;31m'
@@ -15,102 +23,302 @@ CYAN='\033[0;36m'
 MAGENTA='\033[0;35m'
 NC='\033[0m' # No Color
 
-# Version
-VERSION="2.4.0"
+# Operation mode: plugin-first or legacy-first
+# Can be configured via environment variable or config file
+OPERATION_MODE="${MAC_OPERATION_MODE:-plugin-first}"
+
+# Source the plugin system if available
+if [ -f "${MAC_POWER_TOOLS_HOME}/lib/plugin-loader.sh" ]; then
+    source "${MAC_POWER_TOOLS_HOME}/lib/plugin-loader.sh"
+    source "${MAC_POWER_TOOLS_HOME}/lib/plugin-manager.sh"
+    PLUGIN_SYSTEM_AVAILABLE=true
+    
+    # Initialize plugin system
+    init_plugin_dirs
+    # Load all plugins at startup
+    load_all_plugins > /dev/null 2>&1
+else
+    PLUGIN_SYSTEM_AVAILABLE=false
+fi
+
+# Function to show version
+show_version() {
+    printf "${BLUE}Mac Power Tools v${VERSION}${NC}\n"
+    echo "Location: $MAC_HOME_DIR"
+    echo "macOS: $(sw_vers -productVersion)"
+    echo "Architecture: Unified (Plugin + Legacy)"
+    echo "Operation Mode: $OPERATION_MODE"
+    
+    if [ "$PLUGIN_SYSTEM_AVAILABLE" = true ]; then
+        # Count plugins
+        local enabled_count=0
+        local available_count=0
+        
+        for plugin in "$AVAILABLE_DIR"/*; do
+            if [ -d "$plugin" ]; then
+                ((available_count++))
+                local plugin_name=$(basename "$plugin")
+                is_plugin_enabled "$plugin_name" && ((enabled_count++))
+            fi
+        done
+        
+        printf "Plugins: %d enabled, %d available\n" "$enabled_count" "$available_count"
+    else
+        echo "Plugin System: Not available (legacy mode only)"
+    fi
+}
 
 # Function to show help
 show_help() {
-    printf "${BLUE}Mac CLI v${VERSION}${NC}\n"
+    printf "${BLUE}Mac Power Tools v${VERSION}${NC}\n"
     printf "A comprehensive macOS management tool\n\n"
     
     printf "${YELLOW}USAGE:${NC}\n"
     printf "    mac <command> [options]\n\n"
     
-    printf "${YELLOW}COMMANDS:${NC}\n"
+    # If plugin system is available and we have plugins, show them first
+    if [ "$PLUGIN_SYSTEM_AVAILABLE" = true ] && [ "$OPERATION_MODE" = "plugin-first" ]; then
+        printf "${YELLOW}PLUGIN COMMANDS:${NC}\n"
+        local commands=($(get_plugin_commands 2>/dev/null))
+        if [ ${#commands[@]} -gt 0 ]; then
+            for cmd in "${commands[@]}"; do
+                # Get description from plugin metadata
+                local plugin_path="${AVAILABLE_DIR}/${cmd}"
+                if [ -d "$plugin_path" ]; then
+                    local desc=$(grep '"description"' "${plugin_path}/plugin.json" 2>/dev/null | cut -d'"' -f4)
+                    printf "    %-18s%s\n" "$cmd" "${desc:-No description available}"
+                fi
+            done
+            printf "\n"
+        fi
+        
+        printf "${YELLOW}PLUGIN MANAGEMENT:${NC}\n"
+        printf "    plugin list       List all plugins\n"
+        printf "    plugin enable     Enable a plugin\n"
+        printf "    plugin disable    Disable a plugin\n"
+        printf "    plugin install    Install a plugin\n"
+        printf "    plugin remove     Remove a plugin\n\n"
+    fi
+    
+    # Show legacy commands (always available as fallback)
+    printf "${YELLOW}SYSTEM COMMANDS:${NC}\n"
     printf "    ${CYAN}System Updates:${NC}\n"
     printf "        update [target]     Update system, packages, and apps\n"
-    printf "                           Targets: macos, brew, mas, npm, ruby, pip\n"
-    printf "                           No target updates everything\n\n"
+    printf "                           Targets: macos, brew, mas, npm, ruby, pip\n\n"
     
     printf "    ${CYAN}System Information:${NC}\n"
     printf "        info [type]        Show system information\n"
-    printf "                          Types: system, memory, disk, network, battery, temp, cpu\n"
-    printf "                          No type shows all information\n\n"
+    printf "                          Types: system, memory, disk, network, battery, temp, cpu\n\n"
     
     printf "    ${CYAN}Maintenance:${NC}\n"
     printf "        maintenance        Interactive maintenance menu\n"
     printf "        clean [options]   Deep clean system junk\n"
     printf "        trash             Empty trash\n"
     printf "        cache             Clear caches\n"
-    printf "        downloads         Clean/organize downloads folder\n"
     printf "        duplicates [path] Find duplicate files\n"
-    printf "        large-files       Find large files (>100MB)\n"
-    printf "        large-dirs        Find large directories\n"
-    printf "        logs              Clean old log files\n"
-    printf "        dns               Flush DNS cache\n"
-    printf "        spotlight         Rebuild Spotlight index\n"
-    printf "        hidden            Toggle hidden files visibility\n"
-    printf "        permissions       Repair disk permissions\n\n"
-    
-    printf "    ${CYAN}Performance:${NC}\n"
-    printf "        memory [options]  Monitor and optimize memory\n"
-    printf "        battery [command] Advanced battery management and monitoring\n\n"
-    
-    printf "    ${CYAN}Security & Privacy:${NC}\n"
-    printf "        privacy           Privacy protection and cleaning\n"
-    printf "        security          Security audit and hardening\n\n"
+    printf "        memory [options]  Monitor and optimize memory\n\n"
     
     printf "    ${CYAN}Power Management:${NC}\n"
-    printf "        awake [options]   Keep Mac awake (with screensaver option)\n"
+    printf "        awake [options]   Keep Mac awake\n"
     printf "        sleep             Put Mac to sleep\n"
-    printf "        restart           Restart Mac\n"
-    printf "        shutdown          Shutdown Mac\n"
-    printf "        kill-apps         Close all applications\n"
-    printf "        shortcuts         Quick system shortcuts and controls\n\n"
-    
-    printf "    ${CYAN}Downloads Management:${NC}\n"
-    printf "        downloads         Smart downloads folder management\n"
-    printf "        sort-downloads    Sort downloads by date and type\n"
-    printf "        watch-downloads   Monitor downloads folder activity\n"
-    printf "        downloads-status  Show downloads organization status\n\n"
-    
-    printf "    ${CYAN}Backup & Sync:${NC}\n"
-    printf "        dotfiles          Sync dotfiles to iCloud\n"
-    printf "        backup            Alias for dotfiles backup\n\n"
-    
-    printf "    ${CYAN}GNU/Linux Environment:${NC}\n"
-    printf "        linuxify          Install GNU tools and configure Linux-like environment\n"
-    printf "        linuxify status   Show installed GNU tools and configuration\n"
-    printf "        linuxify shell    Change default shell to Homebrew bash\n\n"
+        printf "        restart           Restart Mac\n"
+        printf "        shutdown          Shutdown Mac\n"
+        printf "        shortcuts         Quick system shortcuts\n\n"
     
     printf "    ${CYAN}Application Management:${NC}\n"
     printf "        uninstall <app>   Completely uninstall an application\n"
-    printf "        uninstall --list  List all installed applications\n"
-    printf "        migrate-mas       Migrate Mac App Store apps to Homebrew
-        migrate-apps      Migrate manually downloaded apps to Homebrew\n\n"
-    
-    printf "    ${CYAN}Interactive:${NC}\n"
-    printf "        menu              Interactive command selection with fzf\n\n"
+    printf "        migrate-mas       Migrate Mac App Store apps to Homebrew\n"
+    printf "        migrate-apps      Migrate manually downloaded apps to Homebrew\n\n"
     
     printf "    ${CYAN}Other:${NC}\n"
+    printf "        menu              Interactive command selection with fzf\n"
     printf "        help              Show this help message\n"
-    printf "        version           Show version information\n\n"
+    printf "        version           Show version information\n"
+    printf "        commands          List all available commands\n\n"
     
     printf "${YELLOW}EXAMPLES:${NC}\n"
-    printf "    mac menu                  # Interactive command selection (fzf)\n"
-    printf "    mac update                # Update everything (or fzf menu if no args)\n"
-    printf "    mac update brew           # Update only Homebrew\n"
-    printf "    mac info                  # Show all system info (or fzf menu if no args)\n"
-    printf "    mac uninstall             # Interactive app selection with fzf\n"
-    printf "    mac maintenance           # Open maintenance menu\n"
-    printf "    mac trash                 # Empty trash\n\n"
+    printf "    mac menu                  # Interactive command selection\n"
+    printf "    mac update                # Update everything\n"
+    printf "    mac plugin list          # See available plugins\n"
+    printf "    mac battery status       # Use battery plugin (if enabled)\n\n"
 }
 
-# Function to show version
-show_version() {
-    echo "Mac CLI v${VERSION}"
-    echo "Location: $SCRIPT_DIR"
-    echo "macOS: $(sw_vers -productVersion)"
+# List all available commands
+list_commands() {
+    printf "${BLUE}Available Commands:${NC}\n\n"
+    
+    if [ "$PLUGIN_SYSTEM_AVAILABLE" = true ]; then
+        printf "${CYAN}Plugin Commands:${NC}\n"
+        local commands=($(get_plugin_commands 2>/dev/null))
+        if [ ${#commands[@]} -gt 0 ]; then
+            printf "  "
+            printf "%s, " "${commands[@]}" | sed 's/, $/\n/'
+        else
+            printf "  No plugins enabled\n"
+        fi
+        printf "\n"
+    fi
+    
+    printf "${CYAN}Core Commands:${NC}\n"
+    printf "  help, version, commands, plugin, menu\n\n"
+    
+    printf "${CYAN}Legacy Commands (always available):${NC}\n"
+    printf "  update, info, maintenance, clean, trash, cache, duplicates\n"
+    printf "  memory, battery, awake, sleep, restart, shutdown, shortcuts\n"
+    printf "  uninstall, migrate-mas, migrate-apps, downloads, dotfiles\n"
+    printf "  linuxify, privacy, security\n"
+}
+
+# Try to execute command as plugin
+try_plugin_command() {
+    local command=$1
+    shift
+    
+    if [ "$PLUGIN_SYSTEM_AVAILABLE" = true ]; then
+        if execute_plugin_command "$command" "$@" 2>/dev/null; then
+            return 0
+        fi
+    fi
+    return 1
+}
+
+# Execute legacy command
+execute_legacy_command() {
+    local command=$1
+    shift
+    
+    case $command in
+        # System updates - handled by plugin system
+        # update command is now handled by the update plugin
+            
+        # System information - handled by plugin system
+        # info command is now handled by the info plugin
+            
+        # Maintenance commands
+        maintenance)
+            "$MAC_HOME_DIR/scripts/mac-maintenance.sh"
+            ;;
+        clean)
+            "$MAC_HOME_DIR/scripts/mac-clean.sh" "$@"
+            ;;
+        trash)
+            "$MAC_HOME_DIR/scripts/mac-maintenance.sh" trash
+            ;;
+        cache|caches)
+            "$MAC_HOME_DIR/scripts/mac-maintenance.sh" cache
+            ;;
+        duplicates)
+            if [[ $# -eq 0 ]] && command -v fzf &> /dev/null; then
+                "$MAC_HOME_DIR/scripts/mac-fzf.sh" duplicates
+            else
+                "$MAC_HOME_DIR/scripts/mac-duplicates.sh" "$@"
+            fi
+            ;;
+            
+        # Performance
+        memory)
+            "$MAC_HOME_DIR/scripts/mac-memory.sh" "$@"
+            ;;
+        battery)
+            "$MAC_HOME_DIR/scripts/mac-battery.sh" "$@"
+            ;;
+            
+        # Power management
+        awake)
+            "$MAC_HOME_DIR/scripts/mac-awake.sh" "$@"
+            ;;
+        sleep)
+            "$MAC_HOME_DIR/scripts/mac-maintenance.sh" sleep
+            ;;
+        restart)
+            "$MAC_HOME_DIR/scripts/mac-maintenance.sh" restart
+            ;;
+        shutdown)
+            "$MAC_HOME_DIR/scripts/mac-maintenance.sh" shutdown
+            ;;
+        shortcuts)
+            "$MAC_HOME_DIR/scripts/mac-shortcuts.sh" "$@"
+            ;;
+            
+        # Application management
+        uninstall)
+            if [[ $# -eq 0 ]] && command -v fzf &> /dev/null; then
+                "$MAC_HOME_DIR/scripts/mac-fzf.sh" uninstall
+            else
+                "$MAC_HOME_DIR/scripts/mac-uninstall.sh" "$@"
+            fi
+            ;;
+        migrate-mas|mas-migrate)
+            "$MAC_HOME_DIR/scripts/mac-migrate-mas.sh" "$@"
+            ;;
+        migrate-apps|apps-migrate)
+            "$MAC_HOME_DIR/scripts/mac-migrate-apps.sh" "$@"
+            ;;
+            
+        # Downloads management
+        downloads)
+            if [[ $# -eq 0 ]] && command -v fzf &> /dev/null; then
+                "$MAC_HOME_DIR/scripts/mac-fzf.sh" downloads
+            else
+                "$MAC_HOME_DIR/scripts/mac-downloads.sh" "$@"
+            fi
+            ;;
+            
+        # Dotfiles
+        dotfiles)
+            if [[ $# -eq 0 ]] && command -v fzf &> /dev/null; then
+                "$MAC_HOME_DIR/scripts/mac-fzf.sh" dotfiles
+            else
+                "$MAC_HOME_DIR/scripts/mac-dotfiles.sh" "$@"
+            fi
+            ;;
+            
+        # GNU/Linux environment
+        linuxify)
+            "$MAC_HOME_DIR/scripts/mac-linuxify.sh" "$@"
+            ;;
+            
+        # Privacy & Security
+        privacy)
+            if [[ $# -eq 0 ]] && command -v fzf &> /dev/null; then
+                "$MAC_HOME_DIR/scripts/mac-fzf.sh" privacy
+            else
+                "$MAC_HOME_DIR/scripts/mac-privacy.sh" "$@"
+            fi
+            ;;
+        security)
+            case "${1:-audit}" in
+                audit)
+                    "$MAC_HOME_DIR/scripts/mac-privacy.sh" audit
+                    ;;
+                scan)
+                    shift
+                    "$MAC_HOME_DIR/scripts/mac-privacy.sh" scan "$@"
+                    ;;
+                protect)
+                    "$MAC_HOME_DIR/scripts/mac-privacy.sh" protect
+                    ;;
+                *)
+                    "$MAC_HOME_DIR/scripts/mac-privacy.sh" audit
+                    ;;
+            esac
+            ;;
+            
+        # Interactive menu
+        menu|fzf)
+            if command -v fzf &> /dev/null; then
+                "$MAC_HOME_DIR/scripts/mac-fzf.sh" menu
+            else
+                printf "${YELLOW}fzf not found. Install with: brew install fzf${NC}\n"
+                echo "Or use 'mac help' for command reference"
+            fi
+            ;;
+            
+        *)
+            return 1
+            ;;
+    esac
+    return 0
 }
 
 # Main command router
@@ -120,222 +328,65 @@ main() {
         exit 0
     fi
     
-    case $1 in
-        # Help and version
-        help|-h|--help)
+    local command=$1
+    shift
+    
+    case "$command" in
+        # Core commands
+        help|--help|-h)
             show_help
             ;;
-        menu|fzf)
-            if command -v fzf &> /dev/null; then
-                "$SCRIPT_DIR/scripts/mac-fzf.sh" menu
-            else
-                printf "${YELLOW}fzf not found. Install with: brew install fzf${NC}\n"
-                echo "Or use 'mac help' for command reference"
-            fi
-            ;;
-        version|-v|--version)
+            
+        version|--version|-v)
             show_version
             ;;
             
-        # System updates
-        update)
-            shift
-            if [[ $# -eq 0 ]] && command -v fzf &> /dev/null; then
-                "$SCRIPT_DIR/scripts/mac-fzf.sh" update
+        commands)
+            list_commands
+            ;;
+            
+        # Plugin management (if available)
+        plugin|plugins)
+            if [ "$PLUGIN_SYSTEM_AVAILABLE" = true ]; then
+                plugin_manager_main "$@"
             else
-                "$SCRIPT_DIR/scripts/mac-update.sh" "$@"
+                printf "${RED}Plugin system not available${NC}\n"
+                echo "The plugin system files are missing from lib/"
+                exit 1
             fi
             ;;
             
-        # System information
-        info|system)
-            shift
-            if [[ $# -eq 0 ]] && command -v fzf &> /dev/null; then
-                "$SCRIPT_DIR/scripts/mac-fzf.sh" info
-            else
-                "$SCRIPT_DIR/scripts/mac-info.sh" "$@"
-            fi
-            ;;
-            
-        # Maintenance commands
-        maintenance)
-            "$SCRIPT_DIR/scripts/mac-maintenance.sh"
-            ;;
-        clean)
-            shift
-            "$SCRIPT_DIR/scripts/mac-clean.sh" "$@"
-            ;;
-        trash)
-            "$SCRIPT_DIR/scripts/mac-maintenance.sh" trash
-            ;;
-        cache|caches)
-            "$SCRIPT_DIR/scripts/mac-maintenance.sh" cache
-            ;;
-        downloads)
-            "$SCRIPT_DIR/scripts/mac-maintenance.sh" downloads
-            ;;
-        duplicates)
-            shift
-            if [[ $# -eq 0 ]] && command -v fzf &> /dev/null; then
-                "$SCRIPT_DIR/scripts/mac-fzf.sh" duplicates
-            else
-                "$SCRIPT_DIR/scripts/mac-duplicates.sh" "$@"
-            fi
-            ;;
-        large-files)
-            "$SCRIPT_DIR/scripts/mac-maintenance.sh" large-files
-            ;;
-        large-dirs|large-directories)
-            "$SCRIPT_DIR/scripts/mac-maintenance.sh" large-dirs
-            ;;
-        logs)
-            "$SCRIPT_DIR/scripts/mac-maintenance.sh" logs
-            ;;
-        dns)
-            "$SCRIPT_DIR/scripts/mac-maintenance.sh" dns
-            ;;
-        spotlight)
-            "$SCRIPT_DIR/scripts/mac-maintenance.sh" spotlight
-            ;;
-        hidden)
-            "$SCRIPT_DIR/scripts/mac-maintenance.sh" hidden
-            ;;
-        permissions)
-            "$SCRIPT_DIR/scripts/mac-maintenance.sh" permissions
-            ;;
-            
-        # Performance
-        memory)
-            shift
-            "$SCRIPT_DIR/scripts/mac-memory.sh" "$@"
-            ;;
-        battery)
-            shift
-            "$SCRIPT_DIR/scripts/mac-battery.sh" "$@"
-            ;;
-            
-        # Security & Privacy
-        privacy)
-            shift
-            if [[ $# -eq 0 ]] && command -v fzf &> /dev/null; then
-                "$SCRIPT_DIR/scripts/mac-fzf.sh" privacy
-            else
-                "$SCRIPT_DIR/scripts/mac-privacy.sh" "$@"
-            fi
-            ;;
-        security)
-            shift
-            case "${1:-audit}" in
-                audit)
-                    "$SCRIPT_DIR/scripts/mac-privacy.sh" audit
-                    ;;
-                scan)
-                    shift
-                    "$SCRIPT_DIR/scripts/mac-privacy.sh" scan "$@"
-                    ;;
-                protect)
-                    "$SCRIPT_DIR/scripts/mac-privacy.sh" protect
-                    ;;
-                *)
-                    "$SCRIPT_DIR/scripts/mac-privacy.sh" audit
-                    ;;
-            esac
-            ;;
-            
-        # Power management
-        awake)
-            shift
-            "$SCRIPT_DIR/scripts/mac-awake.sh" "$@"
-            ;;
-        sleep)
-            "$SCRIPT_DIR/scripts/mac-maintenance.sh" sleep
-            ;;
-        restart)
-            "$SCRIPT_DIR/scripts/mac-maintenance.sh" restart
-            ;;
-        shutdown)
-            "$SCRIPT_DIR/scripts/mac-maintenance.sh" shutdown
-            ;;
-        kill-apps)
-            "$SCRIPT_DIR/scripts/mac-maintenance.sh" kill-apps
-            ;;
-        shortcuts)
-            shift
-            "$SCRIPT_DIR/scripts/mac-shortcuts.sh" "$@"
-            ;;
-            
-        # Downloads management
-        downloads)
-            shift
-            if [[ $# -eq 0 ]] && command -v fzf &> /dev/null; then
-                "$SCRIPT_DIR/scripts/mac-fzf.sh" downloads
-            else
-                "$SCRIPT_DIR/scripts/mac-downloads.sh" "$@"
-            fi
-            ;;
-        sort-downloads)
-            "$SCRIPT_DIR/scripts/mac-downloads.sh" sort
-            ;;
-        watch-downloads)
-            "$SCRIPT_DIR/scripts/mac-downloads.sh" watch
-            ;;
-        downloads-status)
-            "$SCRIPT_DIR/scripts/mac-downloads.sh" status
-            ;;
-            
-        # Dotfiles & Backup
-        dotfiles)
-            shift
-            if [[ $# -eq 0 ]] && command -v fzf &> /dev/null; then
-                "$SCRIPT_DIR/scripts/mac-fzf.sh" dotfiles
-            else
-                "$SCRIPT_DIR/scripts/mac-dotfiles.sh" "$@"
-            fi
-            ;;
-        backup)
-            shift
-            "$SCRIPT_DIR/scripts/mac-dotfiles.sh" "$@"
-            ;;
-            
-        # GNU/Linux environment
-        linuxify)
-            shift
-            "$SCRIPT_DIR/scripts/mac-linuxify.sh" "$@"
-            ;;
-            
-        # Application management
-        uninstall)
-            shift
-            if [[ $# -eq 0 ]] && command -v fzf &> /dev/null; then
-                "$SCRIPT_DIR/scripts/mac-fzf.sh" uninstall
-            else
-                "$SCRIPT_DIR/scripts/mac-uninstall.sh" "$@"
-            fi
-            ;;
-        migrate-mas|mas-migrate)
-            shift
-            "$SCRIPT_DIR/scripts/mac-migrate-mas.sh" "$@"
-            ;;
-        migrate-apps|apps-migrate)
-            shift
-            "$SCRIPT_DIR/scripts/mac-migrate-apps.sh" "$@"
-            ;;
-            
-        # Unknown command
         *)
-            printf "${RED}Unknown command: $1${NC}\n"
-            echo "Run 'mac help' for usage information"
-            exit 1
+            # Based on operation mode, try plugin or legacy first
+            local executed=false
+            
+            if [ "$OPERATION_MODE" = "plugin-first" ]; then
+                # Try plugin first, fall back to legacy
+                if try_plugin_command "$command" "$@"; then
+                    executed=true
+                elif execute_legacy_command "$command" "$@"; then
+                    executed=true
+                fi
+            else
+                # Try legacy first, fall back to plugin
+                if execute_legacy_command "$command" "$@"; then
+                    executed=true
+                elif try_plugin_command "$command" "$@"; then
+                    executed=true
+                fi
+            fi
+            
+            if [ "$executed" = false ]; then
+                printf "${RED}Unknown command: $command${NC}\n"
+                echo "Run 'mac help' for usage information"
+                exit 1
+            fi
             ;;
     esac
 }
 
-# Check if scripts directory exists
-if [ ! -d "$SCRIPT_DIR/scripts" ]; then
-    printf "${RED}Error: scripts directory not found${NC}\n"
-    echo "Expected location: $SCRIPT_DIR/scripts"
-    exit 1
-fi
+# Scripts directory no longer needed in v4.0.0+ (pure plugin system)
+# All functionality now provided through native plugins
 
 # Run main function with all arguments
 main "$@"

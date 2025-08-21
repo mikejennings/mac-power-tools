@@ -1,0 +1,11 @@
+{
+  "name": "duplicates",
+  "version": "1.0.0",
+  "description": "Duplicate file finder",
+  "author": "Mac Power Tools",
+  "category": "storage",
+  "commands": [
+    "duplicates"
+  ],
+  "migrated": true
+}
