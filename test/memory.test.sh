@@ -1,14 +1,14 @@
 #!/bin/bash
 
-# Test suite for mac-memory.sh
+# Test suite for memory plugin
 
 # Get directories
 TEST_DIR="$( cd "$( dirname "${BASH_SOURCE[0]}" )" && pwd )"
 PROJECT_DIR="$(dirname "$TEST_DIR")"
 
-# Source test helper and script
+# Source test helper and plugin adapter
 source "$TEST_DIR/test_helper.sh"
-source "$PROJECT_DIR/scripts/mac-memory.sh"
+source "$TEST_DIR/plugin_test_adapter.sh" memory
 
 # Start test suite
 test_suite "Memory Optimizer"

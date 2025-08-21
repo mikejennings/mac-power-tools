@@ -19,6 +19,26 @@ TESTS_SKIPPED=0
 # Test results array
 declare -a TEST_RESULTS
 
+# Helper function for test steps
+test_step() {
+    local step_name="$1"
+    printf "\n${YELLOW}▶ Testing: ${step_name}${NC}\n"
+}
+
+# Helper function to mark test as passed
+pass() {
+    local message="$1"
+    printf "  ${GREEN}✓ PASS${NC}: $message\n"
+    ((TESTS_PASSED++))
+}
+
+# Helper function to mark test as failed
+fail() {
+    local message="$1"
+    printf "  ${RED}✗ FAIL${NC}: $message\n"
+    ((TESTS_FAILED++))
+}
+
 # Function to start a test suite
 test_suite() {
     local suite_name="$1"

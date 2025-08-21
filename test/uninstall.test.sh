@@ -1,14 +1,14 @@
 #!/bin/bash
 
-# Test suite for mac-uninstall.sh
+# Test suite for uninstall plugin
 
 # Get directories
 TEST_DIR="$( cd "$( dirname "${BASH_SOURCE[0]}" )" && pwd )"
 PROJECT_DIR="$(dirname "$TEST_DIR")"
 
-# Source test helper and script
+# Source test helper and plugin adapter
 source "$TEST_DIR/test_helper.sh"
-source "$PROJECT_DIR/scripts/mac-uninstall.sh"
+source "$TEST_DIR/plugin_test_adapter.sh" uninstall
 
 # Start test suite
 test_suite "Application Uninstaller"

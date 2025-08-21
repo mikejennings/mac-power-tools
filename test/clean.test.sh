@@ -1,14 +1,14 @@
 #!/bin/bash
 
-# Test suite for mac-clean.sh
+# Test suite for clean plugin
 
 # Get directories
 TEST_DIR="$( cd "$( dirname "${BASH_SOURCE[0]}" )" && pwd )"
 PROJECT_DIR="$(dirname "$TEST_DIR")"
 
-# Source test helper and script
+# Source test helper and plugin adapter
 source "$TEST_DIR/test_helper.sh"
-source "$PROJECT_DIR/scripts/mac-clean.sh"
+source "$TEST_DIR/plugin_test_adapter.sh" clean
 
 # Start test suite
 test_suite "System Junk Cleaner"
@@ -82,14 +82,11 @@ test_file_exists "Mock trash should exist" \
     "$TEST_DIR/.Trash/deleted.txt"
 
 # Test: Command detection
-test "Should detect if Homebrew is installed" \
-    'if command -v brew &> /dev/null; then true; else true; fi'
+test_command_exists "Should detect if Homebrew is installed" "brew"
 
-test "Should detect if npm is installed" \
-    'if command -v npm &> /dev/null; then true; else true; fi'
+test_command_exists "Should detect if npm is installed" "npm"
 
-test "Should detect if Docker is installed" \
-    'if command -v docker &> /dev/null; then true; else true; fi'
+test_command_exists "Should detect if Docker is installed" "docker"
 
 # Test: Clean path function - Skip as it outputs to stdout
 skip_test "clean_path should remove files" \

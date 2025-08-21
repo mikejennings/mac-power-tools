@@ -249,10 +249,16 @@ execute_legacy_command() {
             fi
             ;;
         migrate-mas|mas-migrate)
-            "$MAC_HOME_DIR/scripts/mac-migrate-mas.sh" "$@"
+            if ! try_plugin_command "migrate-mas" "$@"; then
+                echo "Error: migrate-mas plugin not available"
+                exit 1
+            fi
             ;;
         migrate-apps|apps-migrate)
-            "$MAC_HOME_DIR/scripts/mac-migrate-apps.sh" "$@"
+            if ! try_plugin_command "migrate-apps" "$@"; then
+                echo "Error: migrate-apps plugin not available"
+                exit 1
+            fi
             ;;
             
         # Downloads management

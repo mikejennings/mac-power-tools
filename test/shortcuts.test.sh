@@ -6,30 +6,12 @@
 TEST_DIR="$( cd "$( dirname "${BASH_SOURCE[0]}" )" && pwd )"
 PROJECT_DIR="$(dirname "$TEST_DIR")"
 
-# Source test helper
+# Source test helper and plugin adapter
 source "$TEST_DIR/test_helper.sh"
+source "$TEST_DIR/plugin_test_adapter.sh" shortcuts
 
-# Test script location
-SHORTCUTS_SCRIPT="$PROJECT_DIR/scripts/mac-shortcuts.sh"
-
-# Helper function to simulate user input
-test_step() {
-    local step_name="$1"
-    printf "\n${YELLOW}▶ Testing: ${step_name}${NC}\n"
-}
-
-# Helper function to check test result
-pass() {
-    local message="$1"
-    printf "  ${GREEN}✓ PASS${NC}: $message\n"
-    ((TESTS_PASSED++))
-}
-
-fail() {
-    local message="$1"
-    printf "  ${RED}✗ FAIL${NC}: $message\n"
-    ((TESTS_FAILED++))
-}
+# Test command wrapper - calls plugin through main mac script
+SHORTCUTS_SCRIPT="$PROJECT_DIR/mac"
 
 # Start test suite
 test_suite "System Shortcuts"
@@ -42,7 +24,7 @@ pkill -f caffeinate 2>/dev/null || true
 
 # Test help command
 test_step "Shortcuts Help Command"
-output=$($SHORTCUTS_SCRIPT 2>&1)
+output=$($SHORTCUTS_SCRIPT shortcuts shortcuts 2>&1)
 if [[ $? -eq 0 ]]; then
     pass "Help command executed successfully"
 else
@@ -71,7 +53,7 @@ fi
 # Test screenshot command options
 test_step "Screenshot Command Options"
 # Test screenshot help by checking the main help which includes screenshot info
-output=$($SHORTCUTS_SCRIPT 2>&1)
+output=$($SHORTCUTS_SCRIPT shortcuts 2>&1)
 if [[ "$output" == *"screenshot"* ]] && [[ "$output" == *"Enhanced screenshot"* ]]; then
     pass "Screenshot command listed in help correctly"
 else
@@ -79,7 +61,7 @@ else
 fi
 
 # Test screenshot invalid option handling (safer than actual screenshot)
-output=$($SHORTCUTS_SCRIPT screenshot --invalid-option 2>&1 || true)
+output=$($SHORTCUTS_SCRIPT shortcuts screenshot --invalid-option 2>&1 || true)
 if [[ "$output" == *"Unknown option"* ]] || [[ $? -ne 0 ]]; then
     pass "Screenshot handles invalid options correctly"
 else
@@ -88,7 +70,7 @@ fi
 
 # Test lock command (dry run)
 test_step "Lock Command Test"
-output=$(echo "n" | $SHORTCUTS_SCRIPT lock 2>&1)
+output=$(echo "n" | $SHORTCUTS_SCRIPT shortcuts lock 2>&1)
 if [[ $? -eq 0 ]]; then
     pass "Lock command executed successfully"
 else
@@ -114,7 +96,7 @@ pkill -f caffeinate 2>/dev/null || true
 sleep 1
 
 # Test caffeinate with specific duration (safer than indefinite)
-output=$(timeout 3 $SHORTCUTS_SCRIPT caffeinate 1s 2>&1 || true)
+output=$(timeout 3 $SHORTCUTS_SCRIPT shortcuts caffeinate 1s 2>&1 || true)
 if [[ "$output" == *"Caffeinate System"* ]]; then
     pass "Caffeinate command displays correctly"
 else
@@ -125,7 +107,7 @@ fi
 pkill -f caffeinate 2>/dev/null || true
 
 # Test caffeinate with invalid duration format
-output=$(timeout 2 $SHORTCUTS_SCRIPT caffeinate invalid_duration 2>&1 || true)
+output=$(timeout 2 $SHORTCUTS_SCRIPT shortcuts caffeinate invalid_duration 2>&1 || true)
 if [[ "$output" == *"Invalid duration format"* ]]; then
     pass "Caffeinate handles invalid duration correctly"
 else
@@ -134,7 +116,7 @@ fi
 
 # Test airplane mode status check
 test_step "Airplane Mode Status Check"
-output=$(echo "" | timeout 3 $SHORTCUTS_SCRIPT airplane 2>&1 || true)
+output=$(echo "" | timeout 3 $SHORTCUTS_SCRIPT shortcuts airplane 2>&1 || true)
 if [[ "$output" == *"Airplane Mode Toggle"* ]]; then
     pass "Airplane mode command executed successfully"
 else
@@ -155,7 +137,7 @@ fi
 
 # Test dock command
 test_step "Dock Command Test"
-output=$(echo "" | timeout 3 $SHORTCUTS_SCRIPT dock 2>&1 || true)
+output=$(echo "" | timeout 3 $SHORTCUTS_SCRIPT shortcuts dock 2>&1 || true)
 if [[ "$output" == *"Dock Management"* ]]; then
     pass "Dock command executed successfully"
 else
@@ -176,7 +158,7 @@ fi
 
 # Test finder command
 test_step "Finder Command Test"
-output=$(echo "" | timeout 3 $SHORTCUTS_SCRIPT finder 2>&1 || true)
+output=$(echo "" | timeout 3 $SHORTCUTS_SCRIPT shortcuts finder 2>&1 || true)
 if [[ "$output" == *"Finder Controls"* ]]; then
     pass "Finder command executed successfully"
 else
@@ -197,7 +179,7 @@ fi
 
 # Test display command (dry run)
 test_step "Display Command Test"
-output=$(echo "" | timeout 3 $SHORTCUTS_SCRIPT display 2>&1 || true)
+output=$(echo "" | timeout 3 $SHORTCUTS_SCRIPT shortcuts display 2>&1 || true)
 if [[ "$output" == *"Display Control"* ]]; then
     pass "Display command executed successfully"
 else
@@ -218,7 +200,7 @@ fi
 
 # Test volume command
 test_step "Volume Command Test"
-output=$(echo "" | timeout 3 $SHORTCUTS_SCRIPT volume 2>&1 || true)
+output=$(echo "" | timeout 3 $SHORTCUTS_SCRIPT shortcuts volume 2>&1 || true)
 if [[ "$output" == *"Volume Control"* ]]; then
     pass "Volume command executed successfully"
 else
@@ -244,7 +226,7 @@ else
 fi
 
 # Test volume level setting (safe test)
-output=$(timeout 3 $SHORTCUTS_SCRIPT volume 50 2>&1 || true)
+output=$(timeout 3 $SHORTCUTS_SCRIPT shortcuts volume 50 2>&1 || true)
 if [[ "$output" == *"Setting volume to 50%"* ]]; then
     pass "Volume level setting works"
 else
@@ -253,7 +235,7 @@ fi
 
 # Test invalid command handling
 test_step "Invalid Command Handling"
-output=$($SHORTCUTS_SCRIPT invalid_command 2>&1)
+output=$($SHORTCUTS_SCRIPT shortcuts invalid_command 2>&1)
 if [[ "$output" == *"Usage: mac shortcuts"* ]]; then
     pass "Invalid command shows help"
 else
@@ -261,7 +243,7 @@ else
 fi
 
 # Test invalid screenshot option
-output=$($SHORTCUTS_SCRIPT screenshot --invalid-option 2>&1)
+output=$($SHORTCUTS_SCRIPT shortcuts screenshot --invalid-option 2>&1)
 if [[ "$output" == *"Unknown option"* ]] || [[ $? -ne 0 ]]; then
     pass "Invalid screenshot option handled correctly"
 else
@@ -271,7 +253,7 @@ fi
 # Performance test
 test_step "Performance Test"
 start_time=$(date +%s)
-timeout 3 $SHORTCUTS_SCRIPT volume >/dev/null 2>&1
+timeout 3 $SHORTCUTS_SCRIPT shortcuts volume >/dev/null 2>&1
 exit_code=$?
 end_time=$(date +%s)
 duration=$((end_time - start_time))
@@ -286,7 +268,7 @@ fi
 
 # Test screenshot performance
 start_time=$(date +%s)
-timeout 3 $SHORTCUTS_SCRIPT screenshot --help >/dev/null 2>&1
+timeout 3 $SHORTCUTS_SCRIPT shortcuts screenshot --help >/dev/null 2>&1
 exit_code=$?
 end_time=$(date +%s)
 duration=$((end_time - start_time))
@@ -304,19 +286,19 @@ test_step "Integration Test"
 all_passed=true
 
 # Test multiple commands in sequence
-$SHORTCUTS_SCRIPT volume >/dev/null 2>&1
+$SHORTCUTS_SCRIPT shortcuts volume >/dev/null 2>&1
 if [[ $? -ne 0 ]]; then all_passed=false; fi
 
-$SHORTCUTS_SCRIPT dock >/dev/null 2>&1
+$SHORTCUTS_SCRIPT shortcuts dock >/dev/null 2>&1
 if [[ $? -ne 0 ]]; then all_passed=false; fi
 
-$SHORTCUTS_SCRIPT finder >/dev/null 2>&1
+$SHORTCUTS_SCRIPT shortcuts finder >/dev/null 2>&1
 if [[ $? -ne 0 ]]; then all_passed=false; fi
 
-$SHORTCUTS_SCRIPT airplane >/dev/null 2>&1
+$SHORTCUTS_SCRIPT shortcuts airplane >/dev/null 2>&1
 if [[ $? -ne 0 ]]; then all_passed=false; fi
 
-$SHORTCUTS_SCRIPT display >/dev/null 2>&1
+$SHORTCUTS_SCRIPT shortcuts display >/dev/null 2>&1
 if [[ $? -ne 0 ]]; then all_passed=false; fi
 
 if $all_passed; then
@@ -326,9 +308,9 @@ else
 fi
 
 # Test command chaining safety
-echo "n" | $SHORTCUTS_SCRIPT lock >/dev/null 2>&1
+echo "n" | $SHORTCUTS_SCRIPT shortcuts lock >/dev/null 2>&1
 lock_exit=$?
-$SHORTCUTS_SCRIPT volume >/dev/null 2>&1
+$SHORTCUTS_SCRIPT shortcuts volume >/dev/null 2>&1
 volume_exit=$?
 
 if [[ $lock_exit -eq 0 ]] && [[ $volume_exit -eq 0 ]]; then
@@ -339,7 +321,7 @@ fi
 
 # Test help consistency across commands - simplified version
 # Just check that the main help contains all command names
-main_help=$($SHORTCUTS_SCRIPT 2>&1)
+main_help=$($SHORTCUTS_SCRIPT shortcuts 2>&1)
 help_consistency=true
 for cmd in screenshot lock caffeinate airplane dock finder display volume; do
     if [[ ! "$main_help" == *"$cmd"* ]]; then
@@ -357,7 +339,7 @@ fi
 # Test error handling for missing dependencies
 test_step "Dependency Handling Test"
 # Test behavior when optional commands are missing (should gracefully handle)
-output=$($SHORTCUTS_SCRIPT airplane 2>&1)
+output=$($SHORTCUTS_SCRIPT shortcuts airplane 2>&1)
 if [[ "$output" == *"blueutil"* ]] || [[ "$output" == *"WiFi:"* ]]; then
     pass "Handles missing optional dependencies gracefully"
 else
@@ -366,39 +348,34 @@ fi
 
 # Test command structure validation
 test_step "Command Structure Validation"
-script_valid=true
-
-# Check if script is executable
+# Check if main mac script is executable
 if [[ -x "$SHORTCUTS_SCRIPT" ]]; then
-    pass "Script is executable"
+    pass "Main script is executable"
 else
-    fail "Script is not executable"
-    script_valid=false
+    fail "Main script is not executable"
 fi
 
-# Check if script has proper shebang
-if head -1 "$SHORTCUTS_SCRIPT" | grep -q "#!/bin/bash"; then
-    pass "Script has correct shebang"
+# Check if shortcuts plugin exists
+shortcuts_plugin="$PROJECT_DIR/plugins/available/shortcuts/main.sh"
+if [[ -f "$shortcuts_plugin" ]]; then
+    pass "Shortcuts plugin exists"
 else
-    fail "Script missing or incorrect shebang"
-    script_valid=false
+    fail "Shortcuts plugin missing"
 fi
 
-# Check for required functions
-required_functions=("show_shortcuts_help" "shortcuts_screenshot" "shortcuts_lock" "shortcuts_volume")
-for func in "${required_functions[@]}"; do
-    if grep -q "^${func}()" "$SHORTCUTS_SCRIPT"; then
-        pass "Function $func exists"
-    else
-        fail "Required function $func missing"
-        script_valid=false
-    fi
-done
-
-if $script_valid; then
-    pass "Script structure validation passed"
+# Check if shortcuts plugin is properly structured
+if [[ -f "$PROJECT_DIR/plugins/available/shortcuts/plugin.json" ]]; then
+    pass "Plugin configuration exists"
 else
-    fail "Script structure validation failed"
+    fail "Plugin configuration missing"
+fi
+
+# Verify the plugin can be called
+output=$($SHORTCUTS_SCRIPT shortcuts --help 2>&1 || $SHORTCUTS_SCRIPT shortcuts 2>&1)
+if [[ $? -eq 0 ]]; then
+    pass "Plugin can be executed successfully"
+else
+    fail "Plugin execution failed"
 fi
 
 # Clean up test environment

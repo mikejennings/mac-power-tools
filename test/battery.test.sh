@@ -1,16 +1,17 @@
 #!/bin/bash
 
-# Test suite for battery management features
+# Test suite for battery plugin
 
 # Get directories
 TEST_DIR="$( cd "$( dirname "${BASH_SOURCE[0]}" )" && pwd )"
 PROJECT_DIR="$(dirname "$TEST_DIR")"
 
-# Source test helper
+# Source test helper and plugin adapter
 source "$TEST_DIR/test_helper.sh"
+source "$TEST_DIR/plugin_test_adapter.sh" battery
 
-# Test script location
-BATTERY_SCRIPT="$PROJECT_DIR/scripts/mac-battery.sh"
+# Test command wrapper - calls plugin through main mac script
+BATTERY_SCRIPT="$PROJECT_DIR/mac battery"
 
 # Start test suite
 test_suite "Battery Management"
