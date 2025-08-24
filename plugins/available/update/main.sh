@@ -255,6 +255,14 @@ plugin_main() {
     echo "==================================="
     echo
     
+    # Check for 'all' argument first to bypass any menu
+    if [ "$1" = "all" ]; then
+        update_all
+        echo
+        print_success "Update process complete!"
+        return 0
+    fi
+    
     # Parse arguments
     if [ $# -eq 0 ]; then
         # No arguments - check for fzf and show interactive menu if available
