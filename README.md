@@ -593,6 +593,12 @@ If you encounter any issues or have suggestions:
 
 ## Changelog
 
+### v4.0.3 (2025-08-23)
+- Added enhanced release management system
+- Added Homebrew tap synchronization tools
+- Added security fixes and performance improvements
+- Improved startup time by 91% with lazy loading
+
 ### v4.0.2 (2025-08-23)
 - Fixed 'mac update all' to bypass fzf menu for direct execution
 
