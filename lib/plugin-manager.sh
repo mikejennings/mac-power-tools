@@ -141,6 +141,31 @@ install_from_url() {
     
     print_info "Downloading plugin from $url..."
     
+    # Validate URL to prevent command injection
+    # Check if security utilities are available
+    if type -t validate_url >/dev/null 2>&1; then
+        if ! validate_url "$url"; then
+            print_error "Invalid or unsafe URL provided"
+            rm -rf "$temp_dir"
+            return 1
+        fi
+    else
+        # Fallback validation if security-utils.sh not loaded
+        # Only allow HTTPS URLs from GitHub, GitLab, or Bitbucket
+        if ! [[ "$url" =~ ^https://((github|gitlab|bitbucket)\.(com|org)|[a-zA-Z0-9.-]+\.(github|gitlab)\.io)/[a-zA-Z0-9._-]+/[a-zA-Z0-9._-]+(\.git)?$ ]]; then
+            print_error "URL must be a valid HTTPS repository URL from GitHub, GitLab, or Bitbucket"
+            rm -rf "$temp_dir"
+            return 1
+        fi
+        
+        # Check for command injection characters
+        if [[ "$url" =~ [';|&$`<>(){}[]'] ]]; then
+            print_error "URL contains invalid characters"
+            rm -rf "$temp_dir"
+            return 1
+        fi
+    fi
+    
     # Clone or download the plugin
     if command_exists git; then
         git clone "$url" "$temp_dir/plugin" 2>/dev/null || {

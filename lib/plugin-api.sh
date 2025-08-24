@@ -3,6 +3,13 @@
 # Plugin API - Shared functions for all plugins
 # Provides common utilities and standardized interfaces
 
+# Load security utilities if available
+PLUGIN_API_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
+if [ -f "${PLUGIN_API_DIR}/security-utils.sh" ]; then
+    source "${PLUGIN_API_DIR}/security-utils.sh"
+    init_security_logging 2>/dev/null
+fi
+
 # Colors for output (available to all plugins)
 export RED='\033[0;31m'
 export GREEN='\033[0;32m'

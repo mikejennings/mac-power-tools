@@ -204,6 +204,27 @@ remove_files() {
         return 0
     fi
     
+    # Validate path to prevent traversal attacks
+    # Check if security utilities are available
+    if type -t validate_path >/dev/null 2>&1; then
+        if ! validate_path "$file"; then
+            print_error "Invalid or unsafe path: $file"
+            return 1
+        fi
+    else
+        # Basic path validation fallback
+        # Prevent path traversal with ..
+        if [[ "$file" =~ \.\. ]]; then
+            print_error "Path traversal detected in: $file"
+            return 1
+        fi
+        # Ensure path is within safe directories
+        if [[ ! "$file" =~ ^(/Applications|/Library|/Users|$HOME) ]]; then
+            print_error "Path outside safe directories: $file"
+            return 1
+        fi
+    fi
+    
     if [[ -e "$file" ]]; then
         # Check if we need sudo
         if [[ -w "$file" ]]; then
@@ -227,6 +248,21 @@ uninstall_app() {
     local app_input="$1"
     local app_path=""
     local app_name=""
+    
+    # Sanitize input to prevent injection
+    # Check if security utilities are available
+    if type -t sanitize_input >/dev/null 2>&1; then
+        app_input=$(sanitize_input "$app_input")
+    else
+        # Basic sanitization fallback
+        # Remove dangerous characters
+        app_input="${app_input//[;|&\$\`<>(){}[]]/}"
+        # Limit length
+        if [[ ${#app_input} -gt 255 ]]; then
+            print_error "App name too long"
+            return 1
+        fi
+    fi
     
     # Determine if input is a path or name
     if [[ -d "$app_input" ]]; then
