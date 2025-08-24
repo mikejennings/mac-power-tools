@@ -187,6 +187,89 @@ All releases are now managed locally without GitHub Actions to avoid costs:
 - **bump-version.sh**: Bump version and update files
 - **local-test.sh**: Comprehensive test suite
 - **local-release.sh**: Release management (replaces GitHub Actions)
+- **release-manager.sh**: Enhanced release automation (NEW)
+- **homebrew-sync.sh**: Homebrew tap synchronization (NEW)
+
+## 🚀 Enhanced Release Management System (NEW)
+
+### Complete Release Automation with release-manager.sh
+
+The new `release-manager.sh` script provides end-to-end release automation:
+
+```bash
+# Full release process (interactive)
+./release-manager.sh
+
+# Check prerequisites only
+./release-manager.sh --check
+
+# Run tests only
+./release-manager.sh --test
+```
+
+**Features:**
+- ✅ Automated version bumping
+- ✅ Test suite execution
+- ✅ Archive creation with SHA256
+- ✅ Homebrew formula auto-update
+- ✅ Git tag creation
+- ✅ GitHub release with gh CLI
+- ✅ No GitHub Actions required!
+
+### Homebrew Tap Management with homebrew-sync.sh
+
+Manage your Homebrew tap repository separately:
+
+```bash
+# Interactive menu
+./homebrew-sync.sh
+
+# Direct commands
+./homebrew-sync.sh init     # Clone tap repo
+./homebrew-sync.sh pull     # Pull formula from tap
+./homebrew-sync.sh push     # Push formula to tap
+./homebrew-sync.sh check    # Validate formula syntax
+./homebrew-sync.sh status   # Show sync status
+./homebrew-sync.sh sync     # Full sync (pull + check)
+```
+
+### Release Workflow Example
+
+1. **Make your changes and test locally:**
+   ```bash
+   ./local-test.sh
+   ```
+
+2. **Create a new release:**
+   ```bash
+   ./release-manager.sh
+   # Enter new version when prompted (e.g., 4.1.0)
+   # Script will:
+   #   - Run tests
+   #   - Update version
+   #   - Create archive
+   #   - Update Homebrew formula
+   #   - Create git tag
+   #   - Push to GitHub
+   #   - Create GitHub release
+   ```
+
+3. **Verify Homebrew installation:**
+   ```bash
+   brew update
+   brew upgrade mac-power-tools
+   mac --version  # Should show new version
+   ```
+
+### Gitree Configuration
+
+The `.gitree` file enables subtree management of the Homebrew tap:
+
+```bash
+# If you have gitree installed:
+gitree pull homebrew-tap    # Pull latest formula
+gitree push homebrew-tap    # Push formula updates
+```
 
 ### Common Tasks
 

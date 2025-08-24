@@ -1,0 +1,13 @@
+# Gitree Configuration for Mac Power Tools
+# This file manages the Homebrew tap repository as a subtree
+
+[homebrew-tap]
+url = https://github.com/mikejennings/homebrew-mac-power-tools.git
+path = homebrew
+branch = main
+remote = homebrew-tap
+
+# Commands:
+# gitree pull homebrew-tap    - Pull latest formula from Homebrew tap
+# gitree push homebrew-tap    - Push formula updates to Homebrew tap
+# gitree add homebrew-tap     - Initial setup of the subtree
