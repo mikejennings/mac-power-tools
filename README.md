@@ -593,6 +593,9 @@ If you encounter any issues or have suggestions:
 
 ## Changelog
 
+### v4.0.2 (2025-08-23)
+- Fixed 'mac update all' to bypass fzf menu for direct execution
+
 ### v4.0.1 (2025-08-21)
 - Migrate test suite to plugin architecture - Fix test compatibility with v4.0 pure plugin system
 

@@ -688,3 +688,4 @@ mac dotfiles backup --only-apps
   - Include feature descriptions, usage examples, and version history
 - memorize
 - memorize
+- to memorize
