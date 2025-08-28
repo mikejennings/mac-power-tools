@@ -646,6 +646,24 @@ esac
 4. **Shell Script Recursion**: Be extremely careful with `exec mac command` patterns in wrapper scripts
 5. **fzf UX Patterns**: Always provide escape instructions and clear default selections
 
+### Security Incident: v4.0.4 → v4.0.5 (2025-08-28)
+
+**What Happened**: Version 4.0.4 introduced automatic Homebrew symlink repair but contained critical security vulnerabilities:
+- Command injection through unquoted variables
+- Silent `brew link --overwrite` without user consent
+- Unsafe shell expansion in subshells
+
+**How It Was Caught**: Security subagents (`code-reviewer` and `security-auditor`) identified the issues immediately after release.
+
+**Lessons Learned**:
+1. **Always use security subagents** before releasing ANY code changes
+2. **Never use unquoted variable expansion** in bash scripts
+3. **Always require user confirmation** for destructive operations
+4. **Validate all external input** with regex whitelisting
+5. **Prefer arrays over string variables** for lists of items
+
+**Prevention**: CLAUDE.md now mandates security reviews for all code changes.
+
 ### Development Workflow That Works
 1. **User Reports Issue** (via screenshot/demo)
 2. **Quick Fix & Test** (focus on specific problem)  
@@ -787,6 +805,11 @@ mac dotfiles backup --only-apps
 - **IMPORTANT: Always bump version and push to master** when making changes to this project
 - **Automatic Homebrew Updates**: Version bumps trigger automatic Homebrew formula updates within ~1 minute
 - **Dotfiles Expansion**: When implementing new app support, check Mackup's implementation for reference
+- **MANDATORY SECURITY REVIEW**: After making ANY code changes:
+  - ALWAYS use the `code-reviewer` subagent to review code quality and security
+  - ALWAYS use the `security-auditor` subagent for security vulnerability assessment
+  - NEVER skip security reviews - v4.0.4 incident showed critical vulnerabilities can be introduced easily
+  - Fix all HIGH/CRITICAL issues before releasing
 - **MANDATORY DOCUMENTATION**: When adding ANY new feature or making changes:
   - ALWAYS update README.md with user-facing documentation and examples
   - ALWAYS update CLAUDE.md with release notes and technical details
