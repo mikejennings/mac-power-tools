@@ -593,6 +593,9 @@ If you encounter any issues or have suggestions:
 
 ## Changelog
 
+### v4.0.5 (2025-08-28)
+- SECURITY FIX: Patch command injection vulnerabilities and add user confirmation for overwrites
+
 ### v4.0.4 (2025-08-28)
 - Fix: Auto-repair Homebrew symlink conflicts after updates
 

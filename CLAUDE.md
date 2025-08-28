@@ -414,6 +414,18 @@ gitree push homebrew-tap    # Push formula updates
 
 ## Release History
 
+### v4.0.5 (2025-08-28) - CRITICAL SECURITY HOTFIX 🚨
+- **SECURITY FIX**: Patched command injection vulnerabilities in Homebrew update function
+- **Security Improvements**:
+  - Fixed unquoted variable expansion that could allow command injection
+  - Added proper array handling to prevent shell expansion attacks
+  - Implemented package name validation with regex whitelist
+  - Added mandatory user confirmation for `brew link --overwrite` operations
+  - Shows preview of files that would be overwritten before user confirms
+- **Performance**: Optimized to run `brew doctor` only once instead of multiple times
+- **User Safety**: No longer silently overwrites system files without consent
+- **Compliance**: Addresses CWE-78 (OS Command Injection) and CWE-367 (TOCTOU)
+
 ### v4.0.4 (2025-08-28) - Homebrew Link Auto-Repair 🔧
 - **FIX**: Automatic detection and repair of Homebrew symlink conflicts
 - **Enhancement**: `mac update brew` now automatically fixes broken symlinks after upgrades

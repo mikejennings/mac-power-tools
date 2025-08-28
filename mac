@@ -12,7 +12,7 @@ export MAC_POWER_TOOLS_HOME="$MAC_HOME_DIR"
 SCRIPT_DIR="$MAC_HOME_DIR"
 
 # Version - incrementing to 3.0.0 for unified architecture
-VERSION="4.0.4"
+VERSION="4.0.5"
 
 # Colors for output
 RED='\033[0;31m'
