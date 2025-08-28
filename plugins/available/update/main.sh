@@ -43,10 +43,71 @@ update_homebrew() {
         brew upgrade --cask
         print_success "Homebrew casks upgraded"
         
+        # Check and fix any broken symlinks after upgrades
+        print_info "Checking for broken symlinks..."
+        local doctor_output=$(brew doctor 2>&1)
+        
+        # Check for unlinked kegs (packages that are installed but not linked)
+        if echo "$doctor_output" | grep -q "not linked" || echo "$doctor_output" | grep -q "isn't linked"; then
+            print_warning "Found unlinked packages, attempting to fix..."
+            
+            # Get list of unlinked kegs
+            local unlinked_kegs=$(brew list --formula | while read formula; do
+                if ! brew ls --verbose "$formula" >/dev/null 2>&1; then
+                    echo "$formula"
+                fi
+            done)
+            
+            # Try to link each unlinked keg
+            for keg in $unlinked_kegs; do
+                print_info "Attempting to link $keg..."
+                if brew link --overwrite "$keg" 2>/dev/null; then
+                    print_success "$keg linked successfully"
+                elif brew link "$keg" 2>/dev/null; then
+                    print_success "$keg linked successfully"
+                else
+                    print_warning "Could not automatically link $keg - may need manual intervention"
+                fi
+            done
+        fi
+        
+        # Check for conflicting files (like the corepack issue)
+        if echo "$doctor_output" | grep -q "conflicting"; then
+            print_info "Detected conflicting files, attempting automatic repair..."
+            
+            # Get packages that failed to link during upgrade
+            local problem_packages=$(brew list --formula | while read formula; do
+                if brew link --dry-run "$formula" 2>&1 | grep -q "Would remove"; then
+                    echo "$formula"
+                fi
+            done)
+            
+            if [ -n "$problem_packages" ]; then
+                print_warning "Found packages with linking conflicts: $problem_packages"
+                for package in $problem_packages; do
+                    print_info "Fixing $package..."
+                    # Use --overwrite to force linking, removing conflicting files
+                    if brew link --overwrite "$package" 2>/dev/null; then
+                        print_success "$package fixed and linked"
+                    else
+                        print_warning "Could not fix $package automatically"
+                    fi
+                done
+            fi
+        fi
+        
         print_info "Cleaning up Homebrew..."
         brew cleanup -s
         brew autoremove
         print_success "Homebrew cleaned up"
+        
+        # Final check to ensure everything is healthy
+        if brew doctor 2>&1 | grep -q "Your system is ready to brew"; then
+            print_success "Homebrew is healthy and ready!"
+        else
+            print_info "Running final brew doctor check..."
+            brew doctor 2>&1 | head -10
+        fi
     else
         print_warning "Homebrew not installed"
     fi

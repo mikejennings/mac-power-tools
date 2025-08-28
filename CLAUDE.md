@@ -414,6 +414,17 @@ gitree push homebrew-tap    # Push formula updates
 
 ## Release History
 
+### v4.0.4 (2025-08-28) - Homebrew Link Auto-Repair 🔧
+- **FIX**: Automatic detection and repair of Homebrew symlink conflicts
+- **Enhancement**: `mac update brew` now automatically fixes broken symlinks after upgrades
+- **Problem Solved**: Prevents "command not found" errors after package updates (like Node.js/corepack conflicts)
+- **Implementation**: 
+  - Runs `brew doctor` after upgrades to detect issues
+  - Automatically runs `brew link --overwrite` for packages with conflicts
+  - Detects and links unlinked kegs that were installed but not symlinked
+  - Provides clear feedback during the repair process
+- **User Impact**: No more manual intervention needed for common Homebrew linking issues
+
 ### v4.0.0 (2025-08-20) - Pure Plugin Architecture 🚀
 - **BREAKING CHANGE**: Complete migration to pure plugin system
 - **Removed**: Legacy scripts directory (archived in legacy-archive/)

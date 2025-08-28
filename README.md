@@ -593,6 +593,9 @@ If you encounter any issues or have suggestions:
 
 ## Changelog
 
+### v4.0.4 (2025-08-28)
+- Fix: Auto-repair Homebrew symlink conflicts after updates
+
 ### v4.0.3 (2025-08-23)
 - Added enhanced release management system
 - Added Homebrew tap synchronization tools
