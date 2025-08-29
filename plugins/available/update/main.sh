@@ -141,13 +141,70 @@ update_npm() {
     print_info "Updating npm packages..."
     
     if command_exists npm; then
+        # Check network connectivity first
+        if ! npm ping >/dev/null 2>&1; then
+            print_warning "Cannot reach npm registry - skipping npm updates"
+            return 1
+        fi
+        
         print_info "Updating npm itself..."
         npm install -g npm@latest
         print_success "npm updated"
         
-        print_info "Updating global npm packages..."
-        npm update -g
-        print_success "Global npm packages updated"
+        print_info "Checking outdated global npm packages..."
+        
+        # Get list of outdated packages safely
+        local outdated_output=$(npm outdated -g 2>/dev/null)
+        
+        if [ -n "$outdated_output" ]; then
+            print_info "Found outdated packages:"
+            echo "$outdated_output"
+            
+            # Check for major version updates
+            if echo "$outdated_output" | grep -q "MAJOR"; then
+                print_warning "Major version updates detected - these may contain breaking changes"
+                if ! confirm "Proceed with major version updates?"; then
+                    print_info "Skipping major version updates. Running safe update instead..."
+                    npm update -g
+                    print_success "Global npm packages safely updated (minor/patch only)"
+                    return 0
+                fi
+            fi
+            
+            # Get list of all global packages (safer approach without Python)
+            local packages=$(npm list -g --depth=0 2>/dev/null | grep "├──\|└──" | awk '{print $2}' | cut -d'@' -f1 | grep -v "^npm$")
+            
+            if [ -n "$packages" ]; then
+                local failed_packages=()
+                
+                # Update each package with timeout and error handling
+                while IFS= read -r package; do
+                    if [ -n "$package" ]; then
+                        print_info "Updating $package to latest version..."
+                        if ! timeout 60 npm install -g "$package@latest" >/dev/null 2>&1; then
+                            print_warning "Failed to update $package"
+                            failed_packages+=("$package")
+                        fi
+                    fi
+                done <<< "$packages"
+                
+                # Report results
+                if [ ${#failed_packages[@]} -gt 0 ]; then
+                    print_warning "Failed to update: ${failed_packages[*]}"
+                    print_info "Consider running 'npm audit' to check for issues"
+                else
+                    print_success "Global npm packages updated to latest versions"
+                fi
+            else
+                print_info "No global packages found to update"
+            fi
+        else
+            print_success "Global npm packages are up to date"
+        fi
+        
+        # Run security audit
+        print_info "Running security audit..."
+        npm audit --audit-level=moderate 2>/dev/null || true
     else
         print_warning "npm not installed"
     fi
