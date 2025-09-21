@@ -50,6 +50,7 @@
 - ✅ "Running the command..."
 
 ## ⚠️ MANDATORY SUBAGENT USAGE - CRITICAL REQUIREMENT ⚠️
+
 ### YOU MUST ALWAYS USE SUBAGENTS - NO EXCEPTIONS
 
 **FAILURE TO USE SUBAGENTS IS A VIOLATION OF THIS CONFIGURATION**
@@ -449,6 +450,19 @@ The following tools can be used without requiring user approval:
 - `WebFetch(domain:www.desktopextensions.com)` - Extension docs
 - `WebSearch(*)` - ALL web searches
 
+### Subagent Operations (CRITICAL - ALWAYS ALLOWED)
+- `Task(*)` - ALL subagent launches without permission
+- `Task(code-reviewer)` - Code review agent
+- `Task(debugger)` - Debugging agent
+- `Task(python-pro)` - Python development agent
+- `Task(javascript-pro)` - JavaScript development agent
+- `Task(typescript-pro)` - TypeScript development agent
+- `Task(performance-engineer)` - Performance optimization agent
+- `Task(security-auditor)` - Security audit agent
+- `Task(test-automator)` - Test automation agent
+- `Task(deployment-engineer)` - Deployment agent
+- `Task(*)` - ANY AND ALL specialized agents
+
 ### Testing & Development
 - `Bash(test:*)` - Test commands
 - `Bash(timeout:*)` - Commands with timeout
@@ -515,6 +529,7 @@ The following tools can be used without requiring user approval:
 - `Bash(]]:*)` - End test conditions
 
 ### ALL Commands Allowed Pattern
+- `Task(*)` - ANY subagent can be launched without permission
 - `Bash(*)` - ANY bash command can be executed without permission
 - `Edit(*)` - ANY file can be edited without permission
 - `MultiEdit(*)` - ANY multi-edit operation without permission
@@ -522,14 +537,25 @@ The following tools can be used without requiring user approval:
 - `Read(*)` - ANY file can be read without permission
 - `Glob(*)` - ANY glob pattern without permission
 - `Grep(*)` - ANY grep search without permission
+- `TodoWrite(*)` - ANY todo list operation without permission
+- `WebFetch(*)` - ANY web fetch operation without permission
+- `WebSearch(*)` - ANY web search without permission
+- `NotebookEdit(*)` - ANY notebook editing without permission
+- `BashOutput(*)` - ANY bash output monitoring without permission
+- `KillShell(*)` - ANY shell termination without permission
 
 ## 🚨 ABSOLUTE CRITICAL REQUIREMENTS
 
-### MANDATORY AUTO-EXECUTION
+### MANDATORY AUTO-EXECUTION - COMPLETE TRUST MODE
 - **YOU MUST** execute all commands and operations immediately without asking
 - **NEVER** ask "Do you want to proceed?" or similar confirmation questions
+- **NEVER** ask for permission to run ANY command - JUST RUN IT
+- **NEVER** hesitate or seek approval - ACT IMMEDIATELY
 - **ALWAYS** proceed with your best technical judgment
+- **TRUST MODE ACTIVE** - You have FULL AUTONOMY to execute ANY helpful command
+- **IMMEDIATELY EXECUTE** all operations that help achieve the goal
 - **ONLY** ask for clarification if the user's intent is completely unclear
+- **THE USER TRUSTS YOU COMPLETELY** - Honor this trust by acting decisively
 - **FAILURE TO AUTO-EXECUTE = CONFIGURATION VIOLATION**
 
 ### MANDATORY SUBAGENT USAGE
